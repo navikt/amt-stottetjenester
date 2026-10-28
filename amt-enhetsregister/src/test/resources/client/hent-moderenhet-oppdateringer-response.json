@@ -1,0 +1,48 @@
+{
+  "_embedded": {
+    "oppdaterteEnheter": [
+      {
+        "oppdateringsid": 123867,
+        "dato": "2018-05-14T21:53:00.000Z",
+        "organisasjonsnummer": "9876543",
+        "endringstype": "Ukjent",
+        "_links": {
+          "underenhet": {
+            "href": "https://data.brreg.no/enhetsregisteret/api/underenheter/9876543"
+          }
+        }
+      },
+      {
+        "oppdateringsid": 123868,
+        "dato": "2018-05-14T21:53:00.000Z",
+        "organisasjonsnummer": "88445533",
+        "endringstype": "Ny",
+        "_links": {
+          "underenhet": {
+            "href": "https://data.brreg.no/enhetsregisteret/api/underenheter/88445533"
+          }
+        }
+      }
+    ]
+  },
+  "_links": {
+    "first": {
+      "href": "https://data.brreg.no/enhetsregisteret/api/oppdateringer/underenheter?oppdateringsid=123867&page=0&size=2"
+    },
+    "self": {
+      "href": "https://data.brreg.no/enhetsregisteret/api/oppdateringer/underenheter?oppdateringsid=123867&size=2"
+    },
+    "next": {
+      "href": "https://data.brreg.no/enhetsregisteret/api/oppdateringer/underenheter?oppdateringsid=123867&page=1&size=2"
+    },
+    "last": {
+      "href": "https://data.brreg.no/enhetsregisteret/api/oppdateringer/underenheter?oppdateringsid=123867&page=2522226&size=2"
+    }
+  },
+  "page": {
+    "size": 2,
+    "totalElements": 5044454,
+    "totalPages": 2522227,
+    "number": 0
+  }
+}

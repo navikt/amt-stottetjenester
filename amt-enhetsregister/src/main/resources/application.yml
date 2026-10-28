@@ -1,0 +1,59 @@
+spring:
+  main:
+    banner-mode: off
+  lifecycle:
+    timeout-per-shutdown-phase: 25s
+  datasource:
+    url: ${DB_JDBC_URL}
+    hikari:
+      maximum-pool-size: 10
+
+  http:
+    clients:
+      connect-timeout: 5s
+      read-timeout: 20s
+    serviceclient:
+      brreg-api:
+        base-url: ${app.env.brreg-url}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AZURE_OPENID_CONFIG_ISSUER}
+          audiences: ${AZURE_APP_CLIENT_ID}
+          authorities-claim-name: roles
+          authority-prefix: ROLE_
+
+server:
+  shutdown: graceful
+
+management:
+  server:
+    port: 8081
+  endpoint:
+    prometheus:
+      access: read_only
+    health:
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include:
+            - livenessState
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus
+          - health
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+app:
+  env:
+    virksomheterTopic: "${VIRKSOMHETER_TOPIC}"
+    brreg-url: https://data.brreg.no
+    brreg-bulk-read-timeout: 10m

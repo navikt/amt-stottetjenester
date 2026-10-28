@@ -1,0 +1,48 @@
+{
+  "organisasjonsnummer": "998877443",
+  "navn": "Moderenhet 1",
+  "organisasjonsform": {
+    "kode": "FLI",
+    "beskrivelse": "Forening/lag/innretning",
+    "_links": {
+      "self": {
+        "href": "https://data.brreg.no/enhetsregisteret/api/organisasjonsformer/FLI"
+      }
+    }
+  },
+  "registreringsdatoEnhetsregisteret": "2021-10-09",
+  "registrertIMvaregisteret": false,
+  "naeringskode1": {
+    "beskrivelse": "Eiendomsforvaltning",
+    "kode": "68.320"
+  },
+  "antallAnsatte": 0,
+  "forretningsadresse": {
+    "land": "Norge",
+    "landkode": "NO",
+    "postnummer": "1234",
+    "poststed": "OSLO",
+    "adresse": [
+      "Testveien 42"
+    ],
+    "kommune": "OSLO",
+    "kommunenummer": "1234"
+  },
+  "stiftelsesdato": "2008-07-01",
+  "institusjonellSektorkode": {
+    "kode": "7000",
+    "beskrivelse": "Ideelle organisasjoner"
+  },
+  "registrertIForetaksregisteret": false,
+  "registrertIStiftelsesregisteret": false,
+  "registrertIFrivillighetsregisteret": false,
+  "konkurs": false,
+  "underAvvikling": false,
+  "underTvangsavviklingEllerTvangsopplosning": false,
+  "maalform": "Bokmål",
+  "_links": {
+    "self": {
+      "href": "https://data.brreg.no/enhetsregisteret/api/enheter/998877443"
+    }
+  }
+}

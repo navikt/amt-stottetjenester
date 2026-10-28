@@ -1,0 +1,35 @@
+package no.nav.enhetsregister.repository
+
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureJdbc
+import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection
+import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.TestConstructor
+import org.testcontainers.containers.wait.strategy.Wait
+import org.testcontainers.postgresql.PostgreSQLContainer
+import org.testcontainers.utility.DockerImageName
+import javax.sql.DataSource
+
+@ActiveProfiles("test")
+@AutoConfigureJdbc
+@AutoConfigureJson
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+abstract class RepositoryTestBase {
+    @Autowired
+    protected lateinit var dataSource: DataSource
+
+    companion object {
+        private const val POSTGRES_DOCKER_IMAGE_NAME = "postgres:17-alpine"
+
+        @ServiceConnection
+        private val postgres = PostgreSQLContainer(
+            DockerImageName
+                .parse(POSTGRES_DOCKER_IMAGE_NAME)
+                .asCompatibleSubstituteFor("postgres"),
+        ).apply {
+            addEnv("TZ", "Europe/Oslo")
+            waitingFor(Wait.forListeningPort())
+        }
+    }
+}

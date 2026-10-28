@@ -1,0 +1,41 @@
+{
+  "organisasjonsnummer": "12345678",
+  "navn": "Underenhet 1",
+  "organisasjonsform": {
+    "kode": "BEDR",
+    "beskrivelse": "Underenhet til næringsdrivende og offentlig forvaltning",
+    "_links": {
+      "self": {
+        "href": "https://data.brreg.no/enhetsregisteret/api/organisasjonsformer/BEDR"
+      }
+    }
+  },
+  "registreringsdatoEnhetsregisteret": "2008-01-27",
+  "registrertIMvaregisteret": false,
+  "naeringskode1": {
+    "beskrivelse": "Grunnarbeid",
+    "kode": "43.120"
+  },
+  "antallAnsatte": 18,
+  "overordnetEnhet": "9988564",
+  "oppstartsdato": "2009-06-15",
+  "beliggenhetsadresse": {
+    "land": "Norge",
+    "landkode": "NO",
+    "postnummer": "1234",
+    "poststed": "OSLO",
+    "adresse": [
+      "Testheim 123"
+    ],
+    "kommune": "OSLO",
+    "kommunenummer": "1234"
+  },
+  "_links": {
+    "self": {
+      "href": "https://data.brreg.no/enhetsregisteret/api/underenheter/12345678"
+    },
+    "overordnetEnhet": {
+      "href": "https://data.brreg.no/enhetsregisteret/api/enheter/9988564"
+    }
+  }
+}

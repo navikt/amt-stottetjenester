@@ -1,0 +1,81 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: amt-enhetsregister
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  image: {{image}}
+  port: 8080
+
+  prometheus:
+    enabled: true
+    port: "8081"
+    path: /actuator/prometheus
+  startup:
+    port: 8081
+    path: /actuator/health/liveness
+    initialDelay: 20
+    failureThreshold: 15
+  readiness:
+    port: 8081
+    path: /actuator/health/readiness
+  liveness:
+    port: 8081
+    path: /actuator/health/liveness
+
+  replicas:
+    disableAutoScaling: true
+    min: 2
+    max: 2
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+    limits:
+      memory: 4096Mi # Trenger mye minne når man skal laste ned alle enheter
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    inbound:
+      rules:
+        - application: amt-arrangor
+          namespace: amt
+          cluster: prod-gcp
+        - application: aktivitet-arena-acl
+          namespace: dab
+          cluster: prod-gcp
+        - application: mulighetsrommet-api
+          namespace: team-mulighetsrommet
+          cluster: prod-gcp
+    outbound:
+      external:
+        - host: data.brreg.no
+  kafka:
+    pool: nav-prod
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=70.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow"
+    - name: VIRKSOMHETER_TOPIC
+      value: amt.virksomheter-v1
+
+  gcp:
+    sqlInstances:
+      - name: amt-enhetsregister-2
+        type: POSTGRES_17
+        tier: db-custom-1-3840
+        diskAutoresize: true
+        databases:
+          - name: amt-enhetsregister
+            envVarPrefix: DB
+
+  observability:
+      autoInstrumentation:
+        enabled: true
+        runtime: java
+      logging:
+        destinations:
+          - id: elastic
+          - id: loki

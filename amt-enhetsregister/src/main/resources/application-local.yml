@@ -1,0 +1,23 @@
+server:
+  port: 8085
+
+management:
+  server:
+    port: 8085
+
+logging:
+  config: classpath:logback-local.xml
+
+AZURE_OPENID_CONFIG_ISSUER: http://localhost:9000/azure
+AZURE_APP_CLIENT_ID: amt-enhetsregister
+DB_JDBC_URL: jdbc:postgresql://localhost:5432/amt_enhetsregister_db
+
+spring:
+  datasource:
+    username: myuser
+    password: mypassword
+
+app:
+  env:
+    brreg-url: http://localhost:9002/brreg
+    virksomheterTopic: amt.virksomheter-v1
