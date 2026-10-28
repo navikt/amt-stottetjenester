@@ -1,6 +1,6 @@
 dependencies {
-    api(project(":core"))
+    api(project(":amt-tiltak:core"))
     api("org.springframework.boot:spring-boot-starter")
-    api(project(":common:json"))
-    api(project(":clients:amt-arrangor-client"))
+    api(project(":amt-tiltak:common:json"))
+    api(project(":amt-tiltak:clients:amt-arrangor-client"))
 }

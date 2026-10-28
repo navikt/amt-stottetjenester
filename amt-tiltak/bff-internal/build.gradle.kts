@@ -1,7 +1,7 @@
 dependencies {
-    api(project(":core"))
-    api(project(":clients:amt-arrangor-client"))
-    api(project(":test:test-utils"))
+    api(project(":amt-tiltak:core"))
+    api(project(":amt-tiltak:clients:amt-arrangor-client"))
+    api(project(":amt-tiltak:test:test-utils"))
     api(libs.nav.common.job) {
         exclude(group = "com.squareup.okhttp3", module = "okhttp")
     }
@@ -10,8 +10,8 @@ dependencies {
     }
     api("org.springframework.boot:spring-boot-starter-jetty")
     api(libs.token.validation.spring)
-    api(project(":data-publisher"))
-    testImplementation(libs.kotest.assertions.core)
+    api(project(":amt-tiltak:data-publisher"))
+    testImplementation(libs.tiltak.kotest.assertions.core)
     testImplementation(libs.mockk)
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

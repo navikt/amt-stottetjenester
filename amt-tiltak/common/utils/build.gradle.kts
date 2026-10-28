@@ -1,5 +1,5 @@
 dependencies {
     api(libs.caffeine)
-    testImplementation(libs.kotest.runner.junit5)
-    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.tiltak.kotest.runner.junit5)
+    testImplementation(libs.tiltak.kotest.assertions.core)
 }
