@@ -1,133 +1,59 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    val kotlinVersion = "2.4.21"
-    val springBootVersion = "4.1.2"
-    val springDependencyManagementVersion = "1.1.7"
-
-    kotlin("jvm") version kotlinVersion
-    kotlin("plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version springBootVersion
-    id("io.spring.dependency-management") version springDependencyManagementVersion
+    id("amt-spring-database-conventions")
 }
 
 group = "no.nav.amt.arena-acl"
 version = "1.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
-    maven("https://packages.confluent.io/maven/")
-    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
+// Bevarer artefaktnavnet fra da prosjektet het "arena-acl" i egen Gradle-build.
+base {
+    archivesName = "arena-acl"
 }
 
-val nimbusVersion = "11.38.2"
-val okhttpVersion = "5.5.0"
-val shedlockVersion = "7.10.1"
-val unleashVersion = "12.3.0"
-val navCommonVersion = "4.2026.09.24_06.17-80dfc0eacb29"
-val navTokenSupportVersion = "7.0.1"
-val logstashEncoderVersion = "9.0"
-val jacksonModuleKotlinVersion = "3.2.4"
+repositories {
+    maven("https://packages.confluent.io/maven/")
+}
 
-val kotestVersion = "6.2.6"
-val mockkVersion = "1.14.11"
-val springmockkVersion = "5.0.1"
-val kotestExtensionsSpringVersion = "1.3.0"
-val kotestExtensionsTestcontainersVersion = "2.0.2"
-
-val amtLibVersion = "1.2026.10.20_09.19-755cf2186842"
-val navCommonModules = setOf("log", "job", "rest", "token-client")
+val navCommonModules =
+    listOf(
+        libs.nav.common.log,
+        libs.nav.common.job,
+        libs.nav.common.rest,
+        libs.nav.common.token.client,
+    )
 
 dependencyManagement {
     dependencies {
-        dependency("com.squareup.okhttp3:okhttp:$okhttpVersion")
-        dependency("com.squareup.okhttp3:mockwebserver:$okhttpVersion")
+        dependency("com.squareup.okhttp3:okhttp:${libs.versions.okhttp.get()}")
+        dependency("com.squareup.okhttp3:mockwebserver:${libs.versions.okhttp.get()}")
     }
 }
 
 dependencies {
-    constraints {
-        implementation("at.yawk.lz4:lz4-java") {
-            version { strictly("1.11.4") }
-            because("Fixes CVE-2026-59949")
-        }
-    }
+    implementation(libs.nimbus.oauth2.oidc.sdk)
+    implementation(libs.shedlock.jdbc.template)
 
-    implementation("com.nimbusds:oauth2-oidc-sdk:$nimbusVersion")
-    implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
-    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:$shedlockVersion")
-
-    implementation("no.nav.security:token-validation-spring:$navTokenSupportVersion")
+    implementation(libs.token.validation.spring)
 
     navCommonModules.forEach {
-        implementation("no.nav.common:$it:$navCommonVersion")
+        implementation(it)
     }
 
-    implementation("no.nav.common:kafka:$navCommonVersion") {
+    implementation(libs.nav.common.kafka) {
         exclude(group = "org.xerial.snappy", module = "snappy-java")
         exclude(group = "org.apache.avro", module = "avro")
         exclude(group = "io.confluent", module = "kafka-avro-serializer")
     }
 
-    implementation("io.getunleash:unleash-client-java:$unleashVersion")
+    implementation(libs.unleash)
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
-    implementation("org.springframework.boot:spring-boot-starter-web") {
-        exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
-    }
-    runtimeOnly("org.springframework.boot:spring-boot-starter-jetty")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-logging")
-    implementation("org.springframework.boot:spring-boot-flyway")
 
-    implementation("tools.jackson.module:jackson-module-kotlin:$jacksonModuleKotlinVersion")
+    implementation(libs.amt.lib.models)
 
-    implementation("org.flywaydb:flyway-database-postgresql")
-    runtimeOnly("org.postgresql:postgresql")
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.kotest.extensions.spring)
+    testImplementation(libs.kotest.extensions.testcontainers)
+    testImplementation(libs.token.validation.spring.test)
 
-    implementation("io.micrometer:micrometer-registry-prometheus")
-
-    implementation("no.nav.amt.deltakelser.lib:models:$amtLibVersion")
-
-    testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion")
-    testImplementation("io.kotest:kotest-extensions-spring:$kotestVersion")
-    testImplementation("io.kotest:kotest-extensions-testcontainers:$kotestVersion")
-    testImplementation("io.mockk:mockk-jvm:$mockkVersion")
-    testImplementation("com.ninja-squad:springmockk:$springmockkVersion")
-    testImplementation("no.nav.security:token-validation-spring-test:$navTokenSupportVersion")
-
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude(group = "com.vaadin.external.google", module = "android-json")
-    }
-    testImplementation("org.springframework.boot:spring-boot-data-jdbc-test")
-    testImplementation("org.springframework.boot:spring-boot-resttestclient")
-    testImplementation("org.springframework.boot:spring-boot-testcontainers")
-
-    testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("org.testcontainers:testcontainers-kafka")
-}
-
-kotlin {
-    jvmToolchain(25)
-    compilerOptions {
-        jvmTarget = JvmTarget.JVM_25
-        freeCompilerArgs.addAll(
-            "-Xjsr305=strict",
-            "-Xannotation-default-target=param-property",
-            "-Xwarning-level=IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE:disabled",
-            "-Xmulti-dollar-interpolation",
-        )
-    }
-}
-
-tasks.named<Jar>("jar") {
-    enabled = false
-}
-
-tasks.named<Test>("test") {
-    jvmArgs(
-        "-Xshare:off",
-        "-XX:+EnableDynamicAgentLoading",
-    )
-    useJUnitPlatform()
 }

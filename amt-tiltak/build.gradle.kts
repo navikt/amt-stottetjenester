@@ -6,24 +6,21 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-plugins {
-    alias(libs.plugins.kotlin.jvm) apply false
-    alias(libs.plugins.kotlin.spring) apply false
-    alias(libs.plugins.kotlin.serialization) apply false
-    alias(libs.plugins.spring.boot) apply false
-    alias(libs.plugins.spring.dependency.management) apply false
-}
+// Kotlin-, Spring- og dependency-management-pluginene kommer fra root buildSrc.
 
 group = "no.nav.amt-tiltak"
 version = "1.0-SNAPSHOT"
 
 val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 fun catalogVersion(name: String) = versionCatalog.findVersion(name).get().requiredVersion
-val lz4Dependency = versionCatalog.findLibrary("lz4").get()
+val lz4Dependency = versionCatalog.findLibrary("tiltak-lz4-java").get()
+
+val tiltakGroup = group
+val tiltakVersion = version
 
 allprojects {
-    group = rootProject.group
-    version = rootProject.version
+    group = tiltakGroup
+    version = tiltakVersion
 
     repositories {
         mavenCentral()
@@ -33,6 +30,10 @@ allprojects {
 }
 
 configure(subprojects.filter { it.buildFile.exists() }) {
+    // Erstatter kotlin.stdlib.default.dependency=false fra den tidligere egne gradle.properties.
+    // kotlin-stdlib legges eksplisitt til som api-avhengighet nedenfor.
+    extra["kotlin.stdlib.default.dependency"] = "false"
+
     apply(plugin = "java-library")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
@@ -73,21 +74,21 @@ configure(subprojects.filter { it.buildFile.exists() }) {
             }
         }
         resolutionStrategy.force(
-            "at.yawk.lz4:lz4-java:${catalogVersion("lz4")}",
-            "com.fasterxml.jackson.core:jackson-annotations:${catalogVersion("jackson-annotations")}",
+            "at.yawk.lz4:lz4-java:${catalogVersion("tiltak-lz4-java")}",
+            "com.fasterxml.jackson.core:jackson-annotations:${catalogVersion("jackson2-annotations")}",
             "com.nimbusds:oauth2-oidc-sdk:${catalogVersion("nimbus")}",
             "com.squareup.okhttp3:okhttp:${catalogVersion("okhttp")}",
             "com.squareup.okhttp3:okhttp-jvm:${catalogVersion("okhttp")}",
-            "io.getunleash:unleash-client-java:${catalogVersion("unleash")}",
-            "io.kotest:kotest-assertions-core-jvm:${catalogVersion("kotest")}",
-            "io.kotest:kotest-assertions-json-jvm:${catalogVersion("kotest")}",
-            "io.kotest:kotest-framework-concurrency-jvm:${catalogVersion("kotest")}",
-            "io.kotest:kotest-runner-junit5-jvm:${catalogVersion("kotest")}",
+            "io.getunleash:unleash-client-java:${catalogVersion("tiltak-unleash")}",
+            "io.kotest:kotest-assertions-core-jvm:${catalogVersion("tiltak-kotest")}",
+            "io.kotest:kotest-assertions-json-jvm:${catalogVersion("tiltak-kotest")}",
+            "io.kotest:kotest-framework-concurrency-jvm:${catalogVersion("tiltak-kotest")}",
+            "io.kotest:kotest-runner-junit5-jvm:${catalogVersion("tiltak-kotest")}",
             "io.mockk:mockk-jvm:${catalogVersion("mockk")}",
             "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:${catalogVersion("shedlock")}",
             "net.javacrumbs.shedlock:shedlock-spring:${catalogVersion("shedlock")}",
-            "net.logstash.logback:logstash-logback-encoder:${catalogVersion("logstash")}",
-            "no.nav.amt.lib:models:${catalogVersion("amt-lib")}",
+            "net.logstash.logback:logstash-logback-encoder:${catalogVersion("logstash-encoder")}",
+            "no.nav.amt.lib:models:${catalogVersion("tiltak-amt-lib")}",
             "no.nav.common:audit-log:${catalogVersion("nav-common")}",
             "no.nav.common:job:${catalogVersion("nav-common")}",
             "no.nav.common:kafka:${catalogVersion("nav-common")}",
@@ -95,20 +96,20 @@ configure(subprojects.filter { it.buildFile.exists() }) {
             "no.nav.common:rest:${catalogVersion("nav-common")}",
             "no.nav.common:token-client:${catalogVersion("nav-common")}",
             "no.nav.common:types:${catalogVersion("nav-common")}",
-            "no.nav.poao-tilgang:client:${catalogVersion("poao-tilgang")}",
+            "no.nav.poao-tilgang:client:${catalogVersion("tiltak-poao-tilgang")}",
             "no.nav.security:mock-oauth2-server:${catalogVersion("mock-oauth2-server")}",
             "no.nav.security:token-validation-spring:${catalogVersion("token-support")}",
-            "org.apache.kafka:kafka-clients:${catalogVersion("kafka-clients")}",
+            "org.apache.kafka:kafka-clients:${catalogVersion("tiltak-kafka-clients")}",
             "org.apache.logging.log4j:log4j-api:${catalogVersion("log4j")}",
             "org.mockito.kotlin:mockito-kotlin:${catalogVersion("mockito-kotlin")}",
             "org.postgresql:postgresql:${catalogVersion("postgresql")}",
-            "org.testcontainers:junit-jupiter:${catalogVersion("testcontainers")}",
-            "org.testcontainers:kafka:${catalogVersion("testcontainers")}",
-            "org.testcontainers:postgresql:${catalogVersion("testcontainers")}",
-            "org.testcontainers:testcontainers:${catalogVersion("testcontainers")}",
-            "tools.jackson.core:jackson-core:3.2.4",
-            "tools.jackson.core:jackson-databind:3.2.4",
-            "tools.jackson.module:jackson-module-kotlin:3.2.4",
+            "org.testcontainers:junit-jupiter:${catalogVersion("tiltak-testcontainers")}",
+            "org.testcontainers:kafka:${catalogVersion("tiltak-testcontainers")}",
+            "org.testcontainers:postgresql:${catalogVersion("tiltak-testcontainers")}",
+            "org.testcontainers:testcontainers:${catalogVersion("tiltak-testcontainers")}",
+            "tools.jackson.core:jackson-core:${catalogVersion("tools-jackson")}",
+            "tools.jackson.core:jackson-databind:${catalogVersion("tools-jackson")}",
+            "tools.jackson.module:jackson-module-kotlin:${catalogVersion("tools-jackson")}",
         )
     }
 

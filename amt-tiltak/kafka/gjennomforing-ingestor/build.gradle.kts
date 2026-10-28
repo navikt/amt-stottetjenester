@@ -1,8 +1,8 @@
 dependencies {
     api("org.springframework.boot:spring-boot-starter")
-    api(project(":common:json"))
-    api(project(":core"))
-    api(project(":clients:mulighetsrommet-api-client"))
-    testImplementation(libs.kotest.assertions.core)
+    api(project(":amt-tiltak:common:json"))
+    api(project(":amt-tiltak:core"))
+    api(project(":amt-tiltak:clients:mulighetsrommet-api-client"))
+    testImplementation(libs.tiltak.kotest.assertions.core)
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
 }

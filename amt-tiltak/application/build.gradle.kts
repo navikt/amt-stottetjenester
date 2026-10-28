@@ -1,38 +1,38 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-    alias(libs.plugins.spring.boot)
+    id("org.springframework.boot")
 }
 
 dependencies {
-    api(project(":bff-tiltaksarrangor"))
-    api(project(":bff-nav_ansatt"))
-    api(project(":bff-internal"))
-    api(project(":tiltak"))
-    api(project(":tilgangskontroll-tiltaksarrangor"))
-    api(project(":arrangor"))
-    api(project(":clients:amt-person"))
-    api(project(":external-api"))
-    api(project(":db-migrations"))
-    api(project(":kafka:kafka-config"))
-    api(project(":kafka:kafka-producer"))
-    api(project(":kafka:arena-acl-ingestor"))
-    api(project(":kafka:gjennomforing-ingestor"))
-    api(project(":kafka:arrangor-ingestor"))
-    api(project(":kafka:ansatt-ingestor"))
-    api(project(":kafka:nav-bruker-ingestor"))
-    api(project(":kafka:nav-ansatt-ingestor"))
-    api(project(":kafka:deltaker-ingestor"))
-    api(project(":clients:mulighetsrommet-api-client"))
+    api(project(":amt-tiltak:bff-tiltaksarrangor"))
+    api(project(":amt-tiltak:bff-nav_ansatt"))
+    api(project(":amt-tiltak:bff-internal"))
+    api(project(":amt-tiltak:tiltak"))
+    api(project(":amt-tiltak:tilgangskontroll-tiltaksarrangor"))
+    api(project(":amt-tiltak:arrangor"))
+    api(project(":amt-tiltak:clients:amt-person"))
+    api(project(":amt-tiltak:external-api"))
+    api(project(":amt-tiltak:db-migrations"))
+    api(project(":amt-tiltak:kafka:kafka-config"))
+    api(project(":amt-tiltak:kafka:kafka-producer"))
+    api(project(":amt-tiltak:kafka:arena-acl-ingestor"))
+    api(project(":amt-tiltak:kafka:gjennomforing-ingestor"))
+    api(project(":amt-tiltak:kafka:arrangor-ingestor"))
+    api(project(":amt-tiltak:kafka:ansatt-ingestor"))
+    api(project(":amt-tiltak:kafka:nav-bruker-ingestor"))
+    api(project(":amt-tiltak:kafka:nav-ansatt-ingestor"))
+    api(project(":amt-tiltak:kafka:deltaker-ingestor"))
+    api(project(":amt-tiltak:clients:mulighetsrommet-api-client"))
     api(libs.nav.common.token.client)
-    api(libs.poao.tilgang.client) {
+    api(libs.tiltak.poao.tilgang.client) {
         exclude(group = "com.squareup.okhttp3", module = "okhttp")
     }
     api(libs.nav.common.log)
     api(libs.nav.common.job) {
         exclude(group = "com.squareup.okhttp3", module = "okhttp")
     }
-    api(libs.unleash)
+    api(libs.tiltak.unleash)
     api("org.springframework.boot:spring-boot-starter")
     api("org.springframework.boot:spring-boot-starter-web") {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
@@ -44,7 +44,7 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter-validation")
     api(libs.token.validation.spring)
     api(libs.shedlock.jdbc.template)
-    api(libs.jackson.module.kotlin)
+    api(libs.tools.jackson.module.kotlin)
     api("org.flywaydb:flyway-core")
     api("org.springframework.boot:spring-boot-flyway")
     api("org.flywaydb:flyway-database-postgresql")
@@ -53,7 +53,7 @@ dependencies {
     api(libs.logstash.encoder)
     api(libs.shedlock.spring)
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation(project(":test:database"))
+    testImplementation(project(":amt-tiltak:test:database"))
     testImplementation(libs.mockk)
 }
 

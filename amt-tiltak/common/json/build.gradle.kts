@@ -1,4 +1,4 @@
 dependencies {
-    api(libs.jackson.databind)
-    api(libs.jackson.module.kotlin)
+    api(libs.tools.jackson.databind)
+    api(libs.tools.jackson.module.kotlin)
 }
