@@ -23,11 +23,23 @@ repositories {
 
 dependencies {
     constraints {
+        implementation("com.google.guava:guava") {
+            version {
+                strictly(versionCatalog.findVersion("guava").get().requiredVersion)
+            }
+            because("Fixes GHSA-xxph-c9ww-hj94")
+        }
         implementation("at.yawk.lz4:lz4-java") {
             version {
                 strictly(versionCatalog.findVersion("lz4-java").get().requiredVersion)
             }
             because("Fixes CVE-2026-59949")
+        }
+        implementation("org.xerial.snappy:snappy-java") {
+            version {
+                strictly(versionCatalog.findVersion("snappy-java").get().requiredVersion)
+            }
+            because("Fixes CVE-2026-108106")
         }
     }
 
