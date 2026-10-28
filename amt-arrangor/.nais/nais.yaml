@@ -1,0 +1,114 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: amt-arrangor
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  image: {{image}}
+  port: 8080
+  terminationGracePeriodSeconds: 60
+
+  gcp:
+    sqlInstances:
+      - name: {{database_instance}}
+        type: POSTGRES_17
+        tier: {{database_tier}}
+        databases:
+          - name: amt-arrangor
+            envVarPrefix: DB
+        diskAutoresize: {{database_disk_autoresize}}
+        highAvailability: false
+        insights:
+          enabled: true
+
+  prometheus:
+    enabled: true
+    port: "8081"
+    path: /actuator/prometheus
+  startup:
+    port: 8081
+    path: /actuator/health/liveness
+    initialDelay: 10
+    failureThreshold: 20
+  readiness:
+    port: 8081
+    path: /actuator/health/readiness
+  liveness:
+    port: 8081
+    path: /actuator/health/liveness
+
+  replicas:
+    min: {{replicas_min}}
+    max: {{replicas_max}}
+{{#if cpu_scaling_threshold}}
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: {{cpu_scaling_threshold}}
+{{else}}
+    disableAutoScaling: true
+{{/if}}
+  resources:
+    requests:
+      cpu: {{cpu_request}}
+      memory: {{memory_request}}
+    limits:
+      memory: {{memory_limit}}
+  azure:
+    application:
+      enabled: true
+  kafka:
+    pool: {{kafka_pool}}
+  leaderElection: true
+  tokenx:
+    enabled: true
+  accessPolicy:
+    inbound:
+      rules:
+        - application: amt-tiltak
+        - application: amt-tiltaksarrangor-bff
+        - application: amt-aktivitetskort-publisher
+        - application: amt-deltaker-bff
+        - application: amt-deltaker
+    outbound:
+      rules:
+        - application: amt-enhetsregister
+          namespace: amt
+          cluster: {{cluster}}
+        - application: amt-altinn-acl
+          namespace: amt
+          cluster: {{cluster}}
+        - application: amt-person-service
+          namespace: amt
+          cluster: {{cluster}}
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "{{jdk_java_options}}"
+
+    - name: AMT_ENHETSREGISTER_URL
+      value: http://amt-enhetsregister.amt.svc.cluster.local
+    - name: AMT_ENHETSREGISTER_SCOPE
+      value: api://{{cluster}}.amt.amt-enhetsregister/.default
+    - name: AMT_ENHETSREGISTER_ALLOWED_HOSTS
+      value: amt-enhetsregister.amt.svc.cluster.local
+
+    - name: AMT_ALTINN_URL
+      value: http://amt-altinn-acl.amt.svc.cluster.local
+    - name: AMT_ALTINN_SCOPE
+      value: api://{{cluster}}.amt.amt-altinn-acl/.default
+
+    - name: AMT_PERSON_URL
+      value: http://amt-person-service.amt.svc.cluster.local
+    - name: AMT_PERSON_SCOPE
+      value: api://{{cluster}}.amt.amt-person-service/.default
+
+
+  observability:
+      autoInstrumentation:
+        enabled: true
+        runtime: java
+      logging:
+        destinations:
+          - id: elastic
+          - id: loki

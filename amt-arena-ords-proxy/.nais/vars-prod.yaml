@@ -1,0 +1,17 @@
+application_name: amt-arena-ords-proxy
+termination_grace_period_seconds: 30
+ingress: https://amt-arena-ords-proxy.prod-fss-pub.nais.io
+cpu_request: 20m
+memory_request: 335Mi
+jdk_java_options: -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow
+arena_ords_url: https://arena-ords.nais.adeo.no
+inbound_rules:
+  - application: amt-arena-acl
+    namespace: amt
+    cluster: prod-gcp
+  - application: aktivitet-arena-acl
+    namespace: dab
+    cluster: prod-gcp
+  - application: mulighetsrommet-arena-adapter
+    namespace: team-mulighetsrommet
+    cluster: prod-gcp

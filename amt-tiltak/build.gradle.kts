@@ -127,3 +127,9 @@ configure(subprojects.filter { it.buildFile.exists() }) {
         }
     }
 }
+
+tasks.register("checkAll") {
+    group = "verification"
+    description = "Runs verification tasks for all amt-tiltak subprojects."
+    dependsOn(subprojects.filter { it.buildFile.exists() }.map { "${it.path}:check" })
+}

@@ -1,0 +1,12 @@
+cluster: prod-gcp
+kafka_pool: nav-prod
+jdk_java_options: -XX:MaxRAMPercentage=60.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow
+replicas_min: 2
+replicas_max: 4
+cpu_scaling_threshold: 400
+cpu_request: 20m
+memory_request: 550Mi
+memory_limit: 1024Mi
+database_instance: amt-arrangor-3
+database_tier: db-custom-1-3840
+database_disk_autoresize: true

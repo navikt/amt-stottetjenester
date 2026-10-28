@@ -3,3 +3,11 @@ ad_gruppe_tiltak_ansvarlig: 2cf8d881-c2da-47b5-b409-fa088440a629
 ad_gruppe_endringsmelding: 4e4bfc3e-58c5-4f1c-879b-df1a86016de9
 ad_gruppe_fortrolig_adresse: 9ec6487d-f37a-4aad-a027-cd221c1ac32b
 ad_gruppe_strengt_fortrolig_adresse: ad7b87a6-9180-467c-affc-20a566b0fec0
+cluster: prod-gcp
+fss_cluster: prod-fss
+kafka_pool: nav-prod
+ingress: https://amt-tiltak.intern.nav.no
+jdk_java_options: -XX:MaxRAMPercentage=70.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow
+cpu_request: 20m
+memory_request: 512Mi
+database_tier: db-custom-1-3840

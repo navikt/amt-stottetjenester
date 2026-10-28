@@ -1,0 +1,36 @@
+name: Deploy application manually
+
+on:
+  workflow_dispatch:
+    inputs:
+      module_path:
+        description: Velg app
+        required: true
+        type: choice
+        options:
+          - Alle apper
+          - amt-altinn-acl
+          - amt-arena-acl
+          - amt-arena-ords-proxy
+          - amt-arrangor
+          - amt-enhetsregister
+          - amt-person-service
+          - amt-tiltak
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: Deploy ${{ matrix.module }}
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(inputs.module_path == 'Alle apper' && '["amt-altinn-acl","amt-arena-acl","amt-arena-ords-proxy","amt-arrangor","amt-enhetsregister","amt-person-service","amt-tiltak"]' || format('["{0}"]', inputs.module_path)) }}
+    uses: ./.github/workflows/reusable-deploy-app.yml
+    with:
+      module_path: ${{ matrix.module }}
+    secrets:
+      NAIS_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}

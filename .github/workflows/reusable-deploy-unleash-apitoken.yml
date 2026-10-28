@@ -1,0 +1,50 @@
+name: Reusable deploy Unleash API token
+
+on:
+  workflow_call:
+    inputs:
+      module_path:
+        required: true
+        type: string
+
+concurrency:
+  group: deploy-unleash-${{ inputs.module_path }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy-dev:
+    name: Deploy ${{ inputs.module_path }} token to dev
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Deploy token
+        uses: nais/deploy/actions/deploy@6a9dcd6df697ec2d38edc78cadb0b9acd1232f50 # v3
+        env:
+          CLUSTER: dev-gcp
+          RESOURCE: ${{ inputs.module_path }}/.nais/unleash-apitoken-dev.yaml
+          PRINT_PAYLOAD: true
+          WAIT: false
+
+  deploy-prod:
+    name: Deploy ${{ inputs.module_path }} token to prod
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Deploy token
+        uses: nais/deploy/actions/deploy@6a9dcd6df697ec2d38edc78cadb0b9acd1232f50 # v3
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: ${{ inputs.module_path }}/.nais/unleash-apitoken-prod.yaml
+          PRINT_PAYLOAD: true
+          WAIT: false

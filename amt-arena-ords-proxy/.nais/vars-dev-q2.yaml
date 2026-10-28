@@ -1,0 +1,17 @@
+application_name: amt-arena-ords-proxy
+termination_grace_period_seconds: 60
+ingress: https://amt-arena-ords-proxy.dev-fss-pub.nais.io
+cpu_request: 10m
+memory_request: 256Mi
+jdk_java_options: ""
+arena_ords_url: https://arena-ords-q2.nais.preprod.local
+inbound_rules:
+  - application: amt-arena-acl
+    namespace: amt
+    cluster: dev-gcp
+  - application: mulighetsrommet-arena-adapter
+    namespace: team-mulighetsrommet
+    cluster: dev-gcp
+  - application: aktivitet-arena-acl
+    namespace: dab
+    cluster: dev-gcp

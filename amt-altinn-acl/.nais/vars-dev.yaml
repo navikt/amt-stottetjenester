@@ -1,0 +1,12 @@
+altinn_scope: altinn:accessmanagement/authorizedparties.resourceowner
+altinn_url: https://platform.tt02.altinn.no
+altinn_host: platform.tt02.altinn.no
+jdk_java_options: -XX:MaxRAMPercentage=70.0
+replicas_min: 1
+replicas_max: 1
+cpu_scaling_threshold: false
+cpu_request: 10m
+memory_request: 256Mi
+memory_limit: 512Mi
+database_instance: amt-altinn-acl-2
+database_tier: db-f1-micro
