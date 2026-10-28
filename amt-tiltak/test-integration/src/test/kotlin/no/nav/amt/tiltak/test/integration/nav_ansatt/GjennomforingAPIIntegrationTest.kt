@@ -1,0 +1,256 @@
+package no.nav.amt.tiltak.test.integration.nav_ansatt
+
+import io.kotest.matchers.shouldBe
+import no.nav.amt.tiltak.test.database.DbTestDataUtils
+import no.nav.amt.tiltak.test.database.data.TestData
+import no.nav.amt.tiltak.test.database.data.TestData.ARRANGOR_ANSATT_1
+import no.nav.amt.tiltak.test.database.data.TestData.BRUKER_ADRESSEBESKYTTET
+import no.nav.amt.tiltak.test.database.data.TestData.GJENNOMFORING_1
+import no.nav.amt.tiltak.test.database.data.TestData.NAV_ANSATT_1
+import no.nav.amt.tiltak.test.database.data.TestData.NAV_ANSATT_2
+import no.nav.amt.tiltak.test.database.data.inputs.BrukerInput
+import no.nav.amt.tiltak.test.database.data.inputs.GjennomforingInput
+import no.nav.amt.tiltak.test.database.data.inputs.NavAnsattInput
+import no.nav.amt.tiltak.test.database.data.inputs.TiltaksansvarligGjennomforingTilgangInput
+import no.nav.amt.tiltak.test.integration.IntegrationTestBase
+import no.nav.amt.tiltak.test.integration.test_utils.ApiTestUtils.testNavAnsattAutentisering
+import okhttp3.Request
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import tools.jackson.databind.JsonNode
+import java.time.ZonedDateTime
+import java.util.UUID
+
+class GjennomforingAPIIntegrationTest : IntegrationTestBase() {
+	@BeforeEach
+	internal fun setUp() {
+		DbTestDataUtils.cleanAndInitDatabaseWithTestData(dataSource)
+	}
+
+	@Test
+	internal fun `skal teste token autentisering`() {
+		val requestBuilders =
+			listOf(
+				Request.Builder().get().url("${serverUrl()}/api/nav-ansatt/gjennomforing"),
+				Request.Builder().get().url("${serverUrl()}/api/nav-ansatt/gjennomforing/${UUID.randomUUID()}"),
+				Request.Builder().get().url("${serverUrl()}/api/nav-ansatt/gjennomforing?lopenr=1234"),
+			)
+		testNavAnsattAutentisering(requestBuilders, client, mockOAuthServer)
+	}
+
+	@Test
+	internal fun `'hentGjennomforinger' - skal ha status 200 med korrekt respons`() {
+		val token = lagTokenMedAdGruppe(NAV_ANSATT_1)
+		giTilgang(NAV_ANSATT_1, GJENNOMFORING_1)
+
+		val response =
+			sendRequest(
+				method = "GET",
+				url = "/api/nav-ansatt/gjennomforing",
+				headers = mapOf("Authorization" to "Bearer $token"),
+			)
+
+		val expectedJson =
+			"""
+			[{"id":"513219ca-481b-4aae-9d51-435dba9929cd","navn":"Tiltaksgjennomforing2","arrangorNavn":"Org Tiltaksarrangør 2","lopenr":124,"opprettetAar":2020,"antallAktiveEndringsmeldinger":0,"harSkjermedeDeltakere":false,"adressebeskyttelser":[],"tiltak":{"kode":"AMO","navn":"Tiltak1"},"status":"AVSLUTTET","startDato":"2022-02-01","sluttDato":"2022-02-13"},{"id":"b3420940-5479-48c8-b2fa-3751c7a33aa2","navn":"Tiltaksgjennomforing1","arrangorNavn":"Org Tiltaksarrangør 1","lopenr":123,"opprettetAar":2020,"antallAktiveEndringsmeldinger":3,"harSkjermedeDeltakere":false,"adressebeskyttelser":[],"tiltak":{"kode":"AMO","navn":"Tiltak1"},"status":"GJENNOMFORES","startDato":"2022-02-01","sluttDato":"2050-12-30"}]
+			""".trimIndent()
+		response.code shouldBe 200
+		assertJsonArrayEqualsIgnoringOrder(
+			expectedJson = expectedJson,
+			actualJson = response.body.string(),
+		)
+	}
+
+	@Test
+	internal fun `hentGjennomforinger - skjermet og adressebeskyttet deltakere - skal ha status 200 med korrekt respons`() {
+		val token = lagTokenMedAdGruppe(NAV_ANSATT_1)
+		giTilgang(NAV_ANSATT_1, GJENNOMFORING_1)
+
+		insertPersonMedEndringsmeldinger(BRUKER_ADRESSEBESKYTTET.copy(erSkjermet = true))
+
+		val response =
+			sendRequest(
+				method = "GET",
+				url = "/api/nav-ansatt/gjennomforing",
+				headers = mapOf("Authorization" to "Bearer $token"),
+			)
+
+		val expectedJson =
+			"""
+			[{"id":"513219ca-481b-4aae-9d51-435dba9929cd","navn":"Tiltaksgjennomforing2","arrangorNavn":"Org Tiltaksarrangør 2","lopenr":124,"opprettetAar":2020,"antallAktiveEndringsmeldinger":0,"harSkjermedeDeltakere":false,"adressebeskyttelser":[],"tiltak":{"kode":"AMO","navn":"Tiltak1"},"status":"AVSLUTTET","startDato":"2022-02-01","sluttDato":"2022-02-13"},{"id":"b3420940-5479-48c8-b2fa-3751c7a33aa2","navn":"Tiltaksgjennomforing1","arrangorNavn":"Org Tiltaksarrangør 1","lopenr":123,"opprettetAar":2020,"antallAktiveEndringsmeldinger":4,"harSkjermedeDeltakere":true,"adressebeskyttelser":["STRENGT_FORTROLIG"],"tiltak":{"kode":"AMO","navn":"Tiltak1"},"status":"GJENNOMFORES","startDato":"2022-02-01","sluttDato":"2050-12-30"}]
+			""".trimIndent()
+		response.code shouldBe 200
+		assertJsonArrayEqualsIgnoringOrder(
+			expectedJson = expectedJson,
+			actualJson = response.body.string(),
+		)
+	}
+
+	@Test
+	fun `hentGjennomforinger() - skal returnere 403 hvis ikke tilgang til flate`() {
+		val oid = UUID.randomUUID()
+
+		val token =
+			mockOAuthServer.issueAzureAdToken(
+				ident = NAV_ANSATT_1.navIdent,
+				oid = oid,
+				adGroupIds = emptyArray(),
+			)
+
+		val response =
+			sendRequest(
+				method = "GET",
+				url = "/api/nav-ansatt/gjennomforing",
+				headers = mapOf("Authorization" to "Bearer $token"),
+			)
+
+		response.code shouldBe 403
+	}
+
+	@Test
+	internal fun `hentGjennomforing - skal ha status 200 med korrekt respons`() {
+		val token = lagTokenMedAdGruppe(NAV_ANSATT_1)
+		giTilgang(NAV_ANSATT_1, GJENNOMFORING_1)
+
+		val response =
+			sendRequest(
+				method = "GET",
+				url = "/api/nav-ansatt/gjennomforing/${GJENNOMFORING_1.id}",
+				headers = mapOf("Authorization" to "Bearer $token"),
+			)
+
+		val expectedJson =
+			"""
+			{"id":"b3420940-5479-48c8-b2fa-3751c7a33aa2","navn":"Tiltaksgjennomforing1","tiltakNavn":"Tiltak1","startDato":"2022-02-01","sluttDato":"2050-12-30","arrangor":{"virksomhetNavn":"Tiltaksarrangør 1","virksomhetOrgnr":"111111111","organisasjonNavn":"Org Tiltaksarrangør 1","organisasjonOrgnr":"911111111"},"lopenr":123,"opprettetAr":2020,"tiltak":{"kode":"AMO","navn":"Tiltak1"},"status":"GJENNOMFORES"}
+			""".trimIndent()
+
+		response.code shouldBe 200
+		objectMapper.readTree(response.body.string()) shouldBe objectMapper.readTree(expectedJson)
+	}
+
+	@Test
+	fun `hentGjennomforing() - skal returnere 403 hvis ikke tilgang til flate`() {
+		val oid = UUID.randomUUID()
+
+		val token =
+			mockOAuthServer.issueAzureAdToken(
+				ident = NAV_ANSATT_1.navIdent,
+				oid = oid,
+				adGroupIds = emptyArray(),
+			)
+
+		val response =
+			sendRequest(
+				method = "GET",
+				url = "/api/nav-ansatt/gjennomforing/${GJENNOMFORING_1.id}",
+				headers = mapOf("Authorization" to "Bearer $token"),
+			)
+
+		response.code shouldBe 403
+	}
+
+	@Test
+	fun `hentGjennomforing() - skal returnere 403 hvis ikke tilgang til gjennomforing`() {
+		val token = lagTokenMedAdGruppe(NAV_ANSATT_2)
+
+		val response =
+			sendRequest(
+				method = "GET",
+				url = "/api/nav-ansatt/gjennomforing/${GJENNOMFORING_1.id}",
+				headers = mapOf("Authorization" to "Bearer $token"),
+			)
+
+		response.code shouldBe 403
+	}
+
+	@Test
+	internal fun `hentGjennomforingerMedLopenr - skal ha status 200 med korrekt respons`() {
+		val token = lagTokenMedAdGruppe(NAV_ANSATT_1)
+
+		val response =
+			sendRequest(
+				method = "GET",
+				url = "/api/nav-ansatt/gjennomforing?lopenr=${GJENNOMFORING_1.lopenr}",
+				headers = mapOf("Authorization" to "Bearer $token"),
+			)
+
+		val expectedJson =
+			"""
+			[{"id":"b3420940-5479-48c8-b2fa-3751c7a33aa2","navn":"Tiltaksgjennomforing1","lopenr":123,"status":"GJENNOMFORES","startDato":"2022-02-01","sluttDato":"2050-12-30","opprettetAr":2020,"arrangorNavn":"Org Tiltaksarrangør 1","tiltak":{"kode":"AMO","navn":"Tiltak1"}}]
+			""".trimIndent()
+
+		response.code shouldBe 200
+		objectMapper.readTree(response.body.string()) shouldBe objectMapper.readTree(expectedJson)
+	}
+
+	@Test
+	fun `hentGjennomforingerMedLopenr() - skal returnere 403 hvis ikke tilgang til flate`() {
+		val oid = UUID.randomUUID()
+
+		val token =
+			mockOAuthServer.issueAzureAdToken(
+				ident = NAV_ANSATT_1.navIdent,
+				oid = oid,
+				adGroupIds = emptyArray(),
+			)
+
+		val response =
+			sendRequest(
+				method = "GET",
+				url = "/api/nav-ansatt/gjennomforing?lopenr=${GJENNOMFORING_1.lopenr}",
+				headers = mapOf("Authorization" to "Bearer $token"),
+			)
+
+		response.code shouldBe 403
+	}
+
+	private fun giTilgang(
+		ansatt: NavAnsattInput,
+		gjennomforing: GjennomforingInput,
+	) {
+		testDataRepository.insertTiltaksansvarligGjennomforingTilgang(
+			TiltaksansvarligGjennomforingTilgangInput(
+				id = UUID.randomUUID(),
+				navAnsattId = ansatt.id,
+				gjennomforingId = gjennomforing.id,
+				gyldigTil = ZonedDateTime.now().plusDays(1),
+				createdAt = ZonedDateTime.now(),
+			),
+		)
+	}
+
+	private fun lagTokenMedAdGruppe(ansatt: NavAnsattInput): String {
+		val oid = UUID.randomUUID()
+
+		return mockOAuthServer.issueAzureAdToken(
+			ident = ansatt.navIdent,
+			oid = oid,
+		)
+	}
+
+	private fun insertPersonMedEndringsmeldinger(bruker: BrukerInput) {
+		val deltaker = TestData.createDeltakerInput(bruker, GJENNOMFORING_1)
+		val endringsmelding = TestData.createEndringsmelding(deltaker, ARRANGOR_ANSATT_1)
+		val status = TestData.createStatusInput(deltaker)
+
+		testDataRepository.insertBruker(bruker)
+		testDataRepository.insertDeltaker(deltaker)
+		testDataRepository.insertDeltakerStatus(status)
+		testDataRepository.insertEndringsmelding(endringsmelding)
+	}
+
+	private fun assertJsonArrayEqualsIgnoringOrder(
+		expectedJson: String,
+		actualJson: String,
+	) {
+		val expected = objectMapper.readTree(expectedJson).sortedJsonArray()
+		val actual = objectMapper.readTree(actualJson).sortedJsonArray()
+
+		actual shouldBe expected
+	}
+
+	private fun JsonNode.sortedJsonArray(): List<JsonNode> =
+		this
+			.toList()
+			.sortedBy { it["id"].asString() }
+}
