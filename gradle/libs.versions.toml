@@ -14,7 +14,7 @@ jackson2-annotations = "2.22"
 # Avro og Kafka
 apache-avro = "1.12.2"
 confluent = "8.1.1"
-kafka-clients = "4.3.2"
+kafka-clients = "4.4.0"
 
 # Logging
 logstash-encoder = "9.0"
@@ -28,11 +28,11 @@ mock-oauth2-server = "6.1.3"
 poao-tilgang = "2026.05.05_11.16-1dae3bdff205"
 
 # Diverse
-lz4-java = "1.11.4"
+lz4-java = "1.12.0"
 nimbus = "11.38.2"
 okhttp = "5.5.0"
 shedlock = "7.10.1"
-unleash = "12.3.0"
+unleash = "12.3.1"
 postgresql = "42.7.14"
 otj-pg-embedded = "1.1.3"
 
