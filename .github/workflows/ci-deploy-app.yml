@@ -21,10 +21,6 @@ on:
       - ".github/workflows/ci-deploy-app.yml"
       - ".github/workflows/reusable-deploy-app.yml"
 
-concurrency:
-  group: deploy-applications-${{ github.ref }}
-  cancel-in-progress: true
-
 permissions:
   contents: read
   id-token: write
