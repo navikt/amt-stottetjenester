@@ -1,0 +1,24 @@
+logging:
+  config: classpath:logback-local.xml
+elector:
+  path: dont_look_for_leader
+server:
+  port: '8089'
+management:
+  server:
+    port: 8089
+# Settes normalt av Nais. Må defineres her for lokal kjøring.
+ALTINN3_URL: http://localhost:9002/altinn
+ALTINN_SCOPE: altinn:accessmanagement/authorizedparties.resourceowner
+NAIS_TOKEN_ENDPOINT: http://localhost:9002/maskinporten/token
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000/azure
+          audiences: amt-altinn
+  datasource:
+    url: jdbc:postgresql://localhost:5432/amt_altinn_db
+    username: myuser
+    password: mypassword

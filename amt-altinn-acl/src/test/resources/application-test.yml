@@ -1,0 +1,24 @@
+elector:
+  path: dont_look_for_leader
+
+# Ingen av disse URL-ene blir kalt i integrasjonstestene - Altinn3Client er mocket med @MockkBean,
+# og JwtDecoder kommer fra TestJwtConfig. Verdiene må likevel være satt for at Spring-konteksten
+# skal kunne opprette klient- og sikkerhetsbønnene.
+# ALTINN3_URL, ALTINN_SCOPE og NAIS_TOKEN_ENDPOINT settes normalt av Nais.
+ALTINN3_URL: http://localhost:9999/altinn
+ALTINN_SCOPE: altinn:accessmanagement/authorizedparties.resourceowner
+NAIS_TOKEN_ENDPOINT: http://localhost:9999/maskinporten/token
+
+spring:
+  http:
+    serviceclient:
+      maskinporten:
+        base-url: ${NAIS_TOKEN_ENDPOINT}
+      altinn3:
+        base-url: ${ALTINN3_URL}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9999/azuread
+          audiences: test-aud

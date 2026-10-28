@@ -1,0 +1,5 @@
+# Scopet er likt i dev og prod. Det brukes to steder i manifestene:
+# - maskinporten.scopes.consumes: gir klienten tilgang til scopet hos Digdir
+# - ALTINN_SCOPE: verdien appen sender som target når den ber om token
+# Hold dem like - de er to sider av samme tilgang.
+altinn_scope: altinn:accessmanagement/authorizedparties.resourceowner
