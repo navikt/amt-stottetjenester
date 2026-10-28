@@ -1,0 +1,91 @@
+spring:
+  main:
+    banner-mode: "off"
+  threads:
+    virtual:
+      enabled: true
+  lifecycle:
+    timeout-per-shutdown-phase: 25s
+  datasource:
+    url: ${DB_JDBC_URL}
+    hikari:
+      maximum-pool-size: 10
+  flyway:
+    postgresql:
+      transactional-lock: false
+  http:
+    clients:
+      connect-timeout: 5s
+      read-timeout: 20s
+    serviceclient:
+      amt-enhetsregister:
+        base-url: ${AMT_ENHETSREGISTER_URL}
+      amt-altinn:
+        base-url: ${AMT_ALTINN_URL}
+      amt-person:
+        base-url: ${AMT_PERSON_URL}
+
+  security:
+    oauth2:
+      client:
+        provider:
+          azuread:
+            token-uri: ${AZURE_OPENID_CONFIG_TOKEN_ENDPOINT}
+        registration:
+          amt-enhetsregister:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${AMT_ENHETSREGISTER_SCOPE}
+          amt-altinn:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${AMT_ALTINN_SCOPE}
+          amt-person:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${AMT_PERSON_SCOPE}
+
+server:
+  shutdown: graceful
+
+management:
+  server:
+    port: 8081
+  endpoint:
+    prometheus:
+      access: read_only
+    health:
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include:
+            - livenessState
+        readiness:
+          include:
+            - readinessState
+            - db
+
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus
+          - health
+
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+kafka:
+  auto-offset-reset: earliest

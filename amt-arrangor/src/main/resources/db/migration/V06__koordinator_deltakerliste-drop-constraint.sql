@@ -1,0 +1,1 @@
+ALTER TABLE koordinator_deltakerliste DROP CONSTRAINT koordinator_deltakerliste_deltakerliste_id_fkey;

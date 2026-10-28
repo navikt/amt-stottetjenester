@@ -1,0 +1,1 @@
+CREATE INDEX ansatt_arrangorer_gin_idx ON ansatt USING gin (arrangorer jsonb_path_ops);

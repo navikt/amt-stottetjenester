@@ -1,0 +1,18 @@
+kafka:
+  enabled: false
+
+elector:
+  path: dont_look_for_leader
+
+AZURE_APP_CLIENT_ID: test-aud
+AZURE_APP_CLIENT_SECRET: test-client-secret
+AZURE_OPENID_CONFIG_TOKEN_ENDPOINT: "http://azuread/token"
+TOKEN_X_CLIENT_ID: amt-arrangor-client-id
+
+AMT_ENHETSREGISTER_URL: "http://amt-enhetsregister"
+AMT_ENHETSREGISTER_SCOPE: test.enhetsregister.scope
+AMT_ENHETSREGISTER_ALLOWED_HOSTS: amt-enhetsregister
+AMT_ALTINN_URL: "http://amt-altinn"
+AMT_ALTINN_SCOPE: test.altinn.scope
+AMT_PERSON_URL: "http://amt-person"
+AMT_PERSON_SCOPE: test.person.scope
