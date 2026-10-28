@@ -49,7 +49,9 @@ Det gjør at en Altinn-rolle i TT02 ikke gir tilgang til en vanlig gjennomførin
 
 Du kan likevel teste integrasjonen ved å delegere en ressurs for en syntetisk organisasjon i TT02. Et kall mot
 `/api/v1/rolle/tiltaksarrangor` oppdaterer tabellene `person` og `rolle`, slik at du kan kontrollere resultatet i
-databasen. Testtilganger for vanlige Q2-gjennomføringer må vedlikeholdes manuelt i databasen.
+databasen. Testtilganger for vanlige Q2-gjennomføringer må vedlikeholdes manuelt i `rolle`-tabellen. Sett også
+`person.last_synchronized` langt frem i tid for disse testbrukerne. Ellers synkroniserer neste oppslag mot Altinn
+etter én time og ugyldiggjør de manuelt tildelte rollene.
 
 ## Integrasjoner og konfigurasjon
 

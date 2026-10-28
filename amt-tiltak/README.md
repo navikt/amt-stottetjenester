@@ -88,8 +88,8 @@ Applikasjonen har egne API-er for:
 - interne kall mellom AMT-applikasjoner
 - eksterne konsumenter
 
-API-ene bruker TokenX for brukerrettede kall og Azure AD for maskin-til-maskin-kall. Tilgangskontrollen ligger i
-egne moduler for tiltaksarrangører og tiltaksansvarlige.
+API-ene bruker TokenX for arrangørkall og Azure AD for Nav-ansatt-kall og maskin-til-maskin-kall.
+Tilgangskontrollen ligger i egne moduler for tiltaksarrangører og tiltaksansvarlige.
 
 Helse og metrikker er tilgjengelige internt:
 

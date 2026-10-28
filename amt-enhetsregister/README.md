@@ -29,8 +29,8 @@ Applikasjonen:
 - henter deltaoppdateringer fra Brønnøysundregistrene
 - publiserer virksomhetsdata på Kafka
 
-Jobber som bare kjører på leader-instansen, henter deltaoppdateringer hver time for hovedenheter og hver halvtime
-for underenheter.
+Jobber som bare kjører på leader-instansen, henter deltaoppdateringer hver time: hovedenheter ved hel time og
+underenheter 30 minutter over hel time.
 
 ## API
 
