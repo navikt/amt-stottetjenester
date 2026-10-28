@@ -1,0 +1,12 @@
+altinn_scope: altinn:accessmanagement/authorizedparties.resourceowner
+altinn_url: https://platform.altinn.no
+altinn_host: platform.altinn.no
+jdk_java_options: -XX:MaxRAMPercentage=75.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow
+replicas_min: 2
+replicas_max: 3
+cpu_scaling_threshold: 500
+cpu_request: 10m
+memory_request: 600Mi
+memory_limit: 1Gi
+database_instance: amt-altinn-acl-3
+database_tier: db-g1-small

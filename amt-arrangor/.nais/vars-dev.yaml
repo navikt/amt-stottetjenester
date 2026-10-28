@@ -1,0 +1,12 @@
+cluster: dev-gcp
+kafka_pool: nav-dev
+jdk_java_options: -XX:MaxRAMPercentage=60.0
+replicas_min: 1
+replicas_max: 1
+cpu_scaling_threshold: false
+cpu_request: 10m
+memory_request: 256Mi
+memory_limit: 1024Mi
+database_instance: amt-arrangor-2
+database_tier: db-f1-micro
+database_disk_autoresize: false

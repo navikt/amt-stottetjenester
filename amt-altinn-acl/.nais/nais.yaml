@@ -1,0 +1,84 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: amt-altinn-acl
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  image: {{image}}
+  port: 8080
+  terminationGracePeriodSeconds: 60
+
+  prometheus:
+    enabled: true
+    port: "8081"
+    path: /actuator/prometheus
+  startup:
+    port: 8081
+    path: /actuator/health/liveness
+    initialDelay: 20
+    failureThreshold: 20
+  readiness:
+    port: 8081
+    path: /actuator/health/readiness
+  liveness:
+    port: 8081
+    path: /actuator/health/liveness
+
+  replicas:
+    min: {{replicas_min}}
+    max: {{replicas_max}}
+{{#if cpu_scaling_threshold}}
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: {{cpu_scaling_threshold}}
+{{else}}
+    disableAutoScaling: true
+{{/if}}
+  resources:
+    requests:
+      cpu: {{cpu_request}}
+      memory: {{memory_request}}
+    limits:
+      memory: {{memory_limit}}
+  leaderElection: true
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "{{jdk_java_options}}"
+    - name: ALTINN3_URL
+      value: "{{altinn_url}}"
+    - name: ALTINN_SCOPE
+      value: "{{altinn_scope}}"
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    inbound:
+      rules:
+        - application: amt-arrangor
+    outbound:
+      external:
+        - host: "{{altinn_host}}"
+  gcp:
+    sqlInstances:
+      - name: {{database_instance}}
+        type: POSTGRES_17
+        tier: {{database_tier}}
+        databases:
+          - name: amt-altinn-acl
+            envVarPrefix: DB
+  maskinporten:
+    enabled: true
+    scopes:
+      consumes:
+        - name: "{{altinn_scope}}"
+
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki

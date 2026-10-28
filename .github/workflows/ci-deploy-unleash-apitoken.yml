@@ -1,0 +1,52 @@
+name: Deploy Unleash API tokens
+
+on:
+  push:
+    paths:
+      - "amt-arena-acl/.nais/unleash-apitoken-*.yaml"
+      - "amt-tiltak/.nais/unleash-apitoken-*.yaml"
+      - ".github/workflows/ci-deploy-unleash-apitoken.yml"
+      - ".github/workflows/reusable-deploy-unleash-apitoken.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  changes:
+    name: Find changed tokens
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      modules: ${{ steps.filter.outputs.changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Find changed tokens
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            amt-arena-acl:
+              - amt-arena-acl/.nais/unleash-apitoken-*.yaml
+              - .github/workflows/ci-deploy-unleash-apitoken.yml
+              - .github/workflows/reusable-deploy-unleash-apitoken.yml
+            amt-tiltak:
+              - amt-tiltak/.nais/unleash-apitoken-*.yaml
+              - .github/workflows/ci-deploy-unleash-apitoken.yml
+              - .github/workflows/reusable-deploy-unleash-apitoken.yml
+
+  deploy:
+    name: Deploy ${{ matrix.module }}
+    needs: changes
+    if: ${{ needs.changes.outputs.modules != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.changes.outputs.modules) }}
+    uses: ./.github/workflows/reusable-deploy-unleash-apitoken.yml
+    with:
+      module_path: ${{ matrix.module }}

@@ -1,0 +1,114 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: amt-arena-acl
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  image: {{image}}
+  port: 8080
+  terminationGracePeriodSeconds: 60
+
+  prometheus:
+    enabled: true
+    path: /internal/prometheus
+  startup:
+    path: /internal/health/liveness
+    initialDelay: 5
+    periodSeconds: 5
+    failureThreshold: 10
+  readiness:
+    path: /internal/health/readiness
+  liveness:
+    path: /internal/health/liveness
+
+  replicas:
+    min: {{replicas_min}}
+    max: {{replicas_max}}
+{{#if cpu_scaling_threshold}}
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: {{cpu_scaling_threshold}}
+{{else}}
+    disableAutoScaling: true
+{{/if}}
+  resources:
+    requests:
+      cpu: {{cpu_request}}
+      memory: {{memory_request}}
+    limits:
+      memory: {{memory_limit}}
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    outbound:
+      rules:
+        - application: mulighetsrommet-api
+          namespace: team-mulighetsrommet
+        - application: amt-tiltak
+      external:
+        - host: "{{arena_ords_proxy_host}}"
+        - host: amt-unleash-api.nav.cloud.nais.io
+    inbound:
+      rules:
+        - application: amt-aktivitetskort-publisher
+  kafka:
+    pool: {{kafka_pool}}
+  envFrom:
+    - secret: amt-arena-acl-unleash-api-token
+  env:
+    - name: JDK_JAVA_OPTIONS
+      value: "{{jdk_java_options}}"
+    - name: AMT_ARENA_ORDS_PROXY_SCOPE
+      value: "{{arena_ords_proxy_scope}}"
+    - name: AMT_ARENA_ORDS_PROXY_URL
+      value: "{{arena_ords_proxy_url}}"
+    - name: MULIGHETSROMMET_API_SCOPE
+      value: api://{{cluster}}.team-mulighetsrommet.mulighetsrommet-api/.default
+    - name: MULIGHETSROMMET_API_URL
+      value: http://mulighetsrommet-api.team-mulighetsrommet.svc.cluster.local
+    - name: AMTTILTAK_SCOPE
+      value: api://{{cluster}}.amt.amt-tiltak/.default
+    - name: AMTTILTAK_URL
+      value: http://amt-tiltak
+    - name: AMT_ENKELTPLASS_TOPIC
+      value: amt.arena-enkeltplass-deltaker-v1
+
+    # Kafka topics
+    - name: AMT_TOPIC
+      value: amt.amt-tiltak-v1
+    - name: ARENA_TILTAKGJENNOMFORING_TOPIC
+      value: "{{arena_tiltakgjennomforing_topic}}"
+    - name: ARENA_TILTAK_DELTAKER_TOPIC
+      value: "{{arena_tiltak_deltaker_topic}}"
+    - name: ARENA_HIST_TILTAK_DELTAKER_TOPIC
+      value: "{{arena_hist_tiltak_deltaker_topic}}"
+
+  gcp:
+    sqlInstances:
+      - name: amt-arena-acl
+        type: POSTGRES_17
+        tier: {{database_tier}}
+        diskAutoresize: {{database_disk_autoresize}}
+        pointInTimeRecovery: {{database_point_in_time_recovery}}
+        databases:
+          - name: amt-arena-acl
+            envVarPrefix: DB
+{{#if database_flags}}
+        flags:
+{{#each database_flags}}
+          - name: "{{name}}"
+            value: "{{value}}"
+{{/each}}
+{{/if}}
+
+  observability:
+      autoInstrumentation:
+        enabled: true
+        runtime: java
+      logging:
+        destinations:
+          - id: elastic
+          - id: loki

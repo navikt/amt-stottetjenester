@@ -1,0 +1,86 @@
+name: Deploy applications
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "amt-altinn-acl/**"
+      - "amt-arena-acl/**"
+      - "amt-arena-ords-proxy/**"
+      - "amt-arrangor/**"
+      - "amt-enhetsregister/**"
+      - "amt-person-service/**"
+      - "amt-tiltak/**"
+      - "buildSrc/**"
+      - "gradle/**"
+      - "gradle.properties"
+      - "gradlew"
+      - "gradlew.bat"
+      - "settings.gradle.kts"
+      - ".github/workflows/ci-deploy-app.yml"
+      - ".github/workflows/reusable-deploy-app.yml"
+
+concurrency:
+  group: deploy-applications-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  changes:
+    name: Find changed applications
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      modules: ${{ contains(fromJSON(steps.filter.outputs.changes), 'all') && '["amt-altinn-acl","amt-arena-acl","amt-arena-ords-proxy","amt-arrangor","amt-enhetsregister","amt-person-service","amt-tiltak"]' || steps.filter.outputs.changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Find changed applications
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            amt-altinn-acl:
+              - amt-altinn-acl/**
+            amt-arena-acl:
+              - amt-arena-acl/**
+            amt-arena-ords-proxy:
+              - amt-arena-ords-proxy/**
+            amt-arrangor:
+              - amt-arrangor/**
+            amt-enhetsregister:
+              - amt-enhetsregister/**
+            amt-person-service:
+              - amt-person-service/**
+            amt-tiltak:
+              - amt-tiltak/**
+            all:
+              - buildSrc/**
+              - gradle/**
+              - gradle.properties
+              - gradlew
+              - gradlew.bat
+              - settings.gradle.kts
+              - .github/workflows/ci-deploy-app.yml
+              - .github/workflows/reusable-deploy-app.yml
+
+  deploy:
+    name: Deploy ${{ matrix.module }}
+    needs: changes
+    if: ${{ needs.changes.outputs.modules != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.changes.outputs.modules) }}
+    uses: ./.github/workflows/reusable-deploy-app.yml
+    with:
+      module_path: ${{ matrix.module }}
+    secrets:
+      NAIS_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}

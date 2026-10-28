@@ -1,0 +1,160 @@
+name: Reusable deploy application
+
+on:
+  workflow_call:
+    inputs:
+      module_path:
+        required: true
+        type: string
+    secrets:
+      NAIS_WORKLOAD_IDENTITY_PROVIDER:
+        required: true
+
+concurrency:
+  group: deploy-${{ inputs.module_path }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PRINT_PAYLOAD: true
+
+jobs:
+  build:
+    name: Build and push ${{ inputs.module_path }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      image: ${{ steps.docker-build-push.outputs.image }}
+      dev_cluster: ${{ steps.config.outputs.dev_cluster }}
+      dev_vars: ${{ steps.config.outputs.dev_vars }}
+      dev_vars_secondary: ${{ steps.config.outputs.dev_vars_secondary }}
+      prod_cluster: ${{ steps.config.outputs.prod_cluster }}
+      prod_vars: ${{ steps.config.outputs.prod_vars }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Configure application
+        id: config
+        env:
+          MODULE_PATH: ${{ inputs.module_path }}
+        run: |
+          set -euo pipefail
+
+          case "$MODULE_PATH" in
+            amt-altinn-acl|amt-arena-acl|amt-arrangor|amt-enhetsregister|amt-person-service)
+              gradle_task=":${MODULE_PATH}:build"
+              dev_cluster="dev-gcp"
+              dev_vars="${MODULE_PATH}/.nais/vars-dev.yaml"
+              dev_vars_secondary=""
+              prod_cluster="prod-gcp"
+              prod_vars="${MODULE_PATH}/.nais/vars-prod.yaml"
+              ;;
+            amt-arena-ords-proxy)
+              gradle_task=":${MODULE_PATH}:build"
+              dev_cluster="dev-fss"
+              dev_vars="${MODULE_PATH}/.nais/vars-dev-q1.yaml"
+              dev_vars_secondary="${MODULE_PATH}/.nais/vars-dev-q2.yaml"
+              prod_cluster="prod-fss"
+              prod_vars="${MODULE_PATH}/.nais/vars-prod.yaml"
+              ;;
+            amt-tiltak)
+              gradle_task=":amt-tiltak:application:build"
+              dev_cluster="dev-gcp"
+              dev_vars="${MODULE_PATH}/.nais/vars-dev.yaml"
+              dev_vars_secondary=""
+              prod_cluster="prod-gcp"
+              prod_vars="${MODULE_PATH}/.nais/vars-prod.yaml"
+              ;;
+            *)
+              echo "::error::Unsupported module: $MODULE_PATH"
+              exit 1
+              ;;
+          esac
+
+          {
+            echo "gradle_task=$gradle_task"
+            echo "dev_cluster=$dev_cluster"
+            echo "dev_vars=$dev_vars"
+            echo "dev_vars_secondary=$dev_vars_secondary"
+            echo "prod_cluster=$prod_cluster"
+            echo "prod_vars=$prod_vars"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Setup Java
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+      - name: Build application
+        run: ./gradlew "${{ steps.config.outputs.gradle_task }}" --no-daemon --no-configuration-cache
+
+      - name: Build and push image
+        uses: nais/docker-build-push@dd7421d5068057a020ca46ead966c26190c516b1 # v0
+        id: docker-build-push
+        with:
+          team: amt
+          image_suffix: ${{ inputs.module_path }}
+          tag: ${{ github.sha }}
+          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          docker_context: ${{ inputs.module_path }}
+          dockerfile: ${{ inputs.module_path }}/Dockerfile
+
+  deploy-dev:
+    name: Deploy ${{ inputs.module_path }} to dev
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Deploy application
+        uses: nais/deploy/actions/deploy@6a9dcd6df697ec2d38edc78cadb0b9acd1232f50 # v3
+        env:
+          CLUSTER: ${{ needs.build.outputs.dev_cluster }}
+          RESOURCE: ${{ inputs.module_path }}/.nais/nais.yaml
+          VARS: ${{ needs.build.outputs.dev_vars }}
+          VAR: image=${{ needs.build.outputs.image }}
+
+      - name: Deploy secondary dev environment
+        if: ${{ needs.build.outputs.dev_vars_secondary != '' }}
+        uses: nais/deploy/actions/deploy@6a9dcd6df697ec2d38edc78cadb0b9acd1232f50 # v3
+        env:
+          CLUSTER: ${{ needs.build.outputs.dev_cluster }}
+          RESOURCE: ${{ inputs.module_path }}/.nais/nais.yaml
+          VARS: ${{ needs.build.outputs.dev_vars_secondary }}
+          VAR: image=${{ needs.build.outputs.image }}
+
+  deploy-prod:
+    name: Deploy ${{ inputs.module_path }} to prod
+    needs:
+      - build
+      - deploy-dev
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Deploy application
+        uses: nais/deploy/actions/deploy@6a9dcd6df697ec2d38edc78cadb0b9acd1232f50 # v3
+        env:
+          CLUSTER: ${{ needs.build.outputs.prod_cluster }}
+          RESOURCE: ${{ inputs.module_path }}/.nais/nais.yaml
+          VARS: ${{ needs.build.outputs.prod_vars }}
+          VAR: image=${{ needs.build.outputs.image }}
