@@ -30,6 +30,7 @@ jobs:
           CLUSTER: dev-gcp
           RESOURCE: ${{ inputs.module_path }}/.nais/unleash-apitoken-dev.yaml
           PRINT_PAYLOAD: true
+          WAIT: false
 
   deploy-prod:
     name: Deploy ${{ inputs.module_path }} token to prod
@@ -46,3 +47,4 @@ jobs:
           CLUSTER: prod-gcp
           RESOURCE: ${{ inputs.module_path }}/.nais/unleash-apitoken-prod.yaml
           PRINT_PAYLOAD: true
+          WAIT: false

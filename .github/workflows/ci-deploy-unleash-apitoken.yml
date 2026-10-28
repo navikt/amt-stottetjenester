@@ -2,6 +2,8 @@ name: Deploy Unleash API tokens
 
 on:
   push:
+    branches:
+      - main
     paths:
       - "amt-arena-acl/.nais/unleash-apitoken-*.yaml"
       - "amt-tiltak/.nais/unleash-apitoken-*.yaml"
