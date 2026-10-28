@@ -1,0 +1,15 @@
+management:
+  endpoint:
+    health:
+      show-details: always
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9999/azuread
+          audiences: amt-person-service-client-id
+
+kafka:
+  enabled: false

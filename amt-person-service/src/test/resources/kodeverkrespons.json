@@ -1,0 +1,52 @@
+{
+  "betydninger": {
+    "3202": [
+      {
+        "gyldigFra": "1999-05-31",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "SANDEFJORD",
+            "tekst": "SANDEFJORD"
+          }
+        }
+      }
+    ],
+    "3831": [
+      {
+        "gyldigFra": "1999-03-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "ULEFOSS",
+            "tekst": "ULEFOSS"
+          }
+        }
+      }
+    ],
+    "3832": [
+      {
+        "gyldigFra": "1999-03-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "LUNDE",
+            "tekst": "LUNDE"
+          }
+        }
+      }
+    ],
+    "3833": [
+      {
+        "gyldigFra": "1999-03-01",
+        "gyldigTil": "9999-12-31",
+        "beskrivelser": {
+          "nb": {
+            "term": "BØ I TELEMARK",
+            "tekst": "BØ I TELEMARK"
+          }
+        }
+      }
+    ]
+  }
+}

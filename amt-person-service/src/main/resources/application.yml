@@ -1,0 +1,172 @@
+spring:
+  main:
+    banner-mode: off
+
+  threads:
+    virtual:
+      enabled: true
+
+  lifecycle:
+    timeout-per-shutdown-phase: 25s
+
+  http:
+    clients:
+      connect-timeout: 5s
+      read-timeout: 10s
+    serviceclient:
+      pdl-api:
+        base-url: ${PDL_URL}
+      digdir-krr-proxy:
+        base-url: ${DIGDIR_KRR_PROXY_URL}
+      veilarboppfolging:
+        base-url: ${VEILARBOPPFOLGING_URL}/veilarboppfolging
+      veilarbvedtaksstotte:
+        base-url: ${VEILARBVEDTAKSSTOTTE_URL}/veilarbvedtaksstotte
+      kodeverk-api:
+        base-url: ${KODEVERK_URL}
+      nom-api:
+        base-url: ${NOM_URL}
+      ao-oppfolgingskontor:
+        base-url: ${AO_OPPFOLGINGSKONTOR_URL}
+      # Ikke OAuth2-protected
+      norg-api:
+        base-url: ${NORG_URL}
+
+  datasource:
+    url: ${DB_JDBC_URL}
+    hikari:
+      maximum-pool-size: 10
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AZURE_OPENID_CONFIG_ISSUER}
+          audiences: ${AZURE_APP_CLIENT_ID}
+          authorities-claim-name: roles
+          authority-prefix: ROLE_
+
+      client:
+        # Benyttes i klientkonfigurasjonene under
+        provider:
+          azuread:
+            token-uri: ${AZURE_OPENID_CONFIG_TOKEN_ENDPOINT}
+
+        registration:
+          pdl-api:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${PDL_SCOPE}
+
+          digdir-krr-proxy:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${DIGDIR_KRR_PROXY_SCOPE}
+
+          veilarboppfolging:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${VEILARBOPPFOLGING_SCOPE}
+
+          veilarbvedtaksstotte:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${VEILARBVEDTAKSSTOTTE_SCOPE}
+
+          kodeverk-api:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${KODEVERK_SCOPE}
+
+          poao-tilgang:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${POAO_TILGANG_SCOPE}
+
+          nom-api:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${NOM_SCOPE}
+
+          ao-oppfolgingskontor:
+            provider: azuread
+            client-id: ${AZURE_APP_CLIENT_ID}
+            client-secret: ${AZURE_APP_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope:
+              - ${AO_OPPFOLGINGSKONTOR_SCOPE}
+
+server:
+  shutdown: graceful
+
+management:
+  server:
+    port: 8081
+  endpoint:
+    prometheus:
+      access: read_only
+    health:
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include:
+            - livenessState
+        readiness:
+          include:
+            - readinessState
+            - db
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus
+          - health
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+app:
+  env:
+    sisteOppfolgingsperiodeTopic: ${SISTE_OPPFOLGINGSPERIODE_TOPIC}
+    sisteTilordnetVeilederTopic: ${SISTE_TILORDNET_VEILEDER_TOPIC}
+    aktorV2Topic: ${AKTOR_V2_TOPIC}
+    skjermedePersonerTopic: ${SKJERMEDE_PERSONER_STATUS_TOPIC}
+    leesahTopic: ${LEESAH_TOPIC}
+    deltakerV2Topic: ${DELTAKER_V2_TOPIC}
+    oppfolgingsperiodeTopic: ${OPPFOLGINGSPERIODE_TOPIC}
+    innsatsgruppeTopic: ${INNSATSGRUPPE_TOPIC}
+    amtNavBrukerTopic: ${AMT_NAV_BRUKER_TOPIC}
+    amtNavEnhetTopic: ${AMT_NAV_ENHET_TOPIC}
+    amtArrangorAnsattPersonaliaTopic: ${AMT_ARRANGOR_ANSATT_PERSONALIA_TOPIC}
+    amtNavAnsattPersonaliaTopic: ${AMT_NAV_ANSATT_PERSONALIA_TOPIC}
+
+kafka:
+  enabled: true
+  schema:
+    registry:
+      url: ${KAFKA_SCHEMA_REGISTRY}
+      username: ${KAFKA_SCHEMA_REGISTRY_USER}
+      password: ${KAFKA_SCHEMA_REGISTRY_PASSWORD}

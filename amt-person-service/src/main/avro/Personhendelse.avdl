@@ -1,0 +1,27 @@
+@namespace("no.nav.person.pdl.leesah")
+protocol PersonhendelseProto {
+	import idl "leesah/Adressebeskyttelse.avdl";
+	import idl "leesah/Navn.avdl";
+
+	enum Endringstype {
+		OPPRETTET,
+		KORRIGERT,
+		ANNULLERT,
+		OPPHOERT
+	}
+
+	record Personhendelse {
+		string hendelseId;
+		array<string> personidenter;
+
+		string master;
+		timestamp_ms opprettet;
+
+		string opplysningstype;
+		Endringstype endringstype;
+		string? tidligereHendelseId = null; // Peker til tidligere hendelse ved korrigering og annullering.
+
+		no.nav.person.pdl.leesah.adressebeskyttelse.Adressebeskyttelse? adressebeskyttelse = null;
+		no.nav.person.pdl.leesah.navn.Navn? navn = null;
+	}
+}

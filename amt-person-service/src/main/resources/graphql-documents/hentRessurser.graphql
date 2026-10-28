@@ -1,0 +1,25 @@
+query($identer: [String!]!) {
+    ressurser(where: { navidenter: $identer }) {
+        code
+        ressurs {
+            navident
+            visningsnavn
+            fornavn
+            etternavn
+            epost
+            telefon {
+                nummer
+                type
+            }
+            primaryTelefon
+            orgTilknytning {
+                gyldigFom
+                gyldigTom
+                orgEnhet {
+                    remedyEnhetId
+                }
+                erDagligOppfolging
+            }
+        }
+    }
+}

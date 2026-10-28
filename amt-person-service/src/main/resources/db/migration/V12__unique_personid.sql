@@ -1,0 +1,1 @@
+alter table nav_bruker add constraint person_id_unique unique(person_id);

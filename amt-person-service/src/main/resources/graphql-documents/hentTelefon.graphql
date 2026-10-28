@@ -1,0 +1,9 @@
+query($ident: ID!) {
+    hentPerson(ident: $ident) {
+        telefonnummer {
+            landskode
+            nummer
+            prioritet
+        }
+    }
+}

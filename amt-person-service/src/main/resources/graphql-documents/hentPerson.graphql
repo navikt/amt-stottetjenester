@@ -1,0 +1,73 @@
+query($ident: ID!) {
+    hentPerson(ident: $ident) {
+        falskIdentitet {
+            erFalsk
+        }
+        navn(historikk: false) {
+            fornavn
+            mellomnavn
+            etternavn
+        }
+        telefonnummer {
+            landskode
+            nummer
+            prioritet
+        }
+        adressebeskyttelse(historikk: false) {
+            gradering
+        }
+        bostedsadresse(historikk: false) {
+            coAdressenavn
+            vegadresse {
+                husnummer
+                husbokstav
+                adressenavn
+                tilleggsnavn
+                postnummer
+            }
+            matrikkeladresse {
+                tilleggsnavn
+                postnummer
+            }
+        }
+        oppholdsadresse(historikk: false) {
+            coAdressenavn
+            vegadresse {
+                husnummer
+                husbokstav
+                adressenavn
+                tilleggsnavn
+                postnummer
+            }
+            matrikkeladresse {
+                tilleggsnavn
+                postnummer
+            }
+        }
+        kontaktadresse(historikk: false) {
+            coAdressenavn
+            vegadresse {
+                husnummer
+                husbokstav
+                adressenavn
+                tilleggsnavn
+                postnummer
+            }
+            postboksadresse {
+                postboks
+                postnummer
+            }
+        }
+    }
+    hentIdenter(
+        ident: $ident,
+        grupper: [FOLKEREGISTERIDENT, AKTORID, NPID],
+        historikk: true
+    ) {
+        identer {
+            ident
+            historisk
+            gruppe
+        }
+    }
+}

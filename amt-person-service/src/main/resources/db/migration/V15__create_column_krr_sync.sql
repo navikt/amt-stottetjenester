@@ -1,0 +1,1 @@
+alter table nav_bruker add column siste_krr_sync timestamp with time zone;

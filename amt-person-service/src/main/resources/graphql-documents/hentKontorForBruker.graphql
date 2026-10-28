@@ -1,0 +1,8 @@
+query HentKontorer($ident: String!) {
+  kontorTilhorigheter(ident: $ident) {
+    arbeidsoppfolging {
+      kontorId
+      kontorNavn
+    }
+  }
+}

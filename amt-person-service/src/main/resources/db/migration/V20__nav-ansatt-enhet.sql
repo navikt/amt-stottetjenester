@@ -1,0 +1,1 @@
+alter table nav_ansatt add column nav_enhet_id uuid references nav_enhet (id);

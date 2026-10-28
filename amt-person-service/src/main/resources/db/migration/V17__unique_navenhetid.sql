@@ -1,0 +1,1 @@
+alter table nav_enhet add constraint nav_enhet_id_unique unique(nav_enhet_id);

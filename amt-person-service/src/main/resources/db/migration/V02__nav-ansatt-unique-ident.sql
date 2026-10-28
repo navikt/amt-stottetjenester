@@ -1,0 +1,1 @@
+alter table nav_ansatt add constraint nav_ansatt_nav_ident_key unique(nav_ident);

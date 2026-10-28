@@ -1,0 +1,1 @@
+create index nav_bruker_person_id_idx on nav_bruker(person_id);
