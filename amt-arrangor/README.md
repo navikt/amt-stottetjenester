@@ -28,7 +28,8 @@ starter disse avhengighetene.
 Applikasjonen:
 
 - lagrer arrangører og ansatte
-- vedlikeholder koordinator-, veileder- og mentorrelasjoner
+- vedlikeholder koordinatorrelasjoner for deltakerlister
+- vedlikeholder veileder- og medveilederrelasjoner for deltakere
 - oppdaterer ansattroller fra Altinn
 - publiserer arrangør- og ansattdata på Kafka
 
@@ -36,9 +37,11 @@ En jobb som bare kjører på leader-instansen, oppdaterer ansattroller hver time
 
 ## API
 
-| Område | Eksempler | Auth |
+| Område | Endepunkt | Auth |
 |--------|-----------|------|
-| Ansatt | `GET /api/ansatt` og endepunkter for koordinatorer og mentorer | TokenX |
+| Innlogget ansatt | `GET /api/ansatt` | TokenX |
+| Koordinator | `POST` og `DELETE /api/ansatt/koordinator/{arrangorId}/{deltakerlisteId}` | TokenX |
+| Veileder og medveileder | `POST /api/ansatt/veiledere/{deltakerId}` | TokenX |
 | Arrangør | `/api/service/arrangor/**` | Azure AD |
 | Internt | `/internal/ansatte/republiser` | Intern tilgangskontroll |
 
