@@ -54,4 +54,6 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Run tests
+        env:
+          TZ: ${{ matrix.module == 'amt-tiltak' && 'Europe/Oslo' || 'UTC' }}
         run: ./gradlew "${{ matrix.task }}" --no-daemon

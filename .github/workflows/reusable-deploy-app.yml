@@ -97,6 +97,8 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Build application
+        env:
+          TZ: ${{ inputs.module_path == 'amt-tiltak' && 'Europe/Oslo' || 'UTC' }}
         run: ./gradlew "${{ steps.config.outputs.gradle_task }}" --no-daemon
 
       - name: Build and push image
