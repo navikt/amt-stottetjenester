@@ -1,3 +1,7 @@
+plugins {
+    id("amt-tiltak-conventions")
+}
+
 dependencies {
     api(libs.nav.common.job) {
         exclude(group = "com.squareup.okhttp3", module = "okhttp")

@@ -1,3 +1,7 @@
+plugins {
+    id("amt-tiltak-conventions")
+}
+
 dependencies {
     api(libs.caffeine)
     testImplementation(libs.tiltak.kotest.runner.junit5)

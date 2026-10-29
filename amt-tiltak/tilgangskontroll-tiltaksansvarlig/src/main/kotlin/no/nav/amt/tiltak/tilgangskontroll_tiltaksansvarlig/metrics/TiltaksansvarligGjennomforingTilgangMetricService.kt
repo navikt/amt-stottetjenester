@@ -19,7 +19,7 @@ class TiltaksansvarligGjennomforingTilgangMetricService(
 
 
 	fun oppdaterMetrikker() {
-		antallGjennomforingerMedMeldingUtenTilgangGauge?.set(
+		antallGjennomforingerMedMeldingUtenTilgangGauge.set(
 			tilgangMetricRepository.antallGjennomforingerUtenTilgangerMedMeldinger()
 		)
 	}

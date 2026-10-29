@@ -1,3 +1,7 @@
+plugins {
+    id("amt-tiltak-conventions")
+}
+
 dependencies {
     api("org.springframework.boot:spring-boot-starter-web") {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")

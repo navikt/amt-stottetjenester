@@ -1,3 +1,7 @@
+plugins {
+    id("amt-tiltak-conventions")
+}
+
 dependencies {
     api(project(":amt-tiltak:db-migrations"))
     api("org.springframework.boot:spring-boot-starter-jdbc")

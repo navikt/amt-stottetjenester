@@ -2,7 +2,7 @@ package no.nav.amt.tiltak.tilgangskontroll_tiltaksarrangor.tilgang
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
-import io.kotest.assertions.timing.eventually
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -98,8 +98,7 @@ class MineDeltakerlisterServiceTest :
 			service.fjern(ARRANGOR_ANSATT_1.id, GJENNOMFORING_1.id)
 
 			eventually(5.seconds) {
-				val aktiveTilganger =
-					repository.hent(ARRANGOR_ANSATT_1.id)
+				val aktiveTilganger = repository.hent(ARRANGOR_ANSATT_1.id)
 
 				aktiveTilganger shouldHaveSize 1
 				aktiveTilganger.first().gjennomforingId shouldBe GJENNOMFORING_2.id

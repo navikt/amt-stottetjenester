@@ -29,7 +29,7 @@ class MulighetsrommetApiClientImpl(
 				throw RuntimeException("Klarte ikke å hente gjennomføring $id arenadata fra Mulighetsrommet. status=${response.code}")
 			}
 
-			val body = response.body?.string()
+			val body = response.body.string()
 
 			if (body.isNullOrEmpty()) {
 				log.info("Gjennomføring med id $id er opprettet utenfor Arena, kan ikke hente Arena-data")
@@ -59,7 +59,7 @@ class MulighetsrommetApiClientImpl(
 				throw RuntimeException("Klarte ikke å hente gjennomføring $id arenadata fra Mulighetsrommet. status=${response.code}")
 			}
 
-			val body = response.body?.string() ?: throw RuntimeException("Body is missing")
+			val body = response.body.string()
 
 			return fromJsonString(body)
 		}

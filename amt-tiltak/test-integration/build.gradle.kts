@@ -1,3 +1,7 @@
+plugins {
+    id("amt-tiltak-conventions")
+}
+
 dependencies {
     api(project(":amt-tiltak:application"))
     api(libs.tiltak.testcontainers)

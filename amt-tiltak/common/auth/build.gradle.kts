@@ -1,3 +1,7 @@
+plugins {
+    id("amt-tiltak-conventions")
+}
+
 dependencies {
     api(libs.token.validation.spring)
     api(libs.nav.common.audit.log)

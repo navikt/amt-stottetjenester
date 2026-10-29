@@ -1,6 +1,7 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
+    id("amt-tiltak-conventions")
     id("org.springframework.boot")
 }
 

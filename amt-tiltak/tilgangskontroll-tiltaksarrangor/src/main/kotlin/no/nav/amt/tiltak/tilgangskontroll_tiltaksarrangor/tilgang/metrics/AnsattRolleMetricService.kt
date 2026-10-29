@@ -17,13 +17,13 @@ class AnsattRolleMetricService(
 	private val antallRolletypeGauges: Map<RollePermutasjon, AtomicInteger>  = mapOf(
 		RollePermutasjon.KOORDINATOR to registry.gauge(
 			antallAnsatteMedRoller, Tags.of("rolle", RollePermutasjon.KOORDINATOR.name), AtomicInteger(0)
-		)!!,
+		),
 		RollePermutasjon.VEILEDER to registry.gauge(
 			antallAnsatteMedRoller, Tags.of("rolle", RollePermutasjon.VEILEDER.name), AtomicInteger(0)
-		)!!,
+		),
 		RollePermutasjon.KOORDINATOR_OG_VEILEDER to registry.gauge(
 			antallAnsatteMedRoller, Tags.of("rolle", RollePermutasjon.KOORDINATOR_OG_VEILEDER.name), AtomicInteger(0)
-		)!!,
+		),
 	)
 
 	fun oppdaterMetrikker() {
