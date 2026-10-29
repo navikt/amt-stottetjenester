@@ -1,12 +1,11 @@
 plugins {
-    id("amt-tiltak-conventions")
+    id("amt-kotlin-library-conventions")
 }
 
 dependencies {
     api(project(":amt-tiltak:core"))
     api(project(":amt-tiltak:common:json"))
     api(libs.nav.common.kafka) {
-        exclude(group = "org.lz4", module = "lz4-java")
         exclude(group = "org.xerial.snappy", module = "snappy-java")
         exclude(group = "org.apache.avro", module = "avro")
         exclude(group = "io.confluent", module = "kafka-avro-serializer")

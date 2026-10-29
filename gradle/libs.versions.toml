@@ -7,9 +7,7 @@ ktlint-plugin = "14.2.0"
 ktlint-cli-version = "1.8.0"
 
 # Jackson 3 (tools.jackson) og Jackson 2 (com.fasterxml.jackson) holdes adskilt
-tools-jackson = "3.2.4"
 jackson2-bom = "2.22.4"
-jackson2-annotations = "2.22"
 
 # Avro og Kafka
 apache-avro = "1.12.2"
@@ -18,7 +16,6 @@ kafka-clients = "4.4.0"
 
 # Logging
 logstash-encoder = "9.0"
-log4j = "2.26.1"
 
 # Nav
 nav-common = "4.2026.09.24_06.17-80dfc0eacb29"
@@ -48,9 +45,7 @@ mockito-kotlin = "6.4.0"
 tiltak-amt-lib = "1.2026.02.26_12.08-1e4e2b18986e"
 tiltak-kafka-clients = "4.4.0"
 tiltak-kotest = "5.9.1"
-tiltak-lz4-java = "1.12.0"
 tiltak-poao-tilgang = "2026.05.05_13.02-76cbce4f654a"
-tiltak-testcontainers = "1.21.4"
 tiltak-unleash = "12.3.1"
 
 [libraries]
@@ -64,21 +59,16 @@ ktlint-gradle-plugin = { module = "org.jlleitschuh.gradle.ktlint:org.jlleitschuh
 avro-tools = { module = "org.apache.avro:avro-tools", version.ref = "apache-avro" }
 
 # Jackson 3
-tools-jackson-core = { module = "tools.jackson.core:jackson-core", version.ref = "tools-jackson" }
-tools-jackson-databind = { module = "tools.jackson.core:jackson-databind", version.ref = "tools-jackson" }
-tools-jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "tools-jackson" }
+tools-jackson-databind = { module = "tools.jackson.core:jackson-databind" }
+tools-jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 
 # Jackson 2
-jackson2-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson2-bom" }
-jackson2-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson2-annotations" }
-
 # Avro og Kafka
 kafka-avro-serializer = { module = "io.confluent:kafka-avro-serializer", version.ref = "confluent" }
 kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka-clients" }
 
 # Logging
 logstash-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-encoder" }
-log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
 
 # Nav common
 nav-common-audit-log = { module = "no.nav.common:audit-log", version.ref = "nav-common" }
@@ -87,7 +77,6 @@ nav-common-kafka = { module = "no.nav.common:kafka", version.ref = "nav-common" 
 nav-common-log = { module = "no.nav.common:log", version.ref = "nav-common" }
 nav-common-rest = { module = "no.nav.common:rest", version.ref = "nav-common" }
 nav-common-token-client = { module = "no.nav.common:token-client", version.ref = "nav-common" }
-nav-common-types = { module = "no.nav.common:types", version.ref = "nav-common" }
 
 # Nav security
 token-validation-spring = { module = "no.nav.security:token-validation-spring", version.ref = "token-support" }
@@ -105,9 +94,7 @@ amt-lib-utils = { module = "no.nav.amt.deltakelser.lib:utils", version.ref = "am
 
 # Diverse
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine" }
-lz4-java = { module = "at.yawk.lz4:lz4-java", version.ref = "lz4-java" }
 nimbus-oauth2-oidc-sdk = { module = "com.nimbusds:oauth2-oidc-sdk", version.ref = "nimbus" }
-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-jvm = { module = "com.squareup.okhttp3:okhttp-jvm", version.ref = "okhttp" }
 mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp" }
 otj-pg-embedded = { module = "com.opentable.components:otj-pg-embedded", version.ref = "otj-pg-embedded" }
@@ -124,7 +111,6 @@ kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5-jvm", version.
 mockk = { module = "io.mockk:mockk-jvm", version.ref = "mockk" }
 springmockk = { module = "com.ninja-squad:springmockk", version.ref = "springmockk" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
-testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }
 
 # amt-tiltak
 tiltak-amt-lib-models = { module = "no.nav.amt.lib:models", version.ref = "tiltak-amt-lib" }
@@ -133,10 +119,9 @@ tiltak-kotest-assertions-core = { module = "io.kotest:kotest-assertions-core-jvm
 tiltak-kotest-assertions-json = { module = "io.kotest:kotest-assertions-json-jvm", version.ref = "tiltak-kotest" }
 tiltak-kotest-framework-concurrency = { module = "io.kotest:kotest-framework-concurrency-jvm", version.ref = "tiltak-kotest" }
 tiltak-kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "tiltak-kotest" }
-tiltak-lz4-java = { module = "at.yawk.lz4:lz4-java", version.ref = "tiltak-lz4-java" }
 tiltak-poao-tilgang-client = { module = "no.nav.poao-tilgang:client", version.ref = "tiltak-poao-tilgang" }
-tiltak-testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "tiltak-testcontainers" }
-tiltak-testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "tiltak-testcontainers" }
-tiltak-testcontainers-kafka = { module = "org.testcontainers:kafka", version.ref = "tiltak-testcontainers" }
-tiltak-testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "tiltak-testcontainers" }
+tiltak-testcontainers = { module = "org.testcontainers:testcontainers" }
+tiltak-testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
+tiltak-testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }
+tiltak-testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }
 tiltak-unleash = { module = "io.getunleash:unleash-client-java", version.ref = "tiltak-unleash" }

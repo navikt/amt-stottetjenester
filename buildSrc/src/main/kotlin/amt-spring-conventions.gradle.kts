@@ -11,7 +11,7 @@ plugins {
     kotlin("jvm")
     kotlin("plugin.spring")
     id("org.springframework.boot")
-    id("io.spring.dependency-management")
+    id("amt-dependency-management-conventions")
 }
 
 val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
@@ -22,27 +22,6 @@ repositories {
 }
 
 dependencies {
-    constraints {
-        implementation("com.google.guava:guava") {
-            version {
-                strictly(versionCatalog.findVersion("guava").get().requiredVersion)
-            }
-            because("Fixes GHSA-xxph-c9ww-hj94")
-        }
-        implementation("at.yawk.lz4:lz4-java") {
-            version {
-                strictly(versionCatalog.findVersion("lz4-java").get().requiredVersion)
-            }
-            because("Fixes CVE-2026-59949")
-        }
-        implementation("org.xerial.snappy:snappy-java") {
-            version {
-                strictly(versionCatalog.findVersion("snappy-java").get().requiredVersion)
-            }
-            because("Fixes CVE-2026-108106")
-        }
-    }
-
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web") {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")

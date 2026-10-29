@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.utility.DockerImageName
 import javax.sql.DataSource
@@ -15,7 +15,7 @@ object SingletonPostgresContainer {
 
 	private const val POSTGRES_DOCKER_IMAGE_NAME = "postgres:17-alpine"
 
-	private var postgresContainer: PostgreSQLContainer<Nothing>? = null
+	private var postgresContainer: PostgreSQLContainer? = null
 
 	private var containerDataSource: DataSource? = null
 
@@ -27,7 +27,7 @@ object SingletonPostgresContainer {
 		return containerDataSource!!
 	}
 
-	fun getContainer(): PostgreSQLContainer<Nothing> {
+	fun getContainer(): PostgreSQLContainer {
 		if (postgresContainer == null) {
 			log.info("Starting new postgres database...")
 
@@ -45,7 +45,7 @@ object SingletonPostgresContainer {
 			setupShutdownHook()
 		}
 
-		return postgresContainer as PostgreSQLContainer<Nothing>
+		return postgresContainer!!
 	}
 
 	private fun applyMigrations(dataSource: DataSource) {
@@ -65,13 +65,13 @@ object SingletonPostgresContainer {
 		flyway.migrate()
 	}
 
-	private fun createContainer(): PostgreSQLContainer<Nothing> {
-		val container = PostgreSQLContainer<Nothing>(DockerImageName.parse(POSTGRES_DOCKER_IMAGE_NAME).asCompatibleSubstituteFor("postgres"))
+	private fun createContainer(): PostgreSQLContainer {
+		val container = PostgreSQLContainer(DockerImageName.parse(POSTGRES_DOCKER_IMAGE_NAME).asCompatibleSubstituteFor("postgres"))
 		container.addEnv("TZ", "Europe/Oslo")
 		return container.waitingFor(HostPortWaitStrategy())
 	}
 
-	private fun createDataSource(container: PostgreSQLContainer<Nothing>): DataSource {
+	private fun createDataSource(container: PostgreSQLContainer): DataSource {
 		val config = HikariConfig()
 
 		config.jdbcUrl = container.jdbcUrl

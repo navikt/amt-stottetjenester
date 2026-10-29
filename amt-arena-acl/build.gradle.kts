@@ -46,7 +46,6 @@ dependencies {
     }
 
     implementation(libs.unleash)
-    implementation("org.springframework.boot:spring-boot-starter-jdbc")
 
     implementation(libs.amt.lib.models)
 
