@@ -14,9 +14,6 @@ dependencies {
     // Applikasjonsfunksjoner og serialisering
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
-    // Database og migreringer
-    implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
-
     // Nav-biblioteker
     implementation(libs.amt.lib.utils)
     implementation(libs.amt.lib.spring.boot)

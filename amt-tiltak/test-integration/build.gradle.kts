@@ -1,9 +1,26 @@
 plugins {
-    id("amt-tiltak-conventions")
+    id("amt-kotlin-library-conventions")
 }
 
 dependencies {
     api(project(":amt-tiltak:application"))
+    api(project(":amt-tiltak:arrangor"))
+    api(project(":amt-tiltak:clients:amt-arrangor-client"))
+    api(project(":amt-tiltak:clients:amt-person"))
+    api(project(":amt-tiltak:clients:mulighetsrommet-api-client"))
+    api(project(":amt-tiltak:common:json"))
+    api(project(":amt-tiltak:core"))
+    api(project(":amt-tiltak:external-api"))
+    api(project(":amt-tiltak:kafka:ansatt-ingestor"))
+    api(project(":amt-tiltak:kafka:arena-acl-ingestor"))
+    api(project(":amt-tiltak:kafka:arrangor-ingestor"))
+    api(project(":amt-tiltak:kafka:kafka-config"))
+    api(project(":amt-tiltak:navansatt"))
+    api(project(":amt-tiltak:tilgangskontroll-tiltaksarrangor"))
+    api(project(":amt-tiltak:tiltak"))
+    api(libs.nav.common.kafka)
+    api(libs.tiltak.kafka.clients)
+    api(libs.tiltak.unleash)
     api(libs.tiltak.testcontainers)
     api(libs.tiltak.testcontainers.postgresql)
     api(libs.tiltak.testcontainers.kafka)

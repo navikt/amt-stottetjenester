@@ -4,9 +4,6 @@ plugins {
 }
 
 dependencies {
-    // Database
-    implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
-
     // Kafka
     implementation("org.springframework.boot:spring-boot-kafka")
     implementation(libs.kafka.clients) {

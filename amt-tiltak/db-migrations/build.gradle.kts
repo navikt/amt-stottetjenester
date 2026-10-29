@@ -1,5 +1,5 @@
 plugins {
-    id("amt-tiltak-conventions")
+    id("amt-kotlin-library-conventions")
 }
 
 // Resource-only migration module.
