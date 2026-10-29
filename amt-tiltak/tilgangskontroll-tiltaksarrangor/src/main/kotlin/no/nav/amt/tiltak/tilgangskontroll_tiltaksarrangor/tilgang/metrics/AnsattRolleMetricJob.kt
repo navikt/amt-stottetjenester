@@ -5,12 +5,11 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
-open class AnsattRolleMetricJob(
+class AnsattRolleMetricJob(
 	private val ansattRolleMetricService: AnsattRolleMetricService,
 ) {
-
 	@Scheduled(fixedDelay = 60 * 60 * 1000L)
-	open fun oppdaterMetrikker() {
+	fun oppdaterMetrikker() {
 		JobRunner.run("oppdater_ansatt_rolle_metrikker", ansattRolleMetricService::oppdaterMetrikker)
 	}
 }

@@ -6,6 +6,7 @@ import no.nav.amt.tiltak.core.domain.tiltak.DeltakerStatusInsert
 import no.nav.amt.tiltak.core.domain.tiltak.DeltakerUpsert
 import no.nav.amt.tiltak.core.domain.tiltak.Gjennomforing
 import no.nav.amt.tiltak.core.domain.tiltak.Vurdering
+import no.nav.amt.tiltak.core.domain.tiltak.VurderingDbo
 import no.nav.amt.tiltak.core.domain.tiltak.harIkkeStartet
 import no.nav.amt.tiltak.core.exceptions.ValidationException
 import no.nav.amt.tiltak.core.kafka.DeltakerV1ProducerService
@@ -28,10 +29,9 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDateTime
 import java.util.UUID
-import no.nav.amt.tiltak.core.domain.tiltak.VurderingDbo
 
 @Service
-open class DeltakerServiceImpl(
+class DeltakerServiceImpl(
 	private val deltakerRepository: DeltakerRepository,
 	private val deltakerStatusRepository: DeltakerStatusRepository,
 	private val brukerService: BrukerService,
@@ -41,12 +41,15 @@ open class DeltakerServiceImpl(
 	private val deltakerV1Producer: DeltakerV1ProducerService,
 	private val publisherService: DataPublisherService,
 	private val vurderingRepository: VurderingRepository,
-	private val unleashService: UnleashService
+	private val unleashService: UnleashService,
 ) : DeltakerService {
-
 	private val log = LoggerFactory.getLogger(javaClass)
 
-	override fun upsertDeltaker(personIdent: String, deltaker: DeltakerUpsert, erKometMaster: Boolean): Deltaker {
+	override fun upsertDeltaker(
+		personIdent: String,
+		deltaker: DeltakerUpsert,
+		erKometMaster: Boolean,
+	): Deltaker {
 		val lagretDeltaker = hentDeltaker(deltaker.id)
 		val brukerId = brukerService.getIdOrCreate(personIdent)
 
@@ -57,10 +60,12 @@ open class DeltakerServiceImpl(
 		}
 		return hentDeltaker(deltaker.id)
 			?: throw IllegalStateException("Fant ikke deltaker med id ${deltaker.id}")
-
 	}
 
-	override fun insertStatus(status: DeltakerStatusInsert, erKometDeltaker: Boolean) {
+	override fun insertStatus(
+		status: DeltakerStatusInsert,
+		erKometDeltaker: Boolean,
+	) {
 		transactionTemplate.executeWithoutResult {
 			oppdaterStatus(status)
 		}
@@ -72,8 +77,9 @@ open class DeltakerServiceImpl(
 	}
 
 	override fun hentDeltaker(deltakerId: UUID): Deltaker? {
-		val deltaker = deltakerRepository.get(deltakerId)
-			?: return null
+		val deltaker =
+			deltakerRepository.get(deltakerId)
+				?: return null
 
 		return deltaker.toDeltaker(hentStatusOrThrow(deltakerId))
 	}
@@ -94,18 +100,24 @@ open class DeltakerServiceImpl(
 	}
 
 	override fun progressStatuser() {
-		val deltakereSomSkalAvsluttes = deltakerRepository.erPaaAvsluttetGjennomforing()
-			.plus(deltakerRepository.sluttDatoPassert())
+		val deltakereSomSkalAvsluttes =
+			deltakerRepository
+				.erPaaAvsluttetGjennomforing()
+				.plus(deltakerRepository.sluttDatoPassert())
 
-		val gjennomforingIder = deltakereSomSkalAvsluttes
-			.map { it.gjennomforingId }.distinct()
-		val erKometMasterForGjennomforingMap = gjennomforingIder
-			.associateWith { unleashService.erKometMasterForTiltakstype(gjennomforingService.getGjennomforing(it).tiltak.kode) }
-			.toMutableMap()
+		val gjennomforingIder =
+			deltakereSomSkalAvsluttes
+				.map { it.gjennomforingId }
+				.distinct()
+		val erKometMasterForGjennomforingMap =
+			gjennomforingIder
+				.associateWith { unleashService.erKometMasterForTiltakstype(gjennomforingService.getGjennomforing(it).tiltak.kode) }
+				.toMutableMap()
 
-		val deltakere = deltakereSomSkalAvsluttes
-			.filterNot { erKometMasterForGjennomforingMap[it.gjennomforingId]!! }
-			.let { mapDeltakereOgAktiveStatuser(it) }
+		val deltakere =
+			deltakereSomSkalAvsluttes
+				.filterNot { erKometMasterForGjennomforingMap[it.gjennomforingId]!! }
+				.let { mapDeltakereOgAktiveStatuser(it) }
 
 		progressStatuser(deltakere)
 
@@ -113,13 +125,14 @@ open class DeltakerServiceImpl(
 
 		deltakereSomSkalDelta.forEach {
 			if (erKometMasterForGjennomforingMap[it.gjennomforingId] == null) {
-				erKometMasterForGjennomforingMap[it.gjennomforingId] = unleashService.erKometMasterForTiltakstype(gjennomforingService.getGjennomforing(it.gjennomforingId).tiltak.kode)
+				erKometMasterForGjennomforingMap[it.gjennomforingId] =
+					unleashService.erKometMasterForTiltakstype(gjennomforingService.getGjennomforing(it.gjennomforingId).tiltak.kode)
 			}
 		}
 
 		oppdaterStatuser(
 			deltakereSomSkalDelta.filterNot { erKometMasterForGjennomforingMap[it.gjennomforingId]!! }.map { it.id },
-			nyStatus = DeltakerStatus.Type.DELTAR
+			nyStatus = DeltakerStatus.Type.DELTAR,
 		)
 	}
 
@@ -145,7 +158,10 @@ open class DeltakerServiceImpl(
 		}
 	}
 
-	override fun slettDeltaker(deltakerId: UUID, erKometDeltaker: Boolean?) {
+	override fun slettDeltaker(
+		deltakerId: UUID,
+		erKometDeltaker: Boolean?,
+	) {
 		transactionTemplate.execute {
 			endringsmeldingService.slett(deltakerId)
 			deltakerStatusRepository.slett(deltakerId)
@@ -178,15 +194,16 @@ open class DeltakerServiceImpl(
 			return opprinneligeVurderinger.map { it.toVurdering() }
 		}
 
-		val nyVurderingDbo = VurderingDbo(
-			id = vurdering.id,
-			deltakerId = vurdering.deltakerId,
-			vurderingstype = vurdering.vurderingstype,
-			begrunnelse = vurdering.begrunnelse,
-			opprettetAvArrangorAnsattId = vurdering.opprettetAvArrangorAnsattId,
-			gyldigFra = vurdering.opprettet,
-			gyldigTil = null
-		)
+		val nyVurderingDbo =
+			VurderingDbo(
+				id = vurdering.id,
+				deltakerId = vurdering.deltakerId,
+				vurderingstype = vurdering.vurderingstype,
+				begrunnelse = vurdering.begrunnelse,
+				opprettetAvArrangorAnsattId = vurdering.opprettetAvArrangorAnsattId,
+				gyldigFra = vurdering.opprettet,
+				gyldigTil = null,
+			)
 
 		transactionTemplate.executeWithoutResult {
 			forrigeVurdering?.let { vurderingRepository.deaktiver(it.id) }
@@ -197,12 +214,14 @@ open class DeltakerServiceImpl(
 		return vurderingRepository.getVurderingerForDeltaker(vurdering.deltakerId).map { it.toVurdering() }
 	}
 
-	override fun delMedArrangor(
-		deltakerIder: List<UUID>,
-	) {
+	override fun delMedArrangor(deltakerIder: List<UUID>) {
 		val deltakere = hentDeltakere(deltakerIder)
 
-		require(deltakere.none { it.status.type != DeltakerStatus.Type.SOKT_INN }) { "Kan ikke manuelt dele med arrangor, en eller flere deltakere har feil status"}
+		require(
+			deltakere.none {
+				it.status.type != DeltakerStatus.Type.SOKT_INN
+			},
+		) { "Kan ikke manuelt dele med arrangor, en eller flere deltakere har feil status" }
 
 		deltakerRepository.delMedArrangor(deltakerIder)
 
@@ -221,14 +240,15 @@ open class DeltakerServiceImpl(
 		val forrigeStatus = deltakerStatusRepository.getStatusForDeltaker(status.deltakerId)
 		if (forrigeStatus?.type == status.type && forrigeStatus.aarsak == status.aarsak) return false
 
-		val nyStatus = DeltakerStatusInsertDbo(
-			id = status.id,
-			deltakerId = status.deltakerId,
-			type = status.type,
-			aarsak = status.aarsak,
-			aarsaksbeskrivelse = status.aarsaksbeskrivelse,
-			gyldigFra = status.gyldigFra ?: LocalDateTime.now()
-		)
+		val nyStatus =
+			DeltakerStatusInsertDbo(
+				id = status.id,
+				deltakerId = status.deltakerId,
+				type = status.type,
+				aarsak = status.aarsak,
+				aarsaksbeskrivelse = status.aarsaksbeskrivelse,
+				gyldigFra = status.gyldigFra ?: LocalDateTime.now(),
+			)
 
 		transactionTemplate.executeWithoutResult {
 			forrigeStatus?.let { deltakerStatusRepository.deaktiver(it.id) }
@@ -237,24 +257,31 @@ open class DeltakerServiceImpl(
 		return true
 	}
 
-	private fun progressStatuser(deltakere: List<Deltaker>, sluttarsak: DeltakerStatus.Aarsak? = null) {
-		val gjennomforinger = deltakere
-			.map { it.gjennomforingId }
-			.distinct()
-			.let { gjennomforingService.getGjennomforinger(it) }
+	private fun progressStatuser(
+		deltakere: List<Deltaker>,
+		sluttarsak: DeltakerStatus.Aarsak? = null,
+	) {
+		val gjennomforinger =
+			deltakere
+				.map { it.gjennomforingId }
+				.distinct()
+				.let { gjennomforingService.getGjennomforinger(it) }
 
 		val skalBliIkkeAktuell = deltakere.filter { it.status.harIkkeStartet() }
-		val skalBliAvbrutt = deltakere
-			.filter { it.status.type == DeltakerStatus.Type.DELTAR }
-			.filter { sluttetForTidlig(gjennomforinger, it) }
+		val skalBliAvbrutt =
+			deltakere
+				.filter { it.status.type == DeltakerStatus.Type.DELTAR }
+				.filter { sluttetForTidlig(gjennomforinger, it) }
 
-		val skalBliHarSluttet = deltakere
-			.filter { it.status.type == DeltakerStatus.Type.DELTAR }
-			.filter { !deltarPaKurs(gjennomforinger, it) }
+		val skalBliHarSluttet =
+			deltakere
+				.filter { it.status.type == DeltakerStatus.Type.DELTAR }
+				.filter { !deltarPaKurs(gjennomforinger, it) }
 
-		val skalBliFullfort = deltakere
-			.filter { it.status.type == DeltakerStatus.Type.DELTAR }
-			.filter { deltarPaKurs(gjennomforinger, it) && !sluttetForTidlig(gjennomforinger, it) }
+		val skalBliFullfort =
+			deltakere
+				.filter { it.status.type == DeltakerStatus.Type.DELTAR }
+				.filter { deltarPaKurs(gjennomforinger, it) && !sluttetForTidlig(gjennomforinger, it) }
 
 		oppdaterStatuser(skalBliIkkeAktuell.map { it.id }, nyStatus = DeltakerStatus.Type.IKKE_AKTUELL, sluttarsak)
 		oppdaterStatuser(skalBliAvbrutt.map { it.id }, nyStatus = DeltakerStatus.Type.AVBRUTT, sluttarsak)
@@ -262,12 +289,18 @@ open class DeltakerServiceImpl(
 		oppdaterStatuser(skalBliFullfort.map { it.id }, nyStatus = DeltakerStatus.Type.FULLFORT, sluttarsak)
 	}
 
-	private fun deltarPaKurs(gjennomforinger: List<Gjennomforing>, deltaker: Deltaker): Boolean {
+	private fun deltarPaKurs(
+		gjennomforinger: List<Gjennomforing>,
+		deltaker: Deltaker,
+	): Boolean {
 		val gjennomforing = getGjennomforing(gjennomforinger, deltaker)
 		return gjennomforing.erKurs
 	}
 
-	private fun sluttetForTidlig(gjennomforinger: List<Gjennomforing>, deltaker: Deltaker): Boolean {
+	private fun sluttetForTidlig(
+		gjennomforinger: List<Gjennomforing>,
+		deltaker: Deltaker,
+	): Boolean {
 		val gjennomforing = getGjennomforing(gjennomforinger, deltaker)
 		if (!gjennomforing.erKurs) {
 			return false
@@ -278,22 +311,22 @@ open class DeltakerServiceImpl(
 		return false
 	}
 
-	private fun getGjennomforing(gjennomforinger: List<Gjennomforing>, deltaker: Deltaker): Gjennomforing {
-		return gjennomforinger.find { it.id == deltaker.gjennomforingId }
+	private fun getGjennomforing(
+		gjennomforinger: List<Gjennomforing>,
+		deltaker: Deltaker,
+	): Gjennomforing =
+		gjennomforinger.find { it.id == deltaker.gjennomforingId }
 			?: throw RuntimeException("Fant ikke gjennomføring med id ${deltaker.gjennomforingId}")
-	}
 
-	private fun hentStatusOrThrow(deltakerId: UUID): DeltakerStatus {
-		return hentStatus(deltakerId) ?: throw NoSuchElementException("Fant ikke status på deltaker med id $deltakerId")
-	}
+	private fun hentStatusOrThrow(deltakerId: UUID): DeltakerStatus =
+		hentStatus(deltakerId) ?: throw NoSuchElementException("Fant ikke status på deltaker med id $deltakerId")
 
-	private fun hentStatus(deltakerId: UUID): DeltakerStatus? {
-		return deltakerStatusRepository.getStatusForDeltaker(deltakerId)?.toModel() ?: return null
-	}
+	private fun hentStatus(deltakerId: UUID): DeltakerStatus? = deltakerStatusRepository.getStatusForDeltaker(deltakerId)?.toModel()
 
-	private fun hentAktiveStatuserForDeltakere(deltakerIder: List<UUID>): Map<UUID, DeltakerStatusDbo> {
-		return deltakerStatusRepository.getAktiveStatuserForDeltakere(deltakerIder).associateBy { it.deltakerId }
-	}
+	private fun hentAktiveStatuserForDeltakere(deltakerIder: List<UUID>): Map<UUID, DeltakerStatusDbo> =
+		deltakerStatusRepository.getAktiveStatuserForDeltakere(deltakerIder).associateBy {
+			it.deltakerId
+		}
 
 	private fun mapDeltakereOgAktiveStatuser(deltakere: List<DeltakerDbo>): List<Deltaker> {
 		val statuser = hentAktiveStatuserForDeltakere(deltakere.map { it.id })
@@ -306,7 +339,7 @@ open class DeltakerServiceImpl(
 	private fun oppdaterStatuser(
 		deltakere: List<UUID>,
 		nyStatus: DeltakerStatus.Type,
-		sluttarsak: DeltakerStatus.Aarsak? = null
+		sluttarsak: DeltakerStatus.Aarsak? = null,
 	) = deltakere
 		.also { log.info("Oppdaterer status på ${it.size} deltakere") }
 		.forEach {
@@ -317,9 +350,9 @@ open class DeltakerServiceImpl(
 					type = nyStatus,
 					aarsak = sluttarsak,
 					aarsaksbeskrivelse = null,
-					gyldigFra = LocalDateTime.now()
+					gyldigFra = LocalDateTime.now(),
 				),
-				erKometDeltaker = false
+				erKometDeltaker = false,
 			)
 		}
 
@@ -328,7 +361,11 @@ open class DeltakerServiceImpl(
 		return mapDeltakereOgAktiveStatuser(deltakere).associateBy { it.id }
 	}
 
-	override fun republiserAlleDeltakerePaKafka(batchSize: Int, publiserInternTopic: Boolean, publiserEksternTopic: Boolean) {
+	override fun republiserAlleDeltakerePaKafka(
+		batchSize: Int,
+		publiserInternTopic: Boolean,
+		publiserEksternTopic: Boolean,
+	) {
 		var offset = 0
 
 		var deltakere: List<DeltakerDbo>
@@ -338,11 +375,14 @@ open class DeltakerServiceImpl(
 
 			val statuser = hentAktiveStatuserForDeltakere(deltakere.map { it.id })
 
-			val gjennomforingIder = deltakere
-				.map { it.gjennomforingId }.distinct()
-			val erKometMasterForGjennomforingMap = gjennomforingIder
-				.associateWith { unleashService.erKometMasterForTiltakstype(gjennomforingService.getGjennomforing(it).tiltak.kode) }
-				.toMutableMap()
+			val gjennomforingIder =
+				deltakere
+					.map { it.gjennomforingId }
+					.distinct()
+			val erKometMasterForGjennomforingMap =
+				gjennomforingIder
+					.associateWith { unleashService.erKometMasterForTiltakstype(gjennomforingService.getGjennomforing(it).tiltak.kode) }
+					.toMutableMap()
 
 			deltakere.filterNot { erKometMasterForGjennomforingMap[it.gjennomforingId]!! }.forEach {
 				val status = statuser[it.id]?.toModel()
@@ -379,7 +419,7 @@ open class DeltakerServiceImpl(
 
 		gjennomforingIder.forEach {
 			val deltakerePaGjennomforing = hentDeltakerePaaGjennomforing(it)
-			deltakerePaGjennomforing.forEach {deltaker ->
+			deltakerePaGjennomforing.forEach { deltaker ->
 				publisherService.publish(deltaker.id, DataPublishType.DELTAKER, erKometDeltaker = false, forcePublish = true)
 			}
 			log.info("Republiserte ${deltakerePaGjennomforing.size} deltakere for gjennomforingId $it")
@@ -387,7 +427,10 @@ open class DeltakerServiceImpl(
 		log.info("Republiserte deltakere for ${gjennomforingIder.size} gjennomføringer på deltaker-v2")
 	}
 
-	override fun publiserDeltakerPaKafka(deltakerId: UUID, endretDato: LocalDateTime) {
+	override fun publiserDeltakerPaKafka(
+		deltakerId: UUID,
+		endretDato: LocalDateTime,
+	) {
 		val deltaker = hentDeltaker(deltakerId) ?: error("Fant ikke deltaker med id $deltakerId")
 
 		val tiltakstype = gjennomforingService.getGjennomforing(deltaker.gjennomforingId).tiltak.kode
@@ -396,7 +439,11 @@ open class DeltakerServiceImpl(
 		}
 	}
 
-	private fun publiser(deltaker: Deltaker, endretDato: LocalDateTime, erKometMaster: Boolean) {
+	private fun publiser(
+		deltaker: Deltaker,
+		endretDato: LocalDateTime,
+		erKometMaster: Boolean,
+	) {
 		if (erKometMaster) {
 			log.info("Publiserer ikke deltaker som komet er master for, id ${deltaker.id}")
 			return
@@ -407,23 +454,21 @@ open class DeltakerServiceImpl(
 		log.info("Publisert deltaker med id ${deltaker.id} på kafka")
 	}
 
-
 	override fun publiserDeltakerPaDeltakerV2Kafka(deltakerId: UUID) {
 		publisherService.publish(deltakerId, DataPublishType.DELTAKER, null)
 	}
 
-	private fun DeltakerUpsert.toUpsertDbo(brukerId: UUID) = DeltakerUpsertDbo(
-		id = this.id,
-		brukerId = brukerId,
-		gjennomforingId = this.gjennomforingId,
-		startDato = this.startDato,
-		sluttDato = this.sluttDato,
-		registrertDato = this.registrertDato,
-		dagerPerUke = this.dagerPerUke,
-		prosentStilling = this.prosentStilling,
-		innsokBegrunnelse = this.innsokBegrunnelse,
-		kilde = this.kilde
-	)
+	private fun DeltakerUpsert.toUpsertDbo(brukerId: UUID) =
+		DeltakerUpsertDbo(
+			id = this.id,
+			brukerId = brukerId,
+			gjennomforingId = this.gjennomforingId,
+			startDato = this.startDato,
+			sluttDato = this.sluttDato,
+			registrertDato = this.registrertDato,
+			dagerPerUke = this.dagerPerUke,
+			prosentStilling = this.prosentStilling,
+			innsokBegrunnelse = this.innsokBegrunnelse,
+			kilde = this.kilde,
+		)
 }
-
-

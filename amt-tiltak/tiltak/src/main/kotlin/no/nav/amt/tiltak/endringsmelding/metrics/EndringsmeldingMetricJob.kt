@@ -7,14 +7,14 @@ import org.springframework.stereotype.Component
 
 
 @Component
-open class EndringsmeldingMetricJob(
+class EndringsmeldingMetricJob(
 	private val endringsmeldingMetricService: EndringsmeldingMetricService
 ) {
 
 	/* En time etter forrige kjøring */
 	@Scheduled(fixedDelay = 60 * 60 * 1000L)
 	@SchedulerLock(name = "EndringsmeldingMetricJob", lockAtMostFor = "120m")
-	open fun oppdaterMetrikker() {
+	fun oppdaterMetrikker() {
 		JobRunner.runAsync("oppdater_endringsmelding_metrikker", endringsmeldingMetricService::oppdaterMetrikker)
 	}
 

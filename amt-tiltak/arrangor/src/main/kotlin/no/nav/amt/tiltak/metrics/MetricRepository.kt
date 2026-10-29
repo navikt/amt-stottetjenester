@@ -5,20 +5,21 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
 
 @Component
-open class MetricRepository(
-	private val template: NamedParameterJdbcTemplate
+class MetricRepository(
+	private val template: NamedParameterJdbcTemplate,
 ) {
-	private val deltakerMedVeilederRowMapper = RowMapper { rs, _ ->
-		DeltakereMedOgUtenVeileder(
-			antallMedVeileder = rs.getInt("antall_med"),
-			totalAntallDeltakere = rs.getInt("total_antall"),
-
-		)
-	}
+	private val deltakerMedVeilederRowMapper =
+		RowMapper { rs, _ ->
+			DeltakereMedOgUtenVeileder(
+				antallMedVeileder = rs.getInt("antall_med"),
+				totalAntallDeltakere = rs.getInt("total_antall"),
+			)
+		}
 
 	fun hentAndelAktiveDeltakereMedVeileder(): DeltakereMedOgUtenVeileder {
 		//language=PostgreSQL
-		val sql = """
+		val sql =
+			"""
 			with
 			aktive_deltakere as (
 				select distinct(deltaker.id) as deltakerId
@@ -42,7 +43,7 @@ open class MetricRepository(
 			)
 			select antall_aktive_deltakere.total_antall, antall_med_veileder.antall_med
 			from antall_aktive_deltakere, antall_med_veileder;
-		""".trimIndent()
+			""".trimIndent()
 
 		return template.query(sql, deltakerMedVeilederRowMapper).first()
 	}

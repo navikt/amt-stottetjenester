@@ -10,7 +10,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 @Service
-open class TiltakServiceImpl(
+class TiltakServiceImpl(
 	private val tiltakRepository: TiltakRepository
 ) : TiltakService {
 

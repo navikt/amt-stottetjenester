@@ -6,8 +6,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-open class MulighetsrommetApiClientConfig {
-
+class MulighetsrommetApiClientConfig {
 	@Value("\${mulighetsrommet-api.url}")
 	lateinit var url: String
 
@@ -15,11 +14,9 @@ open class MulighetsrommetApiClientConfig {
 	lateinit var scope: String
 
 	@Bean
-	open fun mulighetsrommetApiClient(machineToMachineTokenClient: MachineToMachineTokenClient): MulighetsrommetApiClient {
-		return MulighetsrommetApiClientImpl(
+	fun mulighetsrommetApiClient(machineToMachineTokenClient: MachineToMachineTokenClient): MulighetsrommetApiClient =
+		MulighetsrommetApiClientImpl(
 			baseUrl = url,
 			tokenProvider = { machineToMachineTokenClient.createMachineToMachineToken(scope) },
 		)
-	}
-
 }

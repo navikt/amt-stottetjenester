@@ -14,18 +14,17 @@ import java.util.concurrent.atomic.AtomicInteger
 private const val gjennomforingerPerAnsatt = "amt_tiltak_antall_gjennomforinger_pr_ansatt"
 
 @Configuration
-open class ArrangorAnsattGjennomforingTiltakStatistikkUpdater(
+class ArrangorAnsattGjennomforingTiltakStatistikkUpdater(
 	private val repository: MineDeltakerlisterRepository,
-	private val registry: MeterRegistry
+	private val registry: MeterRegistry,
 ) {
-
 	private val logger = LoggerFactory.getLogger(javaClass)
 
 	private val gjennomforingerPerAnsattGauges: MutableMap<UUID, AtomicInteger> = mutableMapOf()
 
 	@Scheduled(cron = "@hourly")
 	@SchedulerLock(name = "arrangorer_med_tilgang_til_gjennomforing_updater", lockAtMostFor = "120m")
-	open fun update() {
+	fun update() {
 		logger.info("Henter statistikk for antall gjennomføringer per arrangør...")
 		JobRunner.run("arrangorer_med_tilgang_til_gjennomforing_updater") { runner() }
 	}
@@ -40,12 +39,11 @@ open class ArrangorAnsattGjennomforingTiltakStatistikkUpdater(
 					registry.gauge(
 						gjennomforingerPerAnsatt,
 						Tags.of("ansattId", ansattId.toString()),
-						AtomicInteger(numberOfGjennomforinger)
+						AtomicInteger(numberOfGjennomforinger),
 					)
 			} else {
 				gauge.set(numberOfGjennomforinger)
 			}
 		}
 	}
-
 }

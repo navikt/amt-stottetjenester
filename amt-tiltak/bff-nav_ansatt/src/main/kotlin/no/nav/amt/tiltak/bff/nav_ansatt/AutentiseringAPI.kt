@@ -11,11 +11,10 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController("AutentiseringAPINavAnsatt")
 @RequestMapping("/api/nav-ansatt/autentisering")
-open class AutentiseringAPI(
-    private val authService: AuthService,
-    private val navAnsattService: NavAnsattService,
+class AutentiseringAPI(
+	private val authService: AuthService,
+	private val navAnsattService: NavAnsattService,
 ) {
-
 	@ProtectedWithClaims(issuer = Issuer.AZURE_AD)
 	@GetMapping("/meg")
 	fun me(): MegDto {
@@ -26,26 +25,26 @@ open class AutentiseringAPI(
 		return MegDto(
 			navIdent = veileder.navIdent,
 			navn = veileder.navn,
-			tilganger = adGrupper
-				.map(this::mapAdGruppeTilTilgang)
-				.toSet()
+			tilganger =
+				adGrupper
+					.map(this::mapAdGruppeTilTilgang)
+					.toSet(),
 		)
 	}
 
-	private fun mapAdGruppeTilTilgang(adGruppe: AdGruppe): Tilgang {
-		return when(adGruppe) {
+	private fun mapAdGruppeTilTilgang(adGruppe: AdGruppe): Tilgang =
+		when (adGruppe) {
 			AdGruppe.TILTAKSANSVARLIG_FLATE_GRUPPE -> Tilgang.FLATE
 			AdGruppe.TILTAKSANSVARLIG_ENDRINGSMELDING_GRUPPE -> Tilgang.ENDRINGSMELDING
 			AdGruppe.TILTAKSANSVARLIG_EGNE_ANSATTE_GRUPPE -> Tilgang.EGNE_ANSATTE
 			AdGruppe.TILTAKSANSVARLIG_FORTROLIG_ADRESSE_GRUPPE -> Tilgang.FORTROLIG_ADRESSE
 			AdGruppe.TILTAKSANSVARLIG_STRENGT_FORTROLIG_ADRESSE_GRUPPE -> Tilgang.STRENGT_FORTROLIG_ADRESSE
 		}
-	}
 
 	data class MegDto(
 		val navIdent: String,
 		val navn: String,
-		val tilganger: Set<Tilgang>
+		val tilganger: Set<Tilgang>,
 	)
 
 	enum class Tilgang {
@@ -55,5 +54,4 @@ open class AutentiseringAPI(
 		FORTROLIG_ADRESSE,
 		STRENGT_FORTROLIG_ADRESSE,
 	}
-
 }

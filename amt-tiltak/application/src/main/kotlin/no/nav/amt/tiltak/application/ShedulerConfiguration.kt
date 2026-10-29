@@ -7,4 +7,4 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @Configuration
 @EnableScheduling
 @EnableSchedulerLock(defaultLockAtMostFor = "10m")
-open class ShedulerConfiguration
+class ShedulerConfiguration

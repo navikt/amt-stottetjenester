@@ -2,17 +2,15 @@ package no.nav.amt.tiltak.test.integration.mocks
 
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.util.UUID
 
-open class MockOAuthServer {
-
+class MockOAuthServer {
 	private val azureAdIssuer = "azuread"
 	private val tokenXIssuer = "tokenx"
 
 	val tilgangTilNavAnsattGroupId = "egen_ansatt_tilgang_id"
 	val tiltakAnsvarligGroupId = "tiltak_ansvarlig_tilgang_id"
 	val endringsmeldingGroupId = "endringsmelding_tilgang_id"
-	val adressebeskyttelseFortroligGroupId = "ad_gruppe_fortrolig_adresse_id"
 	val adressebeskyttelseStrengtFortroligGroupId = "ad_gruppe_strengt_fortrolig_adresse_id"
 
 	private val log = LoggerFactory.getLogger(javaClass)
@@ -24,18 +22,12 @@ open class MockOAuthServer {
 	fun start() {
 		try {
 			server.start()
-		} catch (e: IllegalArgumentException) {
+		} catch (_: IllegalArgumentException) {
 			log.info("${javaClass.simpleName} is already started")
 		}
 	}
 
-	fun getDiscoveryUrl(issuer: String): String {
-		return server.wellKnownUrl(issuer).toString()
-	}
-
-	fun shutdown() {
-		server.shutdown()
-	}
+	fun getDiscoveryUrl(issuer: String): String = server.wellKnownUrl(issuer).toString()
 
 	fun issueAzureAdToken(
 		subject: String = UUID.randomUUID().toString(),
@@ -44,7 +36,8 @@ open class MockOAuthServer {
 		oid: UUID,
 		adGroupIds: Array<String> = arrayOf(tiltakAnsvarligGroupId, endringsmeldingGroupId),
 	): String {
-		val claims = mapOf(
+		val claims =
+			mapOf(
 				"NAVident" to ident,
 				"oid" to oid.toString(),
 				"groups" to adGroupIds,
@@ -58,10 +51,10 @@ open class MockOAuthServer {
 		subject: String = "test",
 		audience: String = "test-aud",
 	): String {
-
-		val claims: Map<String, Any> = mapOf(
-			"pid" to ansattPersonIdent
-		)
+		val claims: Map<String, Any> =
+			mapOf(
+				"pid" to ansattPersonIdent,
+			)
 
 		return server.issueToken(tokenXIssuer, subject, audience, claims).serialize()
 	}
@@ -69,7 +62,7 @@ open class MockOAuthServer {
 	fun issueAzureAdM2MToken(
 		subject: String = UUID.randomUUID().toString(),
 		audience: String = "test-aud",
-		claims: Map<String, Any> = emptyMap()
+		claims: Map<String, Any> = emptyMap(),
 	): String {
 		val claimsWithRoles = claims.toMutableMap()
 		claimsWithRoles["roles"] = arrayOf("access_as_application")

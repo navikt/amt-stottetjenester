@@ -14,76 +14,82 @@ import org.springframework.stereotype.Component
 import java.util.UUID
 
 @Component
-open class DeltakerStatusRepository(
-	private val template: NamedParameterJdbcTemplate
+class DeltakerStatusRepository(
+	private val template: NamedParameterJdbcTemplate,
 ) {
-
-	private val rowMapper = RowMapper { rs, _ ->
-		DeltakerStatusDbo(
-			id = rs.getUUID("id"),
-			deltakerId = rs.getUUID("deltaker_id"),
-			type = DeltakerStatus.Type.valueOf(rs.getString("status")),
-			aarsak = rs.getNullableString("aarsak")?.let { DeltakerStatus.Aarsak.valueOf(it) },
-			aarsaksbeskrivelse = rs.getNullableString("aarsaksbeskrivelse"),
-			aktiv = rs.getBoolean("aktiv"),
-			gyldigFra = rs.getLocalDateTime("gyldig_fra"),
-			opprettetDato = rs.getTimestamp("created_at").toLocalDateTime(),
-		)
-
-	}
+	private val rowMapper =
+		RowMapper { rs, _ ->
+			DeltakerStatusDbo(
+				id = rs.getUUID("id"),
+				deltakerId = rs.getUUID("deltaker_id"),
+				type = DeltakerStatus.Type.valueOf(rs.getString("status")),
+				aarsak = rs.getNullableString("aarsak")?.let { DeltakerStatus.Aarsak.valueOf(it) },
+				aarsaksbeskrivelse = rs.getNullableString("aarsaksbeskrivelse"),
+				aktiv = rs.getBoolean("aktiv"),
+				gyldigFra = rs.getLocalDateTime("gyldig_fra"),
+				opprettetDato = rs.getTimestamp("created_at").toLocalDateTime(),
+			)
+		}
 
 	fun deaktiver(id: UUID) {
-		val sql = """
+		val sql =
+			"""
 			UPDATE deltaker_status SET aktiv = false WHERE id = :id
-		""".trimIndent()
+			""".trimIndent()
 		val params = sqlParameters("id" to id)
 		template.update(sql, params)
 	}
 
 	fun insert(status: DeltakerStatusInsertDbo) {
-		val sql = """
+		val sql =
+			"""
 			INSERT INTO deltaker_status (id, deltaker_id, gyldig_fra, status, aarsak, aarsaksbeskrivelse, aktiv)
 			VALUES (
 				:id, :deltaker_id, :gyldig_fra, :status, :aarsak, :aarsaksbeskrivelse, true
 			)
-		""".trimIndent()
-		val params = sqlParameters(
-			"id" to status.id,
-			"deltaker_id" to status.deltakerId,
-			"gyldig_fra" to status.gyldigFra,
-			"status" to status.type.name,
-			"aarsak" to status.aarsak?.name,
-			"aarsaksbeskrivelse" to status.aarsaksbeskrivelse
-		)
+			""".trimIndent()
+		val params =
+			sqlParameters(
+				"id" to status.id,
+				"deltaker_id" to status.deltakerId,
+				"gyldig_fra" to status.gyldigFra,
+				"status" to status.type.name,
+				"aarsak" to status.aarsak?.name,
+				"aarsaksbeskrivelse" to status.aarsaksbeskrivelse,
+			)
 
 		template.update(sql, params)
 	}
 
 	fun getStatuserForDeltaker(deltakerId: UUID): List<DeltakerStatusDbo> {
-		val sql = """
+		val sql =
+			"""
 			SELECT id, deltaker_id, gyldig_fra, status, aarsak, aarsaksbeskrivelse, aktiv, created_at
 			FROM deltaker_status
 			WHERE deltaker_id = :deltakerId;
-		""".trimIndent()
+			""".trimIndent()
 
-		val parameters = MapSqlParameterSource().addValues(
-			mapOf("deltakerId" to deltakerId)
-		)
+		val parameters =
+			MapSqlParameterSource().addValues(
+				mapOf("deltakerId" to deltakerId),
+			)
 
 		return template.query(sql, parameters, rowMapper)
 	}
 
 	fun getStatusForDeltaker(deltakerId: UUID): DeltakerStatusDbo? {
-		val sql = """
+		val sql =
+			"""
 			SELECT id, deltaker_id, gyldig_fra, status, aarsak, aarsaksbeskrivelse, aktiv, created_at
 			FROM deltaker_status
 			WHERE deltaker_id = :deltakerId
 			AND aktiv = true
-		""".trimIndent()
+			""".trimIndent()
 
-		val parameters = MapSqlParameterSource().addValues(
-			mapOf("deltakerId" to deltakerId)
-		)
+		val parameters =
+			MapSqlParameterSource().addValues(
+				mapOf("deltakerId" to deltakerId),
+			)
 
 		return template.query(sql, parameters, rowMapper).firstOrNull()
 	}
@@ -91,9 +97,10 @@ open class DeltakerStatusRepository(
 	fun slett(deltakerId: UUID) {
 		val sql = "DELETE FROM deltaker_status where deltaker_id = :deltakerId"
 
-		val parameters = MapSqlParameterSource().addValues(
-			mapOf("deltakerId" to deltakerId)
-		)
+		val parameters =
+			MapSqlParameterSource().addValues(
+				mapOf("deltakerId" to deltakerId),
+			)
 
 		template.update(sql, parameters)
 	}
@@ -101,34 +108,35 @@ open class DeltakerStatusRepository(
 	fun getAktiveStatuserForDeltakere(deltakerIder: List<UUID>): List<DeltakerStatusDbo> {
 		if (deltakerIder.isEmpty()) return emptyList()
 
-		val sql = """
+		val sql =
+			"""
 			SELECT id, deltaker_id, gyldig_fra, status, aarsak, aarsaksbeskrivelse, aktiv, created_at
 			FROM deltaker_status
 			WHERE deltaker_id IN (:deltakerIder)
 			AND aktiv = true
-		""".trimIndent()
+			""".trimIndent()
 
-		val parameters = MapSqlParameterSource().addValues(
-			mapOf("deltakerIder" to deltakerIder)
-		)
+		val parameters =
+			MapSqlParameterSource().addValues(
+				mapOf("deltakerIder" to deltakerIder),
+			)
 
 		return template.query(sql, parameters, rowMapper)
-
 	}
 
 	fun get(id: UUID): DeltakerStatusDbo? {
-		val sql = """
+		val sql =
+			"""
 			SELECT id, deltaker_id, gyldig_fra, status, aarsak, aarsaksbeskrivelse, aktiv, created_at
 			FROM deltaker_status
 			WHERE id = :id
-		""".trimIndent()
+			""".trimIndent()
 
-		val parameters = MapSqlParameterSource().addValues(
-			mapOf("id" to id)
-		)
+		val parameters =
+			MapSqlParameterSource().addValues(
+				mapOf("id" to id),
+			)
 
 		return template.query(sql, parameters, rowMapper).firstOrNull()
-
 	}
-
 }

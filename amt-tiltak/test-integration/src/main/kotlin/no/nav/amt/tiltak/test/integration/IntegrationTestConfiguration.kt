@@ -16,25 +16,21 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 
 @Profile("integration")
 @TestConfiguration
-open class IntegrationTestConfiguration {
-
+class IntegrationTestConfiguration {
 	@Bean
-	open fun kafkaProperties(): KafkaProperties = SingletonKafkaProvider.getKafkaProperties(ByteArraySerializer(), ByteArraySerializer())
+	fun kafkaProperties(): KafkaProperties = SingletonKafkaProvider.getKafkaProperties(ByteArraySerializer(), ByteArraySerializer())
 
 	@Bean(name = ["stringKafkaProducer"])
-	open fun stringKafkaProducer(): KafkaProducerClient<String, String> {
+	fun stringKafkaProducer(): KafkaProducerClient<String, String> {
 		val properties = SingletonKafkaProvider.getKafkaProperties(StringSerializer(), StringSerializer()).producer()
 		return KafkaProducerClientImpl(properties)
 	}
 
 	@Bean
-	open fun testDataRepository(template: NamedParameterJdbcTemplate): TestDataRepository {
-		return TestDataRepository(template)
-	}
+	fun testDataRepository(template: NamedParameterJdbcTemplate): TestDataRepository = TestDataRepository(template)
 
 	@Bean
-	open fun unleashClient(
-	): Unleash {
+	fun unleashClient(): Unleash {
 		val fakeUnleash = FakeUnleash()
 		fakeUnleash.enableAll()
 		return fakeUnleash

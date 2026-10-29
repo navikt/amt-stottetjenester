@@ -6,8 +6,8 @@ import org.springframework.context.annotation.ComponentScan
 
 @SpringBootApplication
 @ComponentScan("no.nav.amt.tiltak")
-open class Application
+class Application
 
 fun main(args: Array<String>) {
-    runApplication<Application>(*args)
+	runApplication<Application>(*args)
 }

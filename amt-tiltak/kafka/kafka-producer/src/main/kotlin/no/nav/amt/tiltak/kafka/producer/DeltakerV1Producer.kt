@@ -13,25 +13,28 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Service
-open class DeltakerV1Producer(
+class DeltakerV1Producer(
 	private val kafkaTopicProperties: KafkaTopicProperties,
-	private val kafkaProducerClient: KafkaProducerClient<ByteArray, ByteArray>
+	private val kafkaProducerClient: KafkaProducerClient<ByteArray, ByteArray>,
 ) : DeltakerV1ProducerService {
-
-	override fun publiserDeltaker(deltaker: Deltaker, endretDato: LocalDateTime) {
-		val deltakerDto = DeltakerV1Dto(
-			id = deltaker.id,
-			gjennomforingId = deltaker.gjennomforingId,
-			personIdent = deltaker.personIdent,
-			startDato = deltaker.startDato,
-			sluttDato = deltaker.sluttDato,
-			status = deltaker.status.toDto(),
-			registrertDato = deltaker.registrertDato,
-			dagerPerUke = deltaker.dagerPerUke,
-			prosentStilling = deltaker.prosentStilling,
-			endretDato = endretDato,
-			kilde = deltaker.kilde
-		)
+	override fun publiserDeltaker(
+		deltaker: Deltaker,
+		endretDato: LocalDateTime,
+	) {
+		val deltakerDto =
+			DeltakerV1Dto(
+				id = deltaker.id,
+				gjennomforingId = deltaker.gjennomforingId,
+				personIdent = deltaker.personIdent,
+				startDato = deltaker.startDato,
+				sluttDato = deltaker.sluttDato,
+				status = deltaker.status.toDto(),
+				registrertDato = deltaker.registrertDato,
+				dagerPerUke = deltaker.dagerPerUke,
+				prosentStilling = deltaker.prosentStilling,
+				endretDato = endretDato,
+				kilde = deltaker.kilde,
+			)
 
 		val key = deltaker.id.toString().toByteArray()
 		val value = JsonUtils.toJsonString(deltakerDto).toByteArray()
@@ -48,5 +51,4 @@ open class DeltakerV1Producer(
 
 		kafkaProducerClient.sendSync(record)
 	}
-
 }

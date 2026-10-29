@@ -7,25 +7,28 @@ import org.springframework.scheduling.annotation.Scheduled
 import java.util.concurrent.atomic.AtomicInteger
 
 @Configuration
-open class KafkaMetrics(
+class KafkaMetrics(
 	registry: MeterRegistry,
-	private val jdbcTemplate: NamedParameterJdbcTemplate
+	private val jdbcTemplate: NamedParameterJdbcTemplate,
 ) {
-	private val antallFeiledeKafkameldingerGauge = registry.gauge(
-		"amt_tiltak_antall_feilede_kafkameldinger", AtomicInteger(0)
-	)
+	private val antallFeiledeKafkameldingerGauge =
+		registry.gauge(
+			"amt_tiltak_antall_feilede_kafkameldinger",
+			AtomicInteger(0),
+		)
 
 	@Scheduled(cron = "0 */5 * ? * *")
-	open fun updateMetrics() {
+	fun updateMetrics() {
 		val antallFeiledeMeldinger = getAntallFeiledeKafkameldinger()
 
-		antallFeiledeKafkameldingerGauge?.set(antallFeiledeMeldinger)
+		antallFeiledeKafkameldingerGauge.set(antallFeiledeMeldinger)
 	}
 
 	private fun getAntallFeiledeKafkameldinger(): Int {
-		val sql = """
+		val sql =
+			"""
 			SELECT count(*) as antall from kafka_consumer_record;
-		""".trimIndent()
+			""".trimIndent()
 
 		return jdbcTemplate.query(sql) { rs, _ -> rs.getInt("antall") }.first()
 	}

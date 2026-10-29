@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 import java.util.UUID
 
 @Service
-open class NavEnhetServiceImpl(
+class NavEnhetServiceImpl(
 	private val navEnhetRepository: NavEnhetRepository,
 	private val amtPersonClient: AmtPersonClient,
 ) : NavEnhetService {

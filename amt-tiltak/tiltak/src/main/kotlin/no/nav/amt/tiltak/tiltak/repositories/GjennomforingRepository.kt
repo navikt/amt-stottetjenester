@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 import java.util.UUID
 
 @Component
-open class GjennomforingRepository(private val template: NamedParameterJdbcTemplate) {
+class GjennomforingRepository(private val template: NamedParameterJdbcTemplate) {
 
 	private val rowMapper = RowMapper { rs, _ ->
 		GjennomforingDbo(

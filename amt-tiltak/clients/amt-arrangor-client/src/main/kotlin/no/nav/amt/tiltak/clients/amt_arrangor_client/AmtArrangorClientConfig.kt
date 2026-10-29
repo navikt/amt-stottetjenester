@@ -6,20 +6,17 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-open class AmtArrangorClientConfig {
-
+class AmtArrangorClientConfig {
 	@Value("\${amt-arrangor.url}")
 	lateinit var url: String
 
 	@Value("\${amt-arrangor.scope}")
 	lateinit var scope: String
 
-
 	@Bean
-	open fun amtArrangorClient(machineToMachineTokenClient: MachineToMachineTokenClient): AmtArrangorClient {
-		return AmtArrangorClient(
+	fun amtArrangorClient(machineToMachineTokenClient: MachineToMachineTokenClient): AmtArrangorClient =
+		AmtArrangorClient(
 			baseUrl = url,
-			tokenProvider = { machineToMachineTokenClient.createMachineToMachineToken(scope) }
+			tokenProvider = { machineToMachineTokenClient.createMachineToMachineToken(scope) },
 		)
-	}
 }

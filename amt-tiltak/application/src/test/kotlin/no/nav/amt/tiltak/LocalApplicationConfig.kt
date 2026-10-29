@@ -10,11 +10,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 @EnableJwtTokenValidation
 @Configuration
 @Profile("local")
-open class LocalApplicationConfig {
-
+class LocalApplicationConfig {
 	@Bean
-	open fun corsConfigurer(): WebMvcConfigurer {
-		return object : WebMvcConfigurer {
+	fun corsConfigurer(): WebMvcConfigurer =
+		object : WebMvcConfigurer {
 			override fun addCorsMappings(registry: CorsRegistry) {
 				registry
 					.addMapping("/**")
@@ -23,6 +22,4 @@ open class LocalApplicationConfig {
 					.allowedMethods("*")
 			}
 		}
-	}
-
 }

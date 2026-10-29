@@ -7,7 +7,6 @@ import no.nav.amt.tiltak.deltaker.repositories.DeltakerStatistikkRepository
 import org.springframework.stereotype.Component
 import java.util.concurrent.atomic.AtomicInteger
 
-
 private const val deltakere = "amt_tiltak_antall_deltakere"
 private const val deltakerePrStatus = "amt_tiltak_antall_deltakere_pr_status"
 private const val arrangorer = "amt_tiltak_antall_arrangorer"
@@ -19,30 +18,34 @@ private const val eksponerteBrukerePrStatus = "amt_tiltak_antall_brukere_ekspone
 @Component
 class DeltakerStatistikkUpdater(
 	registry: MeterRegistry,
-	private val deltakerStatistikkRepository: DeltakerStatistikkRepository
+	private val deltakerStatistikkRepository: DeltakerStatistikkRepository,
 ) {
-
-	private val simpleGauges: Map<String, AtomicInteger> = mapOf(
-		Pair(deltakere, registry.gauge(deltakere, AtomicInteger(0))!!),
-		Pair(arrangorer, registry.gauge(arrangorer, AtomicInteger(0))!!),
-		Pair(arrangorerMedBrukere, registry.gauge(arrangorerMedBrukere, AtomicInteger(0))!!),
-		Pair(aktiveArrangorer, registry.gauge(aktiveArrangorer, AtomicInteger(0))!!),
-		Pair(aktiveArrangorerMedBrukere, registry.gauge(aktiveArrangorerMedBrukere, AtomicInteger(0))!!),
-	)
-
-
+	private val simpleGauges: Map<String, AtomicInteger> =
+		mapOf(
+			Pair(deltakere, registry.gauge(deltakere, AtomicInteger(0))),
+			Pair(
+				arrangorer,
+				registry.gauge(
+					arrangorer,
+					AtomicInteger(
+						0,
+					),
+				),
+			),
+			Pair(arrangorerMedBrukere, registry.gauge(arrangorerMedBrukere, AtomicInteger(0))),
+			Pair(aktiveArrangorer, registry.gauge(aktiveArrangorer, AtomicInteger(0))),
+			Pair(aktiveArrangorerMedBrukere, registry.gauge(aktiveArrangorerMedBrukere, AtomicInteger(0))),
+		)
 
 	private val deltakerStatusGauges: Map<String, AtomicInteger> =
 		DeltakerStatus.Type.values().associate {
-			it.name to registry.gauge(deltakerePrStatus, Tags.of("status", it.name), AtomicInteger(0))!!
+			it.name to registry.gauge(deltakerePrStatus, Tags.of("status", it.name), AtomicInteger(0))
 		}
 
 	private val eksponterteBrukereStatusGauges: Map<String, AtomicInteger> =
 		DeltakerStatus.Type.values().associate {
-			it.name to registry.gauge(eksponerteBrukerePrStatus, Tags.of("status", it.name), AtomicInteger(0))!!
+			it.name to registry.gauge(eksponerteBrukerePrStatus, Tags.of("status", it.name), AtomicInteger(0))
 		}
-
-
 
 	fun oppdater() {
 		simpleGauges.getValue(deltakere).set(deltakerStatistikkRepository.antallDeltakere()!!)
@@ -52,12 +55,11 @@ class DeltakerStatistikkUpdater(
 		simpleGauges.getValue(arrangorer).set(deltakerStatistikkRepository.antallArrangorer()!!)
 		simpleGauges.getValue(arrangorerMedBrukere).set(deltakerStatistikkRepository.antallArrangorerMedBrukere()!!)
 		simpleGauges.getValue(aktiveArrangorer).set(deltakerStatistikkRepository.antallAktiveArrangorer()!!)
-		simpleGauges.getValue(aktiveArrangorerMedBrukere).set(deltakerStatistikkRepository.antallAktiveArrangorerMedBrukere()!!)
+		simpleGauges
+			.getValue(aktiveArrangorerMedBrukere)
+			.set(deltakerStatistikkRepository.antallAktiveArrangorerMedBrukere()!!)
 		oppdaterEksponterteBrukerePerStatus()
 	}
-
-
-
 
 	fun oppdaterEksponterteBrukerePerStatus() {
 		deltakerStatistikkRepository.eksponerteBrukerePrStatus().map {

@@ -10,22 +10,17 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController("UnleashAPINavAnsatt")
 @RequestMapping("/api/nav-ansatt/unleash")
-
-open class UnleashAPI(
-    private val unleash: UnleashService
+class UnleashAPI(
+	private val unleash: UnleashService,
 ) {
-
 	@GetMapping("/feature")
 	@ProtectedWithClaims(issuer = Issuer.AZURE_AD)
 	fun getToggles(
-		@RequestParam("features") features: List<String>
+		@RequestParam("features") features: List<String>,
 	): Map<String, Boolean> {
 		val toggles = getFeaturetoggles(features)
 		return toggles
 	}
 
-	fun getFeaturetoggles(features: List<String>): Map<String, Boolean> {
-		return features.associateWith { unleash.isEnabled(it) }
-	}
-
+	fun getFeaturetoggles(features: List<String>): Map<String, Boolean> = features.associateWith { unleash.isEnabled(it) }
 }

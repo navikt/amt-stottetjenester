@@ -5,4 +5,4 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 
 @EnableJwtTokenValidation
 @SpringBootApplication
-open class TestApplication
+class TestApplication

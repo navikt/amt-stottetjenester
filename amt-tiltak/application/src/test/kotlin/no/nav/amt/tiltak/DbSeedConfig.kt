@@ -8,16 +8,14 @@ import org.springframework.context.event.EventListener
 import javax.sql.DataSource
 
 @Configuration
-open class DbSeedConfig(
-	private val dataSource: DataSource
+class DbSeedConfig(
+	private val dataSource: DataSource,
 ) {
-
 	private val log = LoggerFactory.getLogger(javaClass)
 
 	@EventListener
-	open fun onApplicationEvent(_event: ContextRefreshedEvent?) {
+	fun onApplicationEvent(_event: ContextRefreshedEvent?) {
 		log.info("Seeding database with test data...")
 		DbTestDataUtils.cleanAndInitDatabaseWithTestData(dataSource)
 	}
-
 }

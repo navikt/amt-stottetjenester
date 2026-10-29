@@ -10,31 +10,31 @@ import org.springframework.stereotype.Component
 import java.util.UUID
 
 @Component
-open class ArrangorRepository(
-    private val template: NamedParameterJdbcTemplate,
+class ArrangorRepository(
+	private val template: NamedParameterJdbcTemplate,
 ) {
+	private val rowMapper =
+		RowMapper { rs, _ ->
+			ArrangorDbo(
+				id = rs.getUUID("id"),
+				navn = rs.getString("navn"),
+				organisasjonsnummer = rs.getString("organisasjonsnummer"),
+				overordnetEnhetNavn = rs.getString("overordnet_enhet_navn"),
+				overordnetEnhetOrganisasjonsnummer = rs.getString("overordnet_enhet_organisasjonsnummer"),
+				createdAt = rs.getLocalDateTime("created_at"),
+				modifiedAt = rs.getLocalDateTime("modified_at"),
+			)
+		}
 
-    private val rowMapper = RowMapper { rs, _ ->
-        ArrangorDbo(
-            id = rs.getUUID("id"),
-            navn = rs.getString("navn"),
-            organisasjonsnummer = rs.getString("organisasjonsnummer"),
-            overordnetEnhetNavn = rs.getString("overordnet_enhet_navn"),
-            overordnetEnhetOrganisasjonsnummer = rs.getString("overordnet_enhet_organisasjonsnummer"),
-            createdAt = rs.getLocalDateTime("created_at"),
-            modifiedAt = rs.getLocalDateTime("modified_at")
-        )
-    }
-
-
-    fun upsert(
+	fun upsert(
 		id: UUID,
 		navn: String,
 		organisasjonsnummer: String,
 		overordnetEnhetNavn: String?,
 		overordnetEnhetOrganisasjonsnummer: String?,
-    ): ArrangorDbo {
-		val sql = """
+	): ArrangorDbo {
+		val sql =
+			"""
 			INSERT INTO arrangor(id, overordnet_enhet_organisasjonsnummer, overordnet_enhet_navn, organisasjonsnummer, navn)
 			VALUES (:id,
 					:overordnetEnhetOrganisasjonsnummer,
@@ -45,26 +45,28 @@ open class ArrangorRepository(
 															overordnet_enhet_navn = :overordnetEnhetNavn,
 															overordnet_enhet_organisasjonsnummer = :overordnetEnhetOrganisasjonsnummer,
 															modified_at = CURRENT_TIMESTAMP
-		""".trimIndent()
+			""".trimIndent()
 
-		val parameters = MapSqlParameterSource().addValues(
-			mapOf(
-				"id" to id,
-				"navn" to navn,
-				"organisasjonsnummer" to organisasjonsnummer,
-				"overordnetEnhetOrganisasjonsnummer" to overordnetEnhetOrganisasjonsnummer,
-				"overordnetEnhetNavn" to overordnetEnhetNavn,
+		val parameters =
+			MapSqlParameterSource().addValues(
+				mapOf(
+					"id" to id,
+					"navn" to navn,
+					"organisasjonsnummer" to organisasjonsnummer,
+					"overordnetEnhetOrganisasjonsnummer" to overordnetEnhetOrganisasjonsnummer,
+					"overordnetEnhetNavn" to overordnetEnhetNavn,
+				),
 			)
-		)
 
 		template.update(sql, parameters)
 
-        return getByOrganisasjonsnummer(organisasjonsnummer)
-            ?: throw NoSuchElementException("Virksomhet med organisasjonsnummer $organisasjonsnummer finnes ikke")
-    }
+		return getByOrganisasjonsnummer(organisasjonsnummer)
+			?: throw NoSuchElementException("Virksomhet med organisasjonsnummer $organisasjonsnummer finnes ikke")
+	}
 
-    fun getByOrganisasjonsnummer(organisasjonsnummer: String): ArrangorDbo? {
-        val sql = """
+	fun getByOrganisasjonsnummer(organisasjonsnummer: String): ArrangorDbo? {
+		val sql =
+			"""
 			SELECT id,
 				   overordnet_enhet_organisasjonsnummer,
 				   overordnet_enhet_navn,
@@ -74,40 +76,46 @@ open class ArrangorRepository(
 				   modified_at
 			FROM arrangor
 			WHERE organisasjonsnummer = :organisasjonsnummer
-		""".trimIndent()
+			""".trimIndent()
 
-        val parameters = MapSqlParameterSource().addValues(
-            mapOf(
-                "organisasjonsnummer" to organisasjonsnummer
-            )
-        )
+		val parameters =
+			MapSqlParameterSource().addValues(
+				mapOf(
+					"organisasjonsnummer" to organisasjonsnummer,
+				),
+			)
 
-        return template.query(sql, parameters, rowMapper)
-            .firstOrNull()
-    }
+		return template
+			.query(sql, parameters, rowMapper)
+			.firstOrNull()
+	}
 
 	fun getById(id: UUID): ArrangorDbo {
-		val sql = """
+		val sql =
+			"""
 			SELECT * FROM arrangor WHERE id = :id
-		""".trimIndent()
+			""".trimIndent()
 
-		val parameters = MapSqlParameterSource().addValues(
-			mapOf(
-				"id" to id
+		val parameters =
+			MapSqlParameterSource().addValues(
+				mapOf(
+					"id" to id,
+				),
 			)
-		)
 
 		return template.query(sql, parameters, rowMapper).firstOrNull()
 			?: throw NoSuchElementException("Fant ikke arrangor med id: $id")
 	}
 
 	fun getByIder(arrangorIder: List<UUID>): List<ArrangorDbo> {
-		if (arrangorIder.isEmpty())
+		if (arrangorIder.isEmpty()) {
 			return emptyList()
+		}
 
-		val sql = """
+		val sql =
+			"""
 			SELECT * FROM arrangor WHERE id in(:ider)
-		""".trimIndent()
+			""".trimIndent()
 
 		val parameters = sqlParameters("ider" to arrangorIder)
 

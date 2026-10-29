@@ -10,19 +10,19 @@ import org.springframework.scheduling.annotation.Scheduled
 import java.time.LocalDateTime
 
 @Configuration
-open class ArrangorAnsattTilgangUpdater(
+class ArrangorAnsattTilgangUpdater(
 	private val arrangorAnsattService: ArrangorAnsattService,
 	private val arrangorAnsattTilgangService: ArrangorAnsattTilgangService,
 	@Value("\${arrangoransatt.tilgang.updater.number-to-check}") private val numberToCheck: Int,
 ) {
-
 	@Scheduled(cron = "@hourly")
 	@SchedulerLock(name = "arrangor_ansatt_tilgang_updater", lockAtMostFor = "120m")
-	open fun update() {
+	fun update() {
 		JobRunner.run("arrangor_ansatt_tilgang_updater") {
 			val aWeekAgo = LocalDateTime.now().minusWeeks(1)
 
-			arrangorAnsattService.getAnsatteSistSynkronisertEldreEnn(aWeekAgo, numberToCheck)
+			arrangorAnsattService
+				.getAnsatteSistSynkronisertEldreEnn(aWeekAgo, numberToCheck)
 				.forEach { arrangorAnsattTilgangService.synkroniserRettigheter(it.personligIdent) }
 		}
 	}

@@ -26,138 +26,140 @@ import org.springframework.transaction.support.TransactionTemplate
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 
-class MineDeltakerlisterServiceTest : FunSpec({
+class MineDeltakerlisterServiceTest :
+	FunSpec({
 
-	val dataSource = SingletonPostgresContainer.getDataSource()
+		val dataSource = SingletonPostgresContainer.getDataSource()
 
-	lateinit var repository: MineDeltakerlisterRepository
+		lateinit var repository: MineDeltakerlisterRepository
 
-	lateinit var testRepository: TestDataRepository
+		lateinit var testRepository: TestDataRepository
 
-	lateinit var transactionTemplate: TransactionTemplate
+		lateinit var transactionTemplate: TransactionTemplate
 
-	lateinit var service: MineDeltakerlisterServiceImpl
+		lateinit var service: MineDeltakerlisterServiceImpl
 
-	lateinit var gjennomforingService: GjennomforingService
+		lateinit var gjennomforingService: GjennomforingService
 
-	beforeEach {
-		val rootLogger: Logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger
-		rootLogger.level = Level.WARN
+		beforeEach {
+			val rootLogger: Logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger
+			rootLogger.level = Level.WARN
 
-		val template = NamedParameterJdbcTemplate(dataSource)
+			val template = NamedParameterJdbcTemplate(dataSource)
 
-		repository = MineDeltakerlisterRepository(template)
+			repository = MineDeltakerlisterRepository(template)
 
-		testRepository = TestDataRepository(template)
+			testRepository = TestDataRepository(template)
 
-		transactionTemplate = TransactionTemplate(DataSourceTransactionManager(dataSource))
+			transactionTemplate = TransactionTemplate(DataSourceTransactionManager(dataSource))
 
-		gjennomforingService = mockk()
+			gjennomforingService = mockk()
 
-		service = MineDeltakerlisterServiceImpl(repository, gjennomforingService, transactionTemplate)
+			service = MineDeltakerlisterServiceImpl(repository, gjennomforingService, transactionTemplate)
 
+			DbTestDataUtils.cleanDatabase(dataSource)
 
-		DbTestDataUtils.cleanDatabase(dataSource)
-
-		testRepository.insertArrangor(ARRANGOR_1)
-		testRepository.insertArrangorAnsatt(ARRANGOR_ANSATT_1)
-		testRepository.insertTiltak(TILTAK_1)
-		testRepository.insertGjennomforing(GJENNOMFORING_1)
-		testRepository.insertGjennomforing(
-			GJENNOMFORING_2.copy(
-				arrangorId = ARRANGOR_1.id,
+			testRepository.insertArrangor(ARRANGOR_1)
+			testRepository.insertArrangorAnsatt(ARRANGOR_ANSATT_1)
+			testRepository.insertTiltak(TILTAK_1)
+			testRepository.insertGjennomforing(GJENNOMFORING_1)
+			testRepository.insertGjennomforing(
+				GJENNOMFORING_2.copy(
+					arrangorId = ARRANGOR_1.id,
+				),
 			)
-		)
-	}
-
-	test("fjern - skal fjerne tilgang til gjennomføring") {
-		testRepository.insertMineDeltakerlister(
-			GJENNOMFORING_TILGANG_1.copy(
-				id = UUID.randomUUID(),
-				ansattId = ARRANGOR_ANSATT_1.id,
-				gjennomforingId = GJENNOMFORING_1.id
-			)
-		)
-
-		testRepository.insertMineDeltakerlister(
-			GJENNOMFORING_TILGANG_1.copy(
-				id = UUID.randomUUID(),
-				ansattId = ARRANGOR_ANSATT_1.id,
-				gjennomforingId = GJENNOMFORING_1.id
-			)
-		)
-
-		testRepository.insertMineDeltakerlister(
-			GJENNOMFORING_TILGANG_1.copy(
-				id = UUID.randomUUID(),
-				ansattId = ARRANGOR_ANSATT_1.id,
-				gjennomforingId = GJENNOMFORING_2.id
-			)
-		)
-
-		service.fjern(ARRANGOR_ANSATT_1.id, GJENNOMFORING_1.id)
-
-		eventually(5.seconds) {
-			val aktiveTilganger =
-				repository.hent(ARRANGOR_ANSATT_1.id)
-
-			aktiveTilganger shouldHaveSize 1
-			aktiveTilganger.first().gjennomforingId shouldBe GJENNOMFORING_2.id
 		}
-	}
 
-	test("fjernAlleHosArrangor - skal fjerne tilgang til gjennomforing hos arrangor") {
-		val id1 = UUID.randomUUID()
-		val id2 = UUID.randomUUID()
-
-		testRepository.insertMineDeltakerlister(
-			GJENNOMFORING_TILGANG_1.copy(
-				id = id1,
-				ansattId = ARRANGOR_ANSATT_1.id,
-				gjennomforingId = GJENNOMFORING_1.id
+		test("fjern - skal fjerne tilgang til gjennomføring") {
+			testRepository.insertMineDeltakerlister(
+				GJENNOMFORING_TILGANG_1.copy(
+					id = UUID.randomUUID(),
+					ansattId = ARRANGOR_ANSATT_1.id,
+					gjennomforingId = GJENNOMFORING_1.id,
+				),
 			)
-		)
 
-		testRepository.insertMineDeltakerlister(
-			GJENNOMFORING_TILGANG_1.copy(
-				id = id2,
-				ansattId = ARRANGOR_ANSATT_1.id,
-				gjennomforingId = GJENNOMFORING_2.id
+			testRepository.insertMineDeltakerlister(
+				GJENNOMFORING_TILGANG_1.copy(
+					id = UUID.randomUUID(),
+					ansattId = ARRANGOR_ANSATT_1.id,
+					gjennomforingId = GJENNOMFORING_1.id,
+				),
 			)
-		)
 
-		every { gjennomforingService.getByArrangorId(ARRANGOR_1.id) } returns listOf(
-			Gjennomforing(
-				id = GJENNOMFORING_1.id,
-				tiltak = mockk(),
-				arrangor = mockk(),
-				navn = "",
-				status = Gjennomforing.Status.GJENNOMFORES,
-				startDato = null,
-				sluttDato = null,
-				opprettetAar = 0,
-				lopenr = 1,
-				erKurs = false
-			), Gjennomforing(
-				id = GJENNOMFORING_2.id,
-				tiltak = mockk(),
-				arrangor = mockk(),
-				navn = "",
-				status = Gjennomforing.Status.GJENNOMFORES,
-				startDato = null,
-				sluttDato = null,
-				opprettetAar = 0,
-				lopenr = 2,
-				erKurs = false
-		))
+			testRepository.insertMineDeltakerlister(
+				GJENNOMFORING_TILGANG_1.copy(
+					id = UUID.randomUUID(),
+					ansattId = ARRANGOR_ANSATT_1.id,
+					gjennomforingId = GJENNOMFORING_2.id,
+				),
+			)
 
-		var aktiveGjennomforingTilganger = repository.hent(ARRANGOR_ANSATT_1.id)
-		aktiveGjennomforingTilganger shouldHaveSize 2
+			service.fjern(ARRANGOR_ANSATT_1.id, GJENNOMFORING_1.id)
 
-		service.fjernAlleHosArrangor(ARRANGOR_ANSATT_1.id, ARRANGOR_1.id)
+			eventually(5.seconds) {
+				val aktiveTilganger =
+					repository.hent(ARRANGOR_ANSATT_1.id)
 
-		aktiveGjennomforingTilganger = repository.hent(ARRANGOR_ANSATT_1.id)
-		aktiveGjennomforingTilganger shouldHaveSize 0
-	}
+				aktiveTilganger shouldHaveSize 1
+				aktiveTilganger.first().gjennomforingId shouldBe GJENNOMFORING_2.id
+			}
+		}
 
-})
+		test("fjernAlleHosArrangor - skal fjerne tilgang til gjennomforing hos arrangor") {
+			val id1 = UUID.randomUUID()
+			val id2 = UUID.randomUUID()
+
+			testRepository.insertMineDeltakerlister(
+				GJENNOMFORING_TILGANG_1.copy(
+					id = id1,
+					ansattId = ARRANGOR_ANSATT_1.id,
+					gjennomforingId = GJENNOMFORING_1.id,
+				),
+			)
+
+			testRepository.insertMineDeltakerlister(
+				GJENNOMFORING_TILGANG_1.copy(
+					id = id2,
+					ansattId = ARRANGOR_ANSATT_1.id,
+					gjennomforingId = GJENNOMFORING_2.id,
+				),
+			)
+
+			every { gjennomforingService.getByArrangorId(ARRANGOR_1.id) } returns
+				listOf(
+					Gjennomforing(
+						id = GJENNOMFORING_1.id,
+						tiltak = mockk(),
+						arrangor = mockk(),
+						navn = "",
+						status = Gjennomforing.Status.GJENNOMFORES,
+						startDato = null,
+						sluttDato = null,
+						opprettetAar = 0,
+						lopenr = 1,
+						erKurs = false,
+					),
+					Gjennomforing(
+						id = GJENNOMFORING_2.id,
+						tiltak = mockk(),
+						arrangor = mockk(),
+						navn = "",
+						status = Gjennomforing.Status.GJENNOMFORES,
+						startDato = null,
+						sluttDato = null,
+						opprettetAar = 0,
+						lopenr = 2,
+						erKurs = false,
+					),
+				)
+
+			var aktiveGjennomforingTilganger = repository.hent(ARRANGOR_ANSATT_1.id)
+			aktiveGjennomforingTilganger shouldHaveSize 2
+
+			service.fjernAlleHosArrangor(ARRANGOR_ANSATT_1.id, ARRANGOR_1.id)
+
+			aktiveGjennomforingTilganger = repository.hent(ARRANGOR_ANSATT_1.id)
+			aktiveGjennomforingTilganger shouldHaveSize 0
+		}
+	})

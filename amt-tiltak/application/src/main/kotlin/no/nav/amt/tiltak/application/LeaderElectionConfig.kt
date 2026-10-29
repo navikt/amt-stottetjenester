@@ -9,21 +9,17 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.jdbc.core.JdbcTemplate
 
 @Configuration
-open class LeaderElectionConfig {
+class LeaderElectionConfig {
+	@Bean
+	fun leaderElectionClient(lockProvider: LockProvider): LeaderElectionClient = ShedLockLeaderElectionClient(lockProvider)
 
 	@Bean
-	open fun leaderElectionClient(lockProvider: LockProvider): LeaderElectionClient {
-		return ShedLockLeaderElectionClient(lockProvider)
-	}
-
-	@Bean
-	open fun lockProvider(jdbcTemplate: JdbcTemplate): LockProvider {
-		return JdbcTemplateLockProvider(
-			JdbcTemplateLockProvider.Configuration.builder()
+	fun lockProvider(jdbcTemplate: JdbcTemplate): LockProvider =
+		JdbcTemplateLockProvider(
+			JdbcTemplateLockProvider.Configuration
+				.builder()
 				.withJdbcTemplate(jdbcTemplate)
 				.usingDbTime()
-				.build()
+				.build(),
 		)
-	}
-
 }

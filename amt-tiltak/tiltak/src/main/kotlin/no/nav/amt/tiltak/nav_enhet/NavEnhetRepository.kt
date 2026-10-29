@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 import java.util.UUID
 
 @Component
-open class NavEnhetRepository(
+class NavEnhetRepository(
 	private val template: NamedParameterJdbcTemplate
 ) {
 

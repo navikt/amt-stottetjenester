@@ -14,7 +14,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Service
-open class EndringsmeldingServiceImpl(
+class EndringsmeldingServiceImpl(
 	private val endringsmeldingRepository: EndringsmeldingRepository,
 	private val auditLoggerService: AuditLoggerService,
 	private val transactionTemplate: TransactionTemplate,
@@ -277,5 +277,4 @@ open class EndringsmeldingServiceImpl(
 	}
 
 }
-
 

@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Component
-open class TiltakRepository(
+class TiltakRepository(
 	private val template: NamedParameterJdbcTemplate
 ) {
 

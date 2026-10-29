@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:no-wildcard-imports")
+
 package no.nav.amt.tiltak.kafka.config
 
 import no.nav.common.kafka.producer.KafkaProducerClient
@@ -12,54 +14,46 @@ import org.springframework.context.annotation.Profile
 import java.util.*
 
 @Configuration
-open class KafkaBeans {
+class KafkaBeans {
+	@Bean
+	@Profile("default")
+	fun kafkaConsumerProperties(): KafkaProperties =
+		object : KafkaProperties {
+			override fun consumer(): Properties = KafkaPropertiesPreset.aivenDefaultConsumerProperties("amt-tiltak-consumer.v10")
 
-    @Bean
-    @Profile("default")
-    open fun kafkaConsumerProperties(): KafkaProperties {
-        return object : KafkaProperties {
-            override fun consumer(): Properties {
-                return KafkaPropertiesPreset.aivenDefaultConsumerProperties("amt-tiltak-consumer.v10")
-            }
+			override fun producer(): Properties = KafkaPropertiesPreset.aivenByteProducerProperties("amt-tiltak-producer")
+		}
 
-            override fun producer(): Properties {
-				return KafkaPropertiesPreset.aivenByteProducerProperties("amt-tiltak-producer")
-			}
-        }
-    }
+	@Bean
+	@Profile("local")
+	fun localKafkaConsumerProperties(): KafkaProperties =
+		object : KafkaProperties {
+			override fun consumer(): Properties =
+				KafkaPropertiesBuilder
+					.consumerBuilder()
+					.withBrokerUrl("localhost:9092")
+					.withBaseProperties()
+					.withConsumerGroupId("amt-tiltak-consumer.v1")
+					.withDeserializers(ByteArrayDeserializer::class.java, ByteArrayDeserializer::class.java)
+					.build()
 
-    @Bean
-    @Profile("local")
-    open fun localKafkaConsumerProperties(): KafkaProperties {
-        return object : KafkaProperties {
-            override fun consumer(): Properties {
-                return KafkaPropertiesBuilder.consumerBuilder()
-                    .withBrokerUrl("localhost:9092")
-                    .withBaseProperties()
-                    .withConsumerGroupId("amt-tiltak-consumer.v1")
-                    .withDeserializers(ByteArrayDeserializer::class.java, ByteArrayDeserializer::class.java)
-                    .build()
-            }
-
-            override fun producer(): Properties {
-				return KafkaPropertiesBuilder.producerBuilder()
+			override fun producer(): Properties =
+				KafkaPropertiesBuilder
+					.producerBuilder()
 					.withBrokerUrl("localhost:9092")
 					.withBaseProperties()
 					.withProducerId("amt-tiltak-producer")
 					.withSerializers(ByteArraySerializer::class.java, ByteArraySerializer::class.java)
 					.build()
-            }
-        }
-    }
+		}
 
 	@Bean
-	open fun kafkaProducer(kafkaProperties: KafkaProperties): KafkaProducerClient<ByteArray, ByteArray> {
-		return KafkaProducerClientImpl(kafkaProperties.producer())
-	}
+	fun kafkaProducer(kafkaProperties: KafkaProperties): KafkaProducerClient<ByteArray, ByteArray> =
+		KafkaProducerClientImpl(kafkaProperties.producer())
 
 	@Bean(name = ["stringKafkaProducer"])
 	@Profile("default")
-	open fun stringKafkaProducer(kafkaProperties: KafkaProperties): KafkaProducerClient<String, String> {
+	fun stringKafkaProducer(kafkaProperties: KafkaProperties): KafkaProducerClient<String, String> {
 		val properties = KafkaPropertiesPreset.aivenDefaultProducerProperties("amt-tiltak-producer-2")
 		return KafkaProducerClientImpl(properties)
 	}

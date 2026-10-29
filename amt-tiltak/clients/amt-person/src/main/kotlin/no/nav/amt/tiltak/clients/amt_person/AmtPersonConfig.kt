@@ -5,10 +5,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-
 @Configuration
-open class AmtPersonConfig {
-
+class AmtPersonConfig {
 	@Value("\${amt-person.url}")
 	lateinit var url: String
 
@@ -16,11 +14,9 @@ open class AmtPersonConfig {
 	lateinit var scope: String
 
 	@Bean
-	open fun amtPersonClient(machineToMachineTokenClient: MachineToMachineTokenClient): AmtPersonClient {
-		return AmtPersonClientImpl(
+	fun amtPersonClient(machineToMachineTokenClient: MachineToMachineTokenClient): AmtPersonClient =
+		AmtPersonClientImpl(
 			baseUrl = url,
 			tokenProvider = { machineToMachineTokenClient.createMachineToMachineToken(scope) },
 		)
-	}
-
 }

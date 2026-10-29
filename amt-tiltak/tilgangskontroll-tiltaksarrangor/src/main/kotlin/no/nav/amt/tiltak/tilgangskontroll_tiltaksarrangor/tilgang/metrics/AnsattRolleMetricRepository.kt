@@ -4,11 +4,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
 
 @Component
-open class AnsattRolleMetricRepository(
-	private val template: NamedParameterJdbcTemplate
+class AnsattRolleMetricRepository(
+	private val template: NamedParameterJdbcTemplate,
 ) {
 	fun getMetrikker(): AnsattRolleMetrikkHolder {
-		val sql = """
+		val sql =
+			"""
 			with ansatt_rolle as (select ansatt_id, rolle from arrangor_ansatt_rolle where gyldig_til > current_timestamp)
 			select
 				(
@@ -32,15 +33,16 @@ open class AnsattRolleMetricRepository(
 						select ansatt_id from ansatt_rolle where rolle = 'KOORDINATOR'
 					)
 				);
-		""".trimIndent()
+			""".trimIndent()
 
-		return template.query(sql) { rs, _ ->
-			AnsattRolleMetrikkHolder(
-				antallVeiledere = rs.getInt("antall_veiledere"),
-				antallKoordinatorer = rs.getInt("antall_koordinatorer"),
-				antallMedBeggeRoller = rs.getInt("antall_med_begge_roller"),
-			)
-		}.first()
+		return template
+			.query(sql) { rs, _ ->
+				AnsattRolleMetrikkHolder(
+					antallVeiledere = rs.getInt("antall_veiledere"),
+					antallKoordinatorer = rs.getInt("antall_koordinatorer"),
+					antallMedBeggeRoller = rs.getInt("antall_med_begge_roller"),
+				)
+			}.first()
 	}
 }
 
