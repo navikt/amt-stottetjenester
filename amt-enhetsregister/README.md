@@ -1,40 +1,61 @@
-# AMT Enhetsregister
+# amt-enhetsregister
 
-ACL mot Brønnøysundregisteret
+Henter virksomhetsdata fra Brønnøysundregistrene og deler dem med AMT-applikasjonene.
 
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=navikt_amt-enhetsregister&metric=bugs)](https://sonarcloud.io/dashboard?id=navikt_amt-enhetsregister)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=navikt_amt-enhetsregister&metric=code_smells)](https://sonarcloud.io/dashboard?id=navikt_amt-enhetsregister)
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=navikt_amt-enhetsregister&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=navikt_amt-enhetsregister)
+## Kom i gang
 
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=navikt_amt-enhetsregister&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=navikt_amt-enhetsregister)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=navikt_amt-enhetsregister&metric=security_rating)](https://sonarcloud.io/dashboard?id=navikt_amt-enhetsregister)
+Du trenger Java 25 og Docker. Kjør tester fra roten av `amt-stottetjenester`:
 
-## SonarCloud
-https://sonarcloud.io/dashboard?id=navikt_amt-enhetsregister
-
-## Justere på deltaoppdatering
-
-For å justere på deltaoppdateringen må man inn i databasen og kjøre:
-```
-UPDATE delta_enhet_oppdatering set oppdatering_id = ? where enhet_type = 'MODERENHET';
-UPDATE delta_enhet_oppdatering set oppdatering_id = ? where enhet_type = 'UNDERENHET';
+```bash
+./gradlew :amt-enhetsregister:check
 ```
 
-Det er viktig å sette en oppdatering_id som er relativt ny slik at man ikke starter å laste inn oppdateringer helt fra starten.
+Applikasjonen har en lokal Spring-profil:
 
-Hvis man går inn på
-f.eks https://data.brreg.no/enhetsregisteret/api/oppdateringer/enheter?dato=2022-02-01T00:00:00.000Z
-eller
-f.eks https://data.brreg.no/enhetsregisteret/api/oppdateringer/underenheter?dato=2022-02-01T00:00:00.000Z
+```bash
+./gradlew :amt-enhetsregister:bootRun --args='--spring.profiles.active=local'
+```
 
-så kan man hente ut en relativt ny oppdatering_id og legge den inn i delta_enhet_oppdatering tabellen.
+Det lokale oppsettet er ikke selvstendig. Verdiene i `docker-compose.yaml` samsvarer ikke med alle portene og
+databasenavnene i lokalprofilen, og Compose-filen starter verken Kafka eller en mock for Brønnøysundregistrene.
+Kontroller konfigurasjonen før du starter applikasjonen lokalt.
 
-## Hvordan laste alle enheter på nytt
+## Ansvar
 
-Exec inn i podden eller port-forward.
+Applikasjonen:
 
-1. Last inn alle moderenheter:
-`wget --method=POST -O - localhost:8080/local/api/oppdater-alle/moderenheter`.
+- lagrer hovedenheter (`MODERENHET` i koden) og underenheter i PostgreSQL
+- tilbyr oppslag på organisasjonsnummer
+- henter deltaoppdateringer fra Brønnøysundregistrene
+- publiserer virksomhetsdata på Kafka
 
-2. Last inn alle underenheter:
-`wget --method=POST -O - localhost:8080/local/api/oppdater-alle/underenheter`.
+Jobber som bare kjører på leader-instansen, henter deltaoppdateringer hver time: hovedenheter ved hel time og
+underenheter 30 minutter over hel time.
+
+## API
+
+| Metode | Endepunkt | Beskrivelse |
+|--------|-----------|-------------|
+| `GET` | `/api/enhet/{organisasjonsnummer}` | Henter en enhet. |
+| `POST` | `/local/api/oppdater-alle/moderenheter` | Starter full innlasting av hovedenheter. |
+| `POST` | `/local/api/oppdater-alle/underenheter` | Starter full innlasting av underenheter. |
+
+Det ordinære API-et krever Azure AD-token med rollen `access_as_application`. Endepunktene for full innlasting
+har intern tilgangskontroll og starter jobben asynkront.
+
+## Drift
+
+Se [driftsprosedyrene](docs/runbook.md) for å:
+
+- endre startpunktet for deltaoppdateringer
+- laste inn alle hovedenheter eller underenheter på nytt
+
+Prosedyrene kan behandle store datamengder og skal følges opp i logger og Nais.
+
+## Deploy
+
+GitHub Actions bygger og deployer endringer på `main` til `dev-gcp` og deretter `prod-gcp`.
+
+- Nais-manifest: [`.nais/nais.yaml`](.nais/nais.yaml)
+- Miljøvariabler: [`.nais/vars-dev.yaml`](.nais/vars-dev.yaml) og
+  [`.nais/vars-prod.yaml`](.nais/vars-prod.yaml)
