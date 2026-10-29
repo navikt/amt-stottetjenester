@@ -2,3 +2,14 @@
 .idea/
 .kotlin/
 build/
+*.iml
+out/
+.vscode/
+.DS_Store
+.classpath
+.project
+.settings/
+.factorypath
+.springBeans
+.sts4-cache/
+*.class

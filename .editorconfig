@@ -10,5 +10,9 @@ ktlint_standard_blank-line-between-when-conditions = disabled
 ktlint_standard_when-entry-bracing = disabled
 ktlint_function_signature_body_expression_wrapping = default
 
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
 [*.kts]
 ktlint_standard_chain-method-continuation = disabled
