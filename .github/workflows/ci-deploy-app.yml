@@ -5,6 +5,8 @@ on:
     branches:
       - main
     paths:
+      - "Dockerfile"
+      - ".dockerignore"
       - "amt-altinn-acl/**"
       - "amt-arena-acl/**"
       - "amt-arena-ords-proxy/**"
@@ -58,6 +60,8 @@ jobs:
             amt-tiltak:
               - amt-tiltak/**
             all:
+              - Dockerfile
+              - .dockerignore
               - buildSrc/**
               - gradle/**
               - gradle.properties
