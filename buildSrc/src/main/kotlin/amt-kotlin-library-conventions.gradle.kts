@@ -4,6 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
+// Felles oppsett for bibliotekmodulene i amt-tiltak, uten Spring Boot-pluginens pakketering.
 plugins {
     `java-library`
     kotlin("jvm")
@@ -34,6 +35,7 @@ configure<KotlinJvmProjectExtension> {
     }
 }
 
+// Bibliotekmodulene importerer Spring Boot-BOM-en eksplisitt og bruker Kotlin-versjonen fra libs.
 dependencyManagement {
     imports {
         mavenBom("org.springframework.boot:spring-boot-dependencies:${versionCatalog.findVersion("spring-boot").get().requiredVersion}") {
@@ -43,11 +45,13 @@ dependencyManagement {
 }
 
 dependencies {
+    // JUnit Platform ved testkjøring.
     add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    // Noen moduler har testhjelpere, men ingen egne tester.
     failOnNoDiscoveredTests = false
     jvmArgs("-Xshare:off", "-XX:+EnableDynamicAgentLoading")
     testLogging {
