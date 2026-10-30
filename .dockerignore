@@ -1,0 +1,15 @@
+**
+!amt-*/
+amt-*/*
+!amt-*/build/
+amt-*/build/*
+!amt-*/build/libs/
+amt-*/build/libs/*
+!amt-*/build/libs/*.jar
+!amt-tiltak/application/
+amt-tiltak/application/*
+!amt-tiltak/application/build/
+amt-tiltak/application/build/*
+!amt-tiltak/application/build/libs/
+amt-tiltak/application/build/libs/*
+!amt-tiltak/application/build/libs/*-app.jar
