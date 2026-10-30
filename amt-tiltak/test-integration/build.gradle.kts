@@ -27,7 +27,6 @@ dependencies {
     api(project(":amt-tiltak:test:database"))
     api(project(":amt-tiltak:test:test-utils"))
     api(libs.tiltak.kotest.assertions.core)
-    api(libs.tiltak.kotest.framework.concurrency)
     api("org.springframework.boot:spring-boot-starter-test")
     api(libs.mockwebserver)
     api(libs.mock.oauth2.server)

@@ -45,6 +45,8 @@ jobs:
         run: |
           set -euo pipefail
 
+          jar_file="${MODULE_PATH}/build/libs/*.jar"
+
           case "$MODULE_PATH" in
             amt-altinn-acl|amt-arena-acl|amt-arrangor|amt-enhetsregister|amt-person-service)
               gradle_task=":${MODULE_PATH}:build"
@@ -63,6 +65,7 @@ jobs:
               prod_vars="${MODULE_PATH}/.nais/vars-prod.yaml"
               ;;
             amt-tiltak)
+              jar_file="${MODULE_PATH}/application/build/libs/*-app.jar"
               gradle_task=":amt-tiltak:application:build"
               dev_cluster="dev-gcp"
               dev_vars="${MODULE_PATH}/.nais/vars-dev.yaml"
@@ -78,6 +81,7 @@ jobs:
 
           {
             echo "gradle_task=$gradle_task"
+            echo "jar_file=$jar_file"
             echo "dev_cluster=$dev_cluster"
             echo "dev_vars=$dev_vars"
             echo "dev_vars_secondary=$dev_vars_secondary"
@@ -98,7 +102,7 @@ jobs:
 
       - name: Build application
         env:
-          TZ: ${{ inputs.module_path == 'amt-tiltak' && 'Europe/Oslo' || 'UTC' }}
+          TZ: Europe/Oslo
         run: ./gradlew "${{ steps.config.outputs.gradle_task }}" --no-daemon
 
       - name: Build and push image
@@ -110,8 +114,10 @@ jobs:
           tag: ${{ github.sha }}
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
-          docker_context: ${{ inputs.module_path }}
-          dockerfile: ${{ inputs.module_path }}/Dockerfile
+          docker_context: .
+          dockerfile: Dockerfile
+          build_args: |
+            JAR_FILE=${{ steps.config.outputs.jar_file }}
 
   deploy-dev:
     name: Deploy ${{ inputs.module_path }} to dev
