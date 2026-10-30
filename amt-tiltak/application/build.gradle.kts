@@ -28,14 +28,14 @@ dependencies {
     implementation(project(":amt-tiltak:kafka:deltaker-ingestor"))
     implementation(project(":amt-tiltak:clients:mulighetsrommet-api-client"))
     implementation(libs.nav.common.token.client)
-    implementation(libs.tiltak.poao.tilgang.client) {
+    implementation(libs.poao.tilgang.client) {
         exclude(group = "com.squareup.okhttp3", module = "okhttp")
     }
     implementation(libs.nav.common.log)
     implementation(libs.nav.common.job) {
         exclude(group = "com.squareup.okhttp3", module = "okhttp")
     }
-    implementation(libs.tiltak.unleash)
+    implementation(libs.unleash)
     implementation(libs.token.validation.spring)
     implementation(libs.shedlock.jdbc.template)
     implementation("org.flywaydb:flyway-core")

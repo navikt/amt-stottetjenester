@@ -98,22 +98,14 @@ unleash = { module = "io.getunleash:unleash-client-java", version.ref = "unleash
 
 # Testing
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
+kotest-assertions-json = { module = "io.kotest:kotest-assertions-json-jvm", version.ref = "kotest" }
 kotest-extensions-spring = { module = "io.kotest:kotest-extensions-spring", version.ref = "kotest" }
 kotest-extensions-testcontainers = { module = "io.kotest:kotest-extensions-testcontainers", version.ref = "kotest" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
 mockk = { module = "io.mockk:mockk-jvm", version.ref = "mockk" }
 springmockk = { module = "com.ninja-squad:springmockk", version.ref = "springmockk" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
-
-# amt-tiltak
-tiltak-amt-lib-models = { module = "no.nav.amt.deltakelser.lib:models", version.ref = "amt-lib" }
-tiltak-kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka-clients" }
-tiltak-kotest-assertions-core = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
-tiltak-kotest-assertions-json = { module = "io.kotest:kotest-assertions-json-jvm", version.ref = "kotest" }
-tiltak-kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
-tiltak-poao-tilgang-client = { module = "no.nav.poao-tilgang:client", version.ref = "poao-tilgang" }
-tiltak-testcontainers = { module = "org.testcontainers:testcontainers" }
-tiltak-testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
-tiltak-testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }
-tiltak-testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }
-tiltak-unleash = { module = "io.getunleash:unleash-client-java", version.ref = "unleash" }
+testcontainers-core = { module = "org.testcontainers:testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
+testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }

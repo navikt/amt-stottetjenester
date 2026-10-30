@@ -3,8 +3,6 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
 
-
-
 // Felles oppsett for de frittstående Spring Boot-appene. Appspesifikke avhengigheter,
 // ekstra repositories og kompilatorflagg hører hjemme i appens egen build.gradle.kts.
 plugins {
@@ -22,16 +20,26 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    // HTTP-server med Jetty i stedet for Tomcat.
     implementation("org.springframework.boot:spring-boot-starter-web") {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
     }
-    implementation(versionCatalog.findLibrary("tools-jackson-module-kotlin").get())
     runtimeOnly("org.springframework.boot:spring-boot-starter-jetty")
+
+    // JSON og validering.
+    implementation(versionCatalog.findLibrary("tools-jackson-module-kotlin").get())
     runtimeOnly("org.springframework.boot:spring-boot-starter-validation")
+
+    // Helseendepunkter, metrikker og strukturert logging.
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     runtimeOnly(versionCatalog.findLibrary("logstash-encoder").get())
+
+    // HTTP-testing og mocking er felles for appene, også uten database.
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-resttestclient")
+    testImplementation(versionCatalog.findLibrary("mockk").get())
+    testImplementation(versionCatalog.findLibrary("springmockk").get())
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -60,6 +68,7 @@ tasks.withType<Test>().configureEach {
     }
 }
 
+// Tilpass ktlint bare i appene som bruker pluginen.
 pluginManager.withPlugin("org.jlleitschuh.gradle.ktlint") {
     extensions.configure<KtlintExtension> {
         version.set(versionCatalog.findVersion("ktlint-cli-version").get().requiredVersion)

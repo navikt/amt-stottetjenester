@@ -13,5 +13,5 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation(libs.mock.oauth2.server)
     testImplementation(libs.mockk)
-    testImplementation(libs.tiltak.kotest.assertions.core)
+    testImplementation(libs.kotest.assertions.core)
 }

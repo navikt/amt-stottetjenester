@@ -18,7 +18,7 @@ dependencies {
     api(libs.caffeine)
     api(libs.shedlock.spring)
     api("io.micrometer:micrometer-registry-prometheus")
-    api(libs.tiltak.unleash)
+    api(libs.unleash)
     api(libs.nav.common.job) {
         exclude(group = "com.squareup.okhttp3", module = "okhttp")
     }
@@ -28,7 +28,7 @@ dependencies {
         exclude(group = "io.confluent", module = "kafka-avro-serializer")
     }
     api(project(":amt-tiltak:common:utils"))
-    api(libs.tiltak.poao.tilgang.client) {
+    api(libs.poao.tilgang.client) {
         exclude(group = "com.squareup.okhttp3", module = "okhttp")
     }
     api(project(":amt-tiltak:data-publisher"))
@@ -40,10 +40,10 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     testImplementation(project(":amt-tiltak:test:database"))
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
-    testImplementation(libs.tiltak.testcontainers.junit.jupiter)
+    testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation("org.junit.jupiter:junit-jupiter-api")
-    testImplementation(libs.tiltak.kotest.runner.junit5)
-    testImplementation(libs.tiltak.kotest.assertions.core)
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.kotest.assertions.core)
     testImplementation(project(":amt-tiltak:arrangor"))
     testImplementation(libs.token.validation.spring)
     testImplementation(project(":amt-tiltak:test:test-utils"))
