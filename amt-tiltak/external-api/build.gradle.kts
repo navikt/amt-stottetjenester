@@ -14,7 +14,7 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter-jetty")
     api(libs.token.validation.spring)
     testImplementation(project(":amt-tiltak:test:test-utils"))
-    testImplementation(libs.tiltak.kotest.assertions.core)
+    testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.mockk)
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

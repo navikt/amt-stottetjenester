@@ -12,5 +12,5 @@ dependencies {
     api(project(":amt-tiltak:common:json"))
     api(libs.nav.common.rest)
     testImplementation(libs.mockwebserver)
-    testImplementation(libs.tiltak.kotest.runner.junit5)
+    testImplementation(libs.kotest.runner.junit5)
 }

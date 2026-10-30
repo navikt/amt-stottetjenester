@@ -9,5 +9,5 @@ dependencies {
     api(project(":amt-tiltak:core"))
     api(project(":amt-tiltak:clients:mulighetsrommet-api-client"))
     api(project(":amt-tiltak:kafka:gjennomforing-ingestor"))
-    api(libs.tiltak.unleash)
+    api(libs.unleash)
 }

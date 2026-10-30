@@ -14,5 +14,5 @@ dependencies {
     api(libs.nav.common.rest)
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation(libs.mockwebserver)
-    testImplementation(libs.tiltak.kotest.runner.junit5)
+    testImplementation(libs.kotest.runner.junit5)
 }
