@@ -132,7 +132,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Deploy application
-        uses: nais/deploy/actions/deploy@1064e26587ab2794266a35f477387e561899a7ef # v2
+        uses: nais/deploy/actions/deploy@7b60caaded00332e9aa117a8342daa0876851dfe # v2
         env:
           CLUSTER: ${{ needs.build.outputs.dev_cluster }}
           RESOURCE: ${{ inputs.module_path }}/.nais/nais.yaml
@@ -141,7 +141,7 @@ jobs:
 
       - name: Deploy secondary dev environment
         if: ${{ needs.build.outputs.dev_vars_secondary != '' }}
-        uses: nais/deploy/actions/deploy@1064e26587ab2794266a35f477387e561899a7ef # v2
+        uses: nais/deploy/actions/deploy@7b60caaded00332e9aa117a8342daa0876851dfe # v2
         env:
           CLUSTER: ${{ needs.build.outputs.dev_cluster }}
           RESOURCE: ${{ inputs.module_path }}/.nais/nais.yaml
@@ -164,7 +164,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Deploy application
-        uses: nais/deploy/actions/deploy@1064e26587ab2794266a35f477387e561899a7ef # v2
+        uses: nais/deploy/actions/deploy@7b60caaded00332e9aa117a8342daa0876851dfe # v2
         env:
           CLUSTER: ${{ needs.build.outputs.prod_cluster }}
           RESOURCE: ${{ inputs.module_path }}/.nais/nais.yaml
