@@ -1,3 +1,4 @@
+import gradle.kotlin.dsl.accessors._1ecb499e70f6c048b872e24ac296635d.kotlin
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 // Felles oppsett for bibliotekmodulene i amt-tiltak, uten Spring Boot-pluginens pakketering.
@@ -20,10 +21,11 @@ repositories {
     maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
 }
 
+val javaVersion = versionCatalog.findVersion("java.version").get().requiredVersion
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(javaVersion.toInt())
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_25)
+        jvmTarget = JvmTarget.fromTarget(javaVersion)
         freeCompilerArgs.add("-Xjsr305=strict")
     }
 }
