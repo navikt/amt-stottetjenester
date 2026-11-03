@@ -1,4 +1,3 @@
-import gradle.kotlin.dsl.accessors._1ecb499e70f6c048b872e24ac296635d.kotlin
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 // Felles oppsett for bibliotekmodulene i amt-tiltak, uten Spring Boot-pluginens pakketering.
