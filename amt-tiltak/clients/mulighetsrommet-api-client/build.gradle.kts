@@ -13,4 +13,5 @@ dependencies {
     api(libs.nav.common.rest)
     testImplementation(libs.mockwebserver)
     testImplementation(libs.kotest.runner.junit5)
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }

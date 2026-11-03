@@ -1,5 +1,3 @@
-import org.gradle.api.artifacts.VersionCatalogsExtension
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
 
@@ -43,10 +41,11 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+val javaVersion = versionCatalog.findVersion("java.version").get().requiredVersion
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(javaVersion.toInt())
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_25
+        jvmTarget = JvmTarget.fromTarget(javaVersion)
         freeCompilerArgs.add("-Xjsr305=strict")
     }
 }
@@ -56,16 +55,12 @@ tasks.named<Jar>("jar") {
     enabled = false
 }
 
-tasks.withType<Test>().configureEach {
+tasks.named<Test>("test") {
     useJUnitPlatform()
     jvmArgs(
         "-Xshare:off",
         "-XX:+EnableDynamicAgentLoading",
     )
-    testLogging {
-        events("failed", "skipped")
-        exceptionFormat = TestExceptionFormat.FULL
-    }
 }
 
 // Tilpass ktlint bare i appene som bruker pluginen.
