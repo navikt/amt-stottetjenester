@@ -1,10 +1,7 @@
-import org.gradle.api.artifacts.VersionCatalogsExtension
-import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 // Felles oppsett for bibliotekmodulene i amt-tiltak, uten Spring Boot-pluginens pakketering.
+
 plugins {
     `java-library`
     kotlin("jvm")
@@ -23,11 +20,7 @@ repositories {
     maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
 }
 
-configure<JavaPluginExtension> {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
-}
-
-configure<KotlinJvmProjectExtension> {
+kotlin {
     jvmToolchain(25)
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_25)
@@ -49,13 +42,8 @@ dependencies {
     add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
 }
 
-tasks.withType<Test>().configureEach {
+tasks.named<Test>("test") {
     useJUnitPlatform()
     // Noen moduler har testhjelpere, men ingen egne tester.
-    failOnNoDiscoveredTests = false
     jvmArgs("-Xshare:off", "-XX:+EnableDynamicAgentLoading")
-    testLogging {
-        events("failed", "skipped")
-        exceptionFormat = TestExceptionFormat.FULL
-    }
 }
