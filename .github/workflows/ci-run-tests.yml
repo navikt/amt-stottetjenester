@@ -54,7 +54,6 @@ jobs:
               - gradlew
               - gradlew.bat
               - settings.gradle.kts
-              - .github/workflows/ci-run-tests.yml
 
       - name: Select applications to test
         id: select
