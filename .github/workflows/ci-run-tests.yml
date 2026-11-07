@@ -15,8 +15,62 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Find changed applications
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      modules: ${{ steps.select.outputs.modules }}
+    steps:
+      - name: Find changed applications
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          filters: |
+            amt-altinn-acl:
+              - amt-altinn-acl/**
+            amt-arena-acl:
+              - amt-arena-acl/**
+            amt-arena-ords-proxy:
+              - amt-arena-ords-proxy/**
+            amt-arrangor:
+              - amt-arrangor/**
+            amt-enhetsregister:
+              - amt-enhetsregister/**
+            amt-person-service:
+              - amt-person-service/**
+            amt-tiltak:
+              - amt-tiltak/**
+            all:
+              - Dockerfile
+              - .dockerignore
+              - buildSrc/**
+              - gradle/**
+              - gradle.properties
+              - gradlew
+              - gradlew.bat
+              - settings.gradle.kts
+
+      - name: Select applications to test
+        id: select
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          FILTERED_MODULES: ${{ steps.filter.outputs.changes }}
+        run: |
+          all_modules='["amt-altinn-acl","amt-arena-acl","amt-arena-ords-proxy","amt-arrangor","amt-enhetsregister","amt-person-service","amt-tiltak"]'
+          if [[ "$EVENT_NAME" != "pull_request" || "$FILTERED_MODULES" == *'"all"'* ]]; then
+            echo "modules=$all_modules" >> "$GITHUB_OUTPUT"
+          else
+            echo "modules=$FILTERED_MODULES" >> "$GITHUB_OUTPUT"
+          fi
+
   test:
     name: Test ${{ matrix.module }}
+    needs: changes
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
@@ -39,20 +93,24 @@ jobs:
             task: ":amt-tiltak:checkAll"
     steps:
       - name: Checkout
+        if: ${{ contains(fromJSON(needs.changes.outputs.modules), matrix.module) }}
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Java
+        if: ${{ contains(fromJSON(needs.changes.outputs.modules), matrix.module) }}
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: "25"
 
       - name: Setup Gradle
+        if: ${{ contains(fromJSON(needs.changes.outputs.modules), matrix.module) }}
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
 
       - name: Run tests
+        if: ${{ contains(fromJSON(needs.changes.outputs.modules), matrix.module) }}
         env:
           TZ: ${{ matrix.module == 'amt-tiltak' && 'Europe/Oslo' || 'UTC' }}
         run: ./gradlew "${{ matrix.task }}" --no-daemon
