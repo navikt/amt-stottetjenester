@@ -10,4 +10,4 @@ ingress: https://amt-tiltak.intern.nav.no
 jdk_java_options: -XX:MaxRAMPercentage=70.0 -Xshare:off --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow
 cpu_request: 20m
 memory_request: 512Mi
-database_tier: db-custom-1-3840
+database_tier: db-f1-micro
