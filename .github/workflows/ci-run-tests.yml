@@ -57,6 +57,7 @@ jobs:
               - .github/workflows/ci-run-tests.yml
 
       - name: Select applications to test
+        id: select
         env:
           EVENT_NAME: ${{ github.event_name }}
           FILTERED_MODULES: ${{ steps.filter.outputs.changes }}
