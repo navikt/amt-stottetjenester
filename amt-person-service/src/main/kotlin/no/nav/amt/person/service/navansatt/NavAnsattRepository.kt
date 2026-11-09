@@ -14,22 +14,53 @@ class NavAnsattRepository(
 ) {
     fun get(id: UUID): NavAnsattDbo = template
         .query(
-            "SELECT * FROM nav_ansatt WHERE id = :id",
+            "SELECT $NAV_ANSATT_FIELDS FROM nav_ansatt WHERE id = :id",
             sqlParameters("id" to id),
             rowMapper,
         ).first()
 
     fun get(navIdent: String): NavAnsattDbo? = template
         .query(
-            "SELECT * FROM nav_ansatt WHERE nav_ident = :navIdent",
+            "SELECT $NAV_ANSATT_FIELDS FROM nav_ansatt WHERE nav_ident = :navIdent",
             sqlParameters("navIdent" to navIdent),
             rowMapper,
         ).firstOrNull()
 
-    fun getAll(): List<NavAnsattDbo> = template.query("SELECT * FROM nav_ansatt", rowMapper)
+    fun getAll(): List<NavAnsattDbo> = template.query(
+        "SELECT $NAV_ANSATT_FIELDS FROM nav_ansatt",
+        rowMapper,
+    )
+
+    fun getBatchAfter(
+        navIdent: String?,
+        limit: Int,
+    ): List<NavAnsattDbo> {
+        // nav_ident er unik og kan derfor brukes som markør mellom avgrensede sider.
+        require(limit > 0) { "limit must be positive" }
+
+        return if (navIdent == null) {
+            template.query(
+                "SELECT $NAV_ANSATT_FIELDS FROM nav_ansatt ORDER BY nav_ident LIMIT :limit",
+                sqlParameters("limit" to limit),
+                rowMapper,
+            )
+        } else {
+            template.query(
+                """
+                SELECT $NAV_ANSATT_FIELDS
+                FROM nav_ansatt
+                WHERE nav_ident > :navIdent
+                ORDER BY nav_ident
+                LIMIT :limit
+                """.trimIndent(),
+                sqlParameters("navIdent" to navIdent, "limit" to limit),
+                rowMapper,
+            )
+        }
+    }
 
     fun upsert(navAnsatt: NavAnsattDbo): NavAnsattDbo = template.queryForObject(
-        "$UPSERT_SQL RETURNING *",
+        "$UPSERT_SQL RETURNING $NAV_ANSATT_FIELDS",
         upsertParamsFromNavAnsatt(navAnsatt),
         rowMapper,
     )
@@ -44,6 +75,9 @@ class NavAnsattRepository(
     }
 
     companion object {
+        private const val NAV_ANSATT_FIELDS =
+            "id, nav_ident, navn, telefon, epost, nav_enhet_id, created_at, modified_at"
+
         private val rowMapper = RowMapper { rs, _ ->
             NavAnsattDbo(
                 id = rs.getUUID("id"),

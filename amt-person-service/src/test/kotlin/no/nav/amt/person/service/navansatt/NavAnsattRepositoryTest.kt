@@ -129,6 +129,23 @@ class NavAnsattRepositoryTest(
     }
 
     @Test
+    fun `getBatchAfter - sorterer pa navIdent og returnerer etterfolgende sider`() {
+        val ansatt1 = TestData.lagNavAnsatt(navIdent = "A001")
+        val ansatt2 = TestData.lagNavAnsatt(navIdent = "A002")
+        val ansatt3 = TestData.lagNavAnsatt(navIdent = "A003")
+        testDataRepository.insertNavAnsatt(ansatt3)
+        testDataRepository.insertNavAnsatt(ansatt1)
+        testDataRepository.insertNavAnsatt(ansatt2)
+
+        val forsteBatch = ansattRepository.getBatchAfter(navIdent = null, limit = 2)
+        val andreBatch = ansattRepository.getBatchAfter(navIdent = forsteBatch.last().navIdent, limit = 2)
+
+        forsteBatch.map { it.navIdent } shouldBe listOf("A001", "A002")
+        andreBatch.map { it.navIdent } shouldBe listOf("A003")
+        ansattRepository.getBatchAfter(navIdent = andreBatch.last().navIdent, limit = 2) shouldBe emptyList()
+    }
+
+    @Test
     fun `upsertMany - flere ansatte - oppdaterer ansatte`() {
         val ansatt1 = TestData.lagNavAnsatt()
         val ansatt2 = TestData.lagNavAnsatt()

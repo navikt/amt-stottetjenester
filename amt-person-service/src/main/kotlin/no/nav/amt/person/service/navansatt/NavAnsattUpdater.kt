@@ -17,32 +17,57 @@ class NavAnsattUpdater(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun oppdaterAlle(batchSize: Int = 100) {
+        require(batchSize > 0) { "batchSize must be positive" }
+
         var batchNumber = 1
-        val ansattBatcher = navAnsattRepository
-            .getAll()
-            .also { log.info("Oppdaterer ${it.size} Nav-ansatte") }
-            .chunked(batchSize)
+        var lastNavIdent: String? = null
+        var batch: List<NavAnsattDbo>
+        log.info("Oppdaterer Nav-ansatte i batcher på maksimalt $batchSize")
 
-        ansattBatcher.forEach { batch ->
-            log.info("Prosesserer batch ${batchNumber++}")
-            val ansatte = batch.associate { it.navIdent to AnsattSomSkalOppdateres(it, false) }
-            val nomResultat = nomClient.hentNavAnsatte(ansatte.keys.toList())
+        // do-while henter første side før løkka sjekker om det finnes flere.
+        do {
+            batch = navAnsattRepository.getBatchAfter(lastNavIdent, batchSize)
+            lastNavIdent = prosesserBatch(batch, batchNumber++)
+        } while (batch.isNotEmpty())
+    }
 
-            val oppdaterteAnsatte = nomResultat
-                .mapNotNull { nomAnsatt ->
-                    ansatte[nomAnsatt.navIdent]?.let { finnOppdatering(it, nomAnsatt) }
-                }.toSet()
+    // Returnerer siste navIdent som markør, eller null når det ikke finnes flere sider.
+    private fun prosesserBatch(
+        batch: List<NavAnsattDbo>,
+        batchNumber: Int,
+    ): String? {
+        if (batch.isEmpty()) return null
 
-            log.info("Oppdaterer informasjon om ${oppdaterteAnsatte.size} Nav-ansatte, sjekket ${nomResultat.size} ansatte")
+        log.info("Prosesserer batch $batchNumber")
+        // navIdent kobler svarene fra NOM til de lagrede ansatte i denne batchen.
+        val ansatte = batch.associate {
+            it.navIdent to AnsattSomSkalOppdateres(
+                lagretAnsatt = it,
+                erSjekket = false,
+            )
+        }
 
-            navAnsattService.upsertMany(oppdaterteAnsatte)
+        // Be om NOM-data bare for identene i denne batchen.
+        val nomResultat = nomClient.hentNavAnsatte(ansatte.keys.toList())
 
-            ansatte.forEach { (_, ansatt) ->
-                if (!ansatt.erSjekket) {
-                    log.warn("Fant ikke Nav-ansatt med id ${ansatt.lagretAnsatt.id} i NOM")
-                }
+        // Behold bare ansatte som finnes i NOM-svaret og trenger oppdatering.
+        val oppdaterteAnsatte = nomResultat
+            .mapNotNull { nomAnsatt ->
+                ansatte[nomAnsatt.navIdent]?.let { finnOppdatering(it, nomAnsatt) }
+            }.toSet()
+
+        log.info("Oppdaterer informasjon om ${oppdaterteAnsatte.size} Nav-ansatte, sjekket ${nomResultat.size} ansatte")
+
+        navAnsattService.upsertMany(oppdaterteAnsatte)
+
+        // Ansatte som ikke ble sjekket, manglet i NOM-svaret.
+        ansatte.forEach { (_, ansatt) ->
+            if (!ansatt.erSjekket) {
+                log.warn("Fant ikke Nav-ansatt med id ${ansatt.lagretAnsatt.id} i NOM")
             }
         }
+
+        return batch.last().navIdent
     }
 
     private fun finnOppdatering(
