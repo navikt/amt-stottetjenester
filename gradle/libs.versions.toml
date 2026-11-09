@@ -33,7 +33,7 @@ nimbus = "11.38.2"
 okhttp = "5.5.1"
 snappy-java = "1.1.10.12"
 shedlock = "7.10.1"
-unleash = "12.3.1"
+unleash = "12.3.2"
 postgresql = "42.7.14"
 otj-pg-embedded = "1.1.3"
 
