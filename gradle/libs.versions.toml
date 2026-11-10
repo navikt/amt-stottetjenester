@@ -17,7 +17,11 @@ confluent = "8.1.1"
 kafka-clients = "4.4.0"
 
 # Logging
+logback = "1.6.6"
 logstash-encoder = "9.0"
+
+# CVE-fixes
+org-json = "20260814"
 
 # Nav
 nav-common = "4.2026.11.05_07.24-dd0ce2805c16"
