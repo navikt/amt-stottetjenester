@@ -1,5 +1,6 @@
 package no.nav.arrangor.configuration
 
+import jakarta.servlet.DispatcherType
 import no.nav.amt.lib.spring.boot.security.InternalAuthorizationManager
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -14,7 +15,6 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.AuthenticationManagerResolver
 import org.springframework.security.authentication.ProviderManager
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.invoke
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator
@@ -26,9 +26,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
+import org.springframework.security.web.util.matcher.DispatcherTypeRequestMatcher
 
 @Configuration(proxyBeanMethods = false)
-@EnableWebSecurity
 @Import(InternalAuthorizationManager::class)
 class SecurityConfig {
     @Bean
@@ -72,6 +72,9 @@ class SecurityConfig {
             authorizeHttpRequests {
                 // Reglene evalueres i rekkefølge, og første treff vinner - derfor må de mest spesifikke
                 // stiene (health/prometheus, /internal, /api/ansatt) stå før catch-all-regelen til slutt.
+
+                // Bevarer opprinnelig feilrespons når et internt kall uten bearer-token redispatches til /error.
+                authorize(DispatcherTypeRequestMatcher(DispatcherType.ERROR), permitAll)
                 authorize(
                     EndpointRequest.to(
                         HealthEndpoint::class.java,
