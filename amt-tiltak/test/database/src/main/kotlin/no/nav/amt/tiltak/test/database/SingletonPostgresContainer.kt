@@ -5,7 +5,6 @@ import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
 import org.testcontainers.postgresql.PostgreSQLContainer
-import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.utility.DockerImageName
 import javax.sql.DataSource
 
@@ -68,7 +67,7 @@ object SingletonPostgresContainer {
 	private fun createContainer(): PostgreSQLContainer {
 		val container = PostgreSQLContainer(DockerImageName.parse(POSTGRES_DOCKER_IMAGE_NAME).asCompatibleSubstituteFor("postgres"))
 		container.addEnv("TZ", "Europe/Oslo")
-		return container.waitingFor(HostPortWaitStrategy())
+		return container
 	}
 
 	private fun createDataSource(container: PostgreSQLContainer): DataSource {

@@ -20,5 +20,11 @@ dependencyManagement {
         // OkHttp, inkludert JVM-artefaktet.
         dependency("com.squareup.okhttp3:okhttp:${versionCatalog.findVersion("okhttp").get().requiredVersion}")
         dependency("com.squareup.okhttp3:okhttp-jvm:${versionCatalog.findVersion("okhttp").get().requiredVersion}")
+
+        // Override vulnerable versions selected by the Spring Boot BOM.
+        val logbackVersion = versionCatalog.findVersion("logback").get().requiredVersion
+        dependency("ch.qos.logback:logback-classic:$logbackVersion")
+        dependency("ch.qos.logback:logback-core:$logbackVersion")
+        dependency("org.json:json:${versionCatalog.findVersion("org-json").get().requiredVersion}")
     }
 }
