@@ -25,7 +25,7 @@ org-json = "20260814"
 
 # Nav
 nav-common = "4.2026.11.05_07.24-dd0ce2805c16"
-amt-lib = "1.2026.11.08_19.52-aea8e669383c"
+amt-lib = "1.2026.11.09_23.21-202c269adc3c"
 token-support = "7.0.1"
 mock-oauth2-server = "6.1.5"
 poao-tilgang = "4.2026.11.01_13.44-d689025f9ad9"
