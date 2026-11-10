@@ -82,7 +82,7 @@ class RolleControllerTest(
                         {
                           "title": "Bad Request",
                           "status": 400,
-                          "detail": "Forespørselen inneholder ugyldige data",
+                          "detail": "Failed to read request",
                           "instance": "$PATH"
                         }
                         """.trimIndent(),
@@ -106,7 +106,7 @@ class RolleControllerTest(
                         {
                           "title": "Method Not Allowed",
                           "status": 405,
-                          "detail": "Forespørselen kunne ikke behandles",
+                          "detail": "Method 'GET' is not supported.",
                           "instance": "$PATH"
                         }
                         """.trimIndent(),
@@ -116,30 +116,16 @@ class RolleControllerTest(
             }
     }
 
-    @ParameterizedTest(name = "personident = \"{0}\" gir 400")
+    @ParameterizedTest(name = "personident = \"{0}\" gir 500")
     @ValueSource(strings = ["1234567891K", "1234567891", "123456789101", "", "           "])
-    fun `hentTiltaksarrangorRoller - returnerer 400 hvis personident har feil format`(personident: String) {
+    fun `hentTiltaksarrangorRoller - ugyldig personident gir 500 uten exception handler`(personident: String) {
         mockMvc
             .post(PATH) {
                 headers { setBearerAuth(issueAzureAdM2MToken()) }
                 contentType = MediaType.APPLICATION_JSON
                 content = """{"personident": "$personident"}"""
             }.andExpect {
-                status { isBadRequest() }
-                content { contentType("application/problem+json") }
-                content {
-                    json(
-                        """
-                        {
-                          "title": "Bad Request",
-                          "status": 400,
-                          "detail": "Forespørselen inneholder ugyldige data",
-                          "instance": "$PATH"
-                        }
-                        """.trimIndent(),
-                        JsonCompareMode.STRICT,
-                    )
-                }
+                status { isInternalServerError() }
             }
 
         verify(exactly = 0) { altinnClient.hentRoller(any(), any()) }

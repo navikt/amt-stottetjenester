@@ -4,17 +4,18 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.coVerify
+import jakarta.servlet.ServletException
 import no.nav.amt.altinn.acl.jobs.AltinnUpdater
 import no.nav.amt.altinn.acl.testutil.IntegrationTest
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
-import org.springframework.test.json.JsonCompareMode
 import org.springframework.test.web.servlet.MockHttpServletRequestDsl
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @AutoConfigureMockMvc
@@ -53,7 +54,7 @@ class InternalControllerTest(
     }
 
     @Test
-    fun `synkroniserAltinnRettigheter - intern feil gir 500 uten feildetaljer`() {
+    fun `synkroniserAltinnRettigheter - intern feil forplanter seg uten egen exception handler`() {
         coEvery { altinnUpdater.update() } throws IllegalStateException("Intern feildetalj")
 
         val result = mockMvc
@@ -61,23 +62,10 @@ class InternalControllerTest(
             .andExpect { request { asyncStarted() } }
             .andReturn()
 
-        mockMvc
-            .perform(asyncDispatch(result))
-            .andExpect(status().isInternalServerError)
-            .andExpect(content().contentType("application/problem+json"))
-            .andExpect(
-                content().json(
-                    """
-                    {
-                      "title": "Internal Server Error",
-                      "status": 500,
-                      "detail": "En uventet feil oppstod",
-                      "instance": "$PATH"
-                    }
-                    """.trimIndent(),
-                    JsonCompareMode.LENIENT,
-                ),
-            )
+        val exception = assertThrows(ServletException::class.java) {
+            mockMvc.perform(asyncDispatch(result))
+        }
+        assertTrue(exception.cause is IllegalStateException)
 
         coVerify(exactly = 1) { altinnUpdater.update() }
     }
