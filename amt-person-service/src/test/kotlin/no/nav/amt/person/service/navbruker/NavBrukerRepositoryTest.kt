@@ -6,11 +6,11 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.amt.lib.models.person.address.Vegadresse
 import no.nav.amt.person.service.data.RepositoryTestBase
 import no.nav.amt.person.service.data.TestData
 import no.nav.amt.person.service.person.model.Adresse
 import no.nav.amt.person.service.person.model.Kontaktadresse
-import no.nav.amt.person.service.person.model.Vegadresse
 import no.nav.amt.person.service.utils.shouldBeCloseTo
 import no.nav.amt.person.service.utils.shouldBeEqualTo
 import org.junit.jupiter.api.Nested
