@@ -1,16 +1,16 @@
 package no.nav.amt.person.service.clients.pdl
 
+import no.nav.amt.lib.models.person.address.Bostedsadresse
+import no.nav.amt.lib.models.person.address.Matrikkeladresse
+import no.nav.amt.lib.models.person.address.Oppholdsadresse
+import no.nav.amt.lib.models.person.address.Postboksadresse
+import no.nav.amt.lib.models.person.address.Vegadresse
 import no.nav.amt.person.service.person.dbo.PersonDbo.Companion.UNKNOWN_NAME
 import no.nav.amt.person.service.person.model.Adresse
 import no.nav.amt.person.service.person.model.AdressebeskyttelseGradering
-import no.nav.amt.person.service.person.model.Bostedsadresse
 import no.nav.amt.person.service.person.model.IdentType
 import no.nav.amt.person.service.person.model.Kontaktadresse
-import no.nav.amt.person.service.person.model.Matrikkeladresse
-import no.nav.amt.person.service.person.model.Oppholdsadresse
 import no.nav.amt.person.service.person.model.Personident
-import no.nav.amt.person.service.person.model.Postboksadresse
-import no.nav.amt.person.service.person.model.Vegadresse
 import no.nav.amt.person.service.poststed.Postnummer
 
 fun toPdlBruker(
