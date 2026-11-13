@@ -1,8 +1,8 @@
 package no.nav.amt.person.service.clients.veilarboppfolging
 
+import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import no.nav.amt.lib.spring.boot.client.executeUpstreamCall
 import no.nav.amt.lib.spring.boot.client.executeUpstreamCallWithRequiredBody
-import no.nav.amt.person.service.navbruker.Oppfolgingsperiode
 import no.nav.amt.person.service.utils.toSystemZoneLocalDateTime
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service

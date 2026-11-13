@@ -3,12 +3,12 @@ package no.nav.amt.person.service.integration.kafka.producer
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
+import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.person.service.data.TestData
 import no.nav.amt.person.service.integration.IntegrationTestBase
 import no.nav.amt.person.service.kafka.config.KafkaTopicProperties
 import no.nav.amt.person.service.kafka.producer.KafkaProducerService
 import no.nav.amt.person.service.kafka.producer.dto.NavBrukerDtoV1
-import no.nav.amt.person.service.kafka.producer.dto.NavEnhetDtoV1
 import no.nav.amt.person.service.navbruker.NavBrukerDbo
 import no.nav.amt.person.service.navbruker.NavBrukerService
 import no.nav.amt.person.service.person.PersonService
@@ -99,7 +99,7 @@ class NavBrukerProducerTest(
             mellomnavn = navBruker.person.mellomnavn,
             etternavn = navBruker.person.etternavn,
             navVeilederId = navBruker.navVeileder?.id,
-            navEnhet = navBruker.navEnhet?.let { NavEnhetDtoV1(it.id, it.enhetId, it.navn) },
+            navEnhet = navBruker.navEnhet?.let { NavEnhetDto(it.id, it.enhetId, it.navn) },
             telefon = navBruker.telefon,
             epost = navBruker.epost,
             erSkjermet = navBruker.erSkjermet,

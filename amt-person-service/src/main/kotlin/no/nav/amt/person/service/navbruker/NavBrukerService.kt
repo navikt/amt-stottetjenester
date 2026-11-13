@@ -1,6 +1,7 @@
 package no.nav.amt.person.service.navbruker
 
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.person.service.clients.krr.Kontaktinformasjon
 import no.nav.amt.person.service.clients.krr.KrrProxyClient

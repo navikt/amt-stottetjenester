@@ -57,12 +57,12 @@ class PersonApiController(
     @PostMapping("/nav-ansatt")
     fun hentEllerOpprettNavAnsatt(
         @RequestBody request: NavAnsattRequest,
-    ) = NavAnsattDto.fromDbo(navAnsattService.hentEllerOpprettAnsatt(request.navIdent))
+    ): NavAnsattDto = NavAnsattDto.fromDbo(navAnsattService.hentEllerOpprettAnsatt(request.navIdent))
 
     @GetMapping("/nav-ansatt/{id}")
     fun hentNavAnsatt(
         @PathVariable id: UUID,
-    ) = NavAnsattDto.fromDbo(navAnsattRepository.get(id))
+    ): NavAnsattDto = NavAnsattDto.fromDbo(navAnsattRepository.get(id))
 
     @PostMapping("/arrangor-ansatt")
     fun hentEllerOpprettArrangorAnsatt(

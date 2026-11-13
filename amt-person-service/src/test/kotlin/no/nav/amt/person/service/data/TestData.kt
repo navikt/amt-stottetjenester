@@ -1,6 +1,7 @@
 package no.nav.amt.person.service.data
 
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.models.person.address.Bostedsadresse
@@ -11,7 +12,6 @@ import no.nav.amt.person.service.clients.nom.NomQueries
 import no.nav.amt.person.service.clients.pdl.PdlPerson
 import no.nav.amt.person.service.navansatt.NavAnsattDbo
 import no.nav.amt.person.service.navbruker.NavBrukerDbo
-import no.nav.amt.person.service.navbruker.Oppfolgingsperiode
 import no.nav.amt.person.service.navenhet.NavEnhetDbo
 import no.nav.amt.person.service.person.dbo.PersonDbo
 import no.nav.amt.person.service.person.dbo.PersonidentDbo
