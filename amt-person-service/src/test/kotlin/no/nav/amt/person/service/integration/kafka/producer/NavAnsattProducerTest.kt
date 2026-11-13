@@ -2,12 +2,12 @@ package no.nav.amt.person.service.integration.kafka.producer
 
 import io.kotest.matchers.shouldBe
 import io.mockk.every
+import no.nav.amt.lib.models.person.dto.NavAnsattDto
 import no.nav.amt.person.service.clients.nom.NomNavAnsatt
 import no.nav.amt.person.service.data.TestData
 import no.nav.amt.person.service.integration.IntegrationTestBase
 import no.nav.amt.person.service.kafka.config.KafkaTopicProperties
 import no.nav.amt.person.service.kafka.producer.KafkaProducerService
-import no.nav.amt.person.service.kafka.producer.dto.NavAnsattDtoV1
 import no.nav.amt.person.service.navansatt.NavAnsattDbo
 import no.nav.amt.person.service.navansatt.NavAnsattService
 import no.nav.amt.person.service.navansatt.NavAnsattUpdater
@@ -96,7 +96,7 @@ class NavAnsattProducerTest(
     }
 
     private fun ansattTilV1Json(ansatt: NavAnsattDbo): String = objectMapper.writeValueAsString(
-        NavAnsattDtoV1(
+        NavAnsattDto(
             id = ansatt.id,
             navident = ansatt.navIdent,
             navn = ansatt.navn,

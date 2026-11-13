@@ -2,12 +2,12 @@ package no.nav.amt.person.service.kafka.producer
 
 import no.nav.amt.person.service.kafka.config.KafkaTopicProperties
 import no.nav.amt.person.service.kafka.producer.dto.ArrangorAnsattDtoV1
-import no.nav.amt.person.service.kafka.producer.dto.NavAnsattDtoV1
 import no.nav.amt.person.service.kafka.producer.dto.NavBrukerDtoV1
-import no.nav.amt.person.service.kafka.producer.dto.NavEnhetDtoV1
 import no.nav.amt.person.service.navansatt.NavAnsattDbo
+import no.nav.amt.person.service.navansatt.toDto
 import no.nav.amt.person.service.navbruker.NavBrukerDbo
 import no.nav.amt.person.service.navenhet.NavEnhetDbo
+import no.nav.amt.person.service.navenhet.toDto
 import no.nav.amt.person.service.person.dbo.PersonDbo
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
 import no.nav.common.kafka.producer.util.ProducerUtils
@@ -58,7 +58,7 @@ class KafkaProducerService(
             ProducerRecord(
                 kafkaTopicProperties.amtNavAnsattPersonaliaTopic,
                 ansatt.id.toString(),
-                objectMapper.writeValueAsString(NavAnsattDtoV1.fromDbo(ansatt)),
+                objectMapper.writeValueAsString(ansatt.toDto()),
             ),
         )
     }
@@ -68,7 +68,7 @@ class KafkaProducerService(
             ProducerRecord(
                 kafkaTopicProperties.amtNavEnhetTopic,
                 navEnhet.id.toString(),
-                objectMapper.writeValueAsString(NavEnhetDtoV1.fromDbo(navEnhet)),
+                objectMapper.writeValueAsString(navEnhet.toDto()),
             ),
         )
     }

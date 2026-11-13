@@ -10,7 +10,6 @@ import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.person.service.TestJwtConfig
 import no.nav.amt.person.service.api.dto.AdressebeskyttelseDto
 import no.nav.amt.person.service.api.dto.ArrangorAnsattDto
-import no.nav.amt.person.service.api.dto.NavAnsattDto
 import no.nav.amt.person.service.api.dto.NavBrukerDto
 import no.nav.amt.person.service.clients.krr.Kontaktinformasjon
 import no.nav.amt.person.service.clients.nom.NomNavAnsatt
@@ -41,6 +40,7 @@ import org.springframework.test.web.servlet.post
 import tools.jackson.module.kotlin.readValue
 import java.time.Instant
 import java.util.UUID
+import no.nav.amt.lib.models.person.NavAnsatt as NavAnsattResponse
 
 @AutoConfigureMockMvc
 @Import(TestJwtConfig::class)
@@ -365,7 +365,7 @@ class PersonApiControllerTest(
                 }.andExpect { status { isOk() } }
                 .andReturn()
 
-            val body = objectMapper.readValue<NavAnsattDto>(result.response.contentAsByteArray)
+            val body = objectMapper.readValue<NavAnsattResponse>(result.response.contentAsByteArray)
             val faktiskNavAnsatt = navAnsattRepository.get(navAnsatt.navIdent)
 
             assertSoftly(faktiskNavAnsatt.shouldNotBeNull()) {
@@ -390,7 +390,7 @@ class PersonApiControllerTest(
                 }.andExpect { status { isOk() } }
                 .andReturn()
 
-            val body = objectMapper.readValue<NavAnsattDto>(result.response.contentAsByteArray)
+            val body = objectMapper.readValue<NavAnsattResponse>(result.response.contentAsByteArray)
 
             assertSoftly(body) {
                 id shouldBe navAnsatt.id

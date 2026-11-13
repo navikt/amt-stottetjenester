@@ -1,6 +1,6 @@
 package no.nav.amt.person.service.kafka.consumer.dto
 
-import no.nav.amt.person.service.navbruker.Oppfolgingsperiode
+import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import no.nav.amt.person.service.utils.toSystemZoneLocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID

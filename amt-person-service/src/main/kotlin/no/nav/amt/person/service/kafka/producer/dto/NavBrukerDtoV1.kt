@@ -1,10 +1,12 @@
 package no.nav.amt.person.service.kafka.producer.dto
 
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
+import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.person.service.navbruker.NavBrukerDbo
-import no.nav.amt.person.service.navbruker.Oppfolgingsperiode
+import no.nav.amt.person.service.navenhet.toDto
 import java.util.UUID
 
 data class NavBrukerDtoV1(
@@ -14,7 +16,7 @@ data class NavBrukerDtoV1(
     val mellomnavn: String?,
     val etternavn: String,
     val navVeilederId: UUID?,
-    val navEnhet: NavEnhetDtoV1?,
+    val navEnhet: NavEnhetDto?,
     val telefon: String?,
     val epost: String?,
     val erSkjermet: Boolean,
@@ -31,7 +33,7 @@ data class NavBrukerDtoV1(
             mellomnavn = source.person.mellomnavn,
             etternavn = source.person.etternavn,
             navVeilederId = source.navVeileder?.id,
-            navEnhet = source.navEnhet?.let { NavEnhetDtoV1.fromDbo(it) },
+            navEnhet = source.navEnhet?.toDto(),
             telefon = source.telefon,
             epost = source.epost,
             erSkjermet = source.erSkjermet,

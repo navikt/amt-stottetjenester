@@ -3,14 +3,13 @@ package no.nav.amt.person.service.clients.veilarbvedtaksstotte
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.deltaker.InnsatsgruppeV2
 import no.nav.amt.lib.spring.boot.client.exception.RetryableUpstreamServiceException
 import no.nav.amt.lib.spring.boot.client.exception.UpstreamServiceException
 import no.nav.amt.person.service.clients.NAV_CONSUMER_ID_HEADER
 import no.nav.amt.person.service.clients.NAV_CONSUMER_ID_HEADER_VALUE
 import no.nav.amt.person.service.clients.RestClientTestBase
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -22,23 +21,21 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
+import tools.jackson.databind.ObjectMapper
 
 @RestClientTest(VeilarbvedtaksstotteClient::class)
 class VeilarbvedtaksstotteClientTest(
     private val sut: VeilarbvedtaksstotteClient,
+    private val objectMapper: ObjectMapper,
 ) : RestClientTestBase("veilarbvedtaksstotte") {
-    @ParameterizedTest
-    @CsvSource(
-        "GODE_MULIGHETER, STANDARD_INNSATS",
-        "TRENGER_VEILEDNING, SITUASJONSBESTEMT_INNSATS",
-        "TRENGER_VEILEDNING_NEDSATT_ARBEIDSEVNE, SPESIELT_TILPASSET_INNSATS",
-        "JOBBE_DELVIS, GRADERT_VARIG_TILPASSET_INNSATS",
-        "LITEN_MULIGHET_TIL_A_JOBBE, VARIG_TILPASSET_INNSATS",
-    )
-    fun `hentInnsatsgruppe - konverterer alle innsatsgrupper fra V2 til V1`(
-        innsatsgruppeV2: String,
-        forventetV1: String,
-    ) {
+    @Test
+    fun `hentInnsatsgruppe - bruker har innsatsgruppe - returnerer innsatsgruppe`() {
+        val responseBody = objectMapper.writeValueAsString(
+            VeilarbvedtaksstotteApi.Gjeldende14aVedtakResponse(
+                innsatsgruppe = InnsatsgruppeV2.JOBBE_DELVIS,
+            ),
+        )
+
         server
             .expect(
                 requestTo("http://veilarbvedtaksstotte/veilarbvedtaksstotte/api/hent-gjeldende-14a-vedtak"),
@@ -46,9 +43,9 @@ class VeilarbvedtaksstotteClientTest(
             .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer veilarbvedtaksstotte-token"))
             .andExpect(header(NAV_CONSUMER_ID_HEADER, NAV_CONSUMER_ID_HEADER_VALUE))
             .andExpect(content().json("""{"fnr":"$FNR_IN_TEST"}"""))
-            .andRespond(withSuccess("""{"innsatsgruppe":"$innsatsgruppeV2"}""", MediaType.APPLICATION_JSON))
+            .andRespond(withSuccess(responseBody, MediaType.APPLICATION_JSON))
 
-        sut.hentInnsatsgruppe(FNR_IN_TEST) shouldBe Innsatsgruppe.valueOf(forventetV1)
+        sut.hentInnsatsgruppe(FNR_IN_TEST) shouldBe Innsatsgruppe.GRADERT_VARIG_TILPASSET_INNSATS
     }
 
     @Test
