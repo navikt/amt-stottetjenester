@@ -13,3 +13,4 @@ out/
 .springBeans
 .sts4-cache/
 *.class
+.copilot-context/
