@@ -1,10 +1,12 @@
 package no.nav.amt.person.service.navbruker
 
+import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.person.address.Adresse
+import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.toPGObject
 import no.nav.amt.person.service.navansatt.NavAnsattDbo
 import no.nav.amt.person.service.navenhet.NavEnhetDbo
 import no.nav.amt.person.service.person.dbo.PersonDbo
-import no.nav.amt.person.service.person.model.Adresse
 import no.nav.amt.person.service.utils.getNullableUUID
 import no.nav.amt.person.service.utils.getUUID
 import no.nav.amt.person.service.utils.sqlParameters
@@ -301,7 +303,7 @@ class NavBrukerRepository(
                 ?.let { objectMapper.readValue<List<Oppfolgingsperiode>>(it) } ?: emptyList(),
             innsatsgruppe = rs
                 .getString("nav_bruker.innsatsgruppe")
-                ?.let { InnsatsgruppeV1.valueOf(it) },
+                ?.let { Innsatsgruppe.valueOf(it) },
         )
     }
 

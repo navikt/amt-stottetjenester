@@ -4,6 +4,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
+import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.person.dto.NavBrukerFodselsarDto
 import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.person.service.TestJwtConfig
@@ -18,7 +19,6 @@ import no.nav.amt.person.service.clients.oppfolgingskontor.Arbeidsoppfolging
 import no.nav.amt.person.service.data.TestData
 import no.nav.amt.person.service.integration.IntegrationTestBase
 import no.nav.amt.person.service.navansatt.NavAnsattRepository
-import no.nav.amt.person.service.navbruker.InnsatsgruppeV1
 import no.nav.amt.person.service.navbruker.NavBrukerDbo
 import no.nav.amt.person.service.navbruker.NavBrukerRepository
 import no.nav.amt.person.service.navenhet.NavEnhetRepository
@@ -247,7 +247,7 @@ class PersonApiControllerTest(
             every { veilarboppfolgingClient.hentOppfolgingperioder(navBruker.person.personident) } returns
                 navBruker.oppfolgingsperioder
             every { veilarbvedtaksstotteClient.hentInnsatsgruppe(navBruker.person.personident) } returns
-                InnsatsgruppeV1.SPESIELT_TILPASSET_INNSATS
+                Innsatsgruppe.SPESIELT_TILPASSET_INNSATS
             every { oppfolgingskontorClient.hentKontorForBruker(navBruker.person.personident) } returns
                 Arbeidsoppfolging(kontorId = navEnhet.enhetId, kontorNavn = navEnhet.navn)
             every { krrProxyClient.hentKontaktinformasjon(navBruker.person.personident) } returns

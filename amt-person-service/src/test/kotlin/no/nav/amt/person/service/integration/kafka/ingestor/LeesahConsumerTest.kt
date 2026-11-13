@@ -85,7 +85,7 @@ class LeesahConsumerTest(
 
             // Assert
             val oppdatertNavBruker = navBrukerRepository.get(navBruker.person.personident)
-            oppdatertNavBruker?.adressebeskyttelse shouldBe no.nav.amt.person.service.navbruker.Adressebeskyttelse.STRENGT_FORTROLIG
+            oppdatertNavBruker?.adressebeskyttelse shouldBe no.nav.amt.lib.models.person.address.Adressebeskyttelse.STRENGT_FORTROLIG
             oppdatertNavBruker?.adresse shouldBe null
         }
     }

@@ -3,11 +3,12 @@ package no.nav.amt.person.service.integration.kafka.ingestor
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.mockk.every
+import no.nav.amt.lib.models.deltaker.InnsatsgruppeV2
+import no.nav.amt.lib.models.deltaker.toV1
 import no.nav.amt.person.service.data.TestData.lagNavBruker
 import no.nav.amt.person.service.integration.IntegrationTestBase
 import no.nav.amt.person.service.kafka.consumer.OppfolgingsperiodeConsumer
 import no.nav.amt.person.service.kafka.consumer.dto.SisteOppfolgingsperiodeKafkaPayload
-import no.nav.amt.person.service.navbruker.InnsatsgruppeV2
 import no.nav.amt.person.service.navbruker.NavBrukerRepository
 import no.nav.amt.person.service.person.model.IdentType
 import no.nav.amt.person.service.person.model.Personident
