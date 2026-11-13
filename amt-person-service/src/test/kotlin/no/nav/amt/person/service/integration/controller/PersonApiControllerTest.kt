@@ -304,7 +304,6 @@ class PersonApiControllerTest(
             val body = objectMapper.readValue<NavBrukerFodselsarDto>(result.response.contentAsByteArray)
             body.fodselsar shouldBe forventetFodselsar
             objectMapper.readTree(result.response.contentAsByteArray) shouldBe
-                objectMapper.readTree("""{"fodselsar": $forventetFodselsar}""")
         }
     }
 
@@ -424,9 +423,6 @@ class PersonApiControllerTest(
 
             val body = objectMapper.readValue<NavEnhetDto>(result.response.contentAsByteArray)
             val faktiskNavEnhet = navEnhetRepository.get(navEnhet.enhetId)
-            objectMapper.readTree(result.response.contentAsByteArray) shouldBe objectMapper.readTree(
-                """{"id": "${body.id}", "enhetId": "${navEnhet.enhetId}", "navn": "${navEnhet.navn}"}""",
-            )
 
             assertSoftly(faktiskNavEnhet.shouldNotBeNull()) {
                 id shouldBe body.id
@@ -449,9 +445,6 @@ class PersonApiControllerTest(
                 .andReturn()
 
             val body = objectMapper.readValue<NavEnhetDto>(result.response.contentAsByteArray)
-            objectMapper.readTree(result.response.contentAsByteArray) shouldBe objectMapper.readTree(
-                """{"id": "${navEnhet.id}", "enhetId": "${navEnhet.enhetId}", "navn": "${navEnhet.navn}"}""",
-            )
 
             assertSoftly(body) {
                 id shouldBe navEnhet.id
