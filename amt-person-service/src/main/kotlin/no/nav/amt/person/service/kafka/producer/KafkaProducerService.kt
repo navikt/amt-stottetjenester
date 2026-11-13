@@ -4,7 +4,7 @@ import no.nav.amt.person.service.kafka.config.KafkaTopicProperties
 import no.nav.amt.person.service.kafka.producer.dto.ArrangorAnsattDtoV1
 import no.nav.amt.person.service.kafka.producer.dto.NavBrukerDtoV1
 import no.nav.amt.person.service.navansatt.NavAnsattDbo
-import no.nav.amt.person.service.navansatt.toDto
+import no.nav.amt.person.service.navansatt.toKafkaDto
 import no.nav.amt.person.service.navbruker.NavBrukerDbo
 import no.nav.amt.person.service.navenhet.NavEnhetDbo
 import no.nav.amt.person.service.navenhet.toDto
@@ -58,7 +58,7 @@ class KafkaProducerService(
             ProducerRecord(
                 kafkaTopicProperties.amtNavAnsattPersonaliaTopic,
                 ansatt.id.toString(),
-                objectMapper.writeValueAsString(ansatt.toDto()),
+                objectMapper.writeValueAsString(ansatt.toKafkaDto()),
             ),
         )
     }

@@ -1,9 +1,8 @@
 package no.nav.amt.person.service.navansatt
 
-import no.nav.amt.lib.models.person.NavAnsatt
-import no.nav.amt.lib.models.person.dto.NavAnsattDto
 import java.time.LocalDateTime
 import java.util.UUID
+import no.nav.amt.lib.models.person.dto.NavAnsattDto as NavAnsattKafkaDto
 
 data class NavAnsattDbo(
     val id: UUID,
@@ -16,16 +15,7 @@ data class NavAnsattDbo(
     val modifiedAt: LocalDateTime = LocalDateTime.now(),
 )
 
-fun NavAnsattDbo.toModel() = NavAnsatt(
-    id = id,
-    navIdent = navIdent,
-    navn = navn,
-    epost = epost,
-    telefon = telefon,
-    navEnhetId = navEnhetId,
-)
-
-fun NavAnsattDbo.toDto() = NavAnsattDto(
+fun NavAnsattDbo.toKafkaDto(): NavAnsattKafkaDto = NavAnsattKafkaDto(
     id = id,
     navident = navIdent,
     navn = navn,

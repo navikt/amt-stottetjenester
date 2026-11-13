@@ -7,6 +7,7 @@ import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.lib.models.person.dto.NavEnhetRequest
 import no.nav.amt.person.service.api.dto.AdressebeskyttelseDto
 import no.nav.amt.person.service.api.dto.ArrangorAnsattDto
+import no.nav.amt.person.service.api.dto.NavAnsattDto
 import no.nav.amt.person.service.api.dto.NavBrukerDto
 import no.nav.amt.person.service.api.request.AdressebeskyttelseRequest
 import no.nav.amt.person.service.api.request.ArrangorAnsattRequest
@@ -14,7 +15,6 @@ import no.nav.amt.person.service.clients.krr.Kontaktinformasjon
 import no.nav.amt.person.service.clients.pdl.PdlClient
 import no.nav.amt.person.service.navansatt.NavAnsattRepository
 import no.nav.amt.person.service.navansatt.NavAnsattService
-import no.nav.amt.person.service.navansatt.toModel
 import no.nav.amt.person.service.navbruker.NavBrukerService
 import no.nav.amt.person.service.navenhet.NavEnhetRepository
 import no.nav.amt.person.service.navenhet.NavEnhetService
@@ -57,12 +57,12 @@ class PersonApiController(
     @PostMapping("/nav-ansatt")
     fun hentEllerOpprettNavAnsatt(
         @RequestBody request: NavAnsattRequest,
-    ) = navAnsattService.hentEllerOpprettAnsatt(request.navIdent).toModel()
+    ): NavAnsattDto = NavAnsattDto.fromDbo(navAnsattService.hentEllerOpprettAnsatt(request.navIdent))
 
     @GetMapping("/nav-ansatt/{id}")
     fun hentNavAnsatt(
         @PathVariable id: UUID,
-    ) = navAnsattRepository.get(id).toModel()
+    ): NavAnsattDto = NavAnsattDto.fromDbo(navAnsattRepository.get(id))
 
     @PostMapping("/arrangor-ansatt")
     fun hentEllerOpprettArrangorAnsatt(

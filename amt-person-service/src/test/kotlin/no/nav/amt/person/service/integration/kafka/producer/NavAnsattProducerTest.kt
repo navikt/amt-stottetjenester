@@ -1,5 +1,6 @@
 package no.nav.amt.person.service.integration.kafka.producer
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import no.nav.amt.lib.models.person.dto.NavAnsattDto
@@ -13,6 +14,7 @@ import no.nav.amt.person.service.navansatt.NavAnsattService
 import no.nav.amt.person.service.navansatt.NavAnsattUpdater
 import org.junit.jupiter.api.Test
 import org.springframework.transaction.support.TransactionTemplate
+import tools.jackson.module.kotlin.readValue
 
 class NavAnsattProducerTest(
     private val kafkaProducerService: KafkaProducerService,
@@ -36,6 +38,9 @@ class NavAnsattProducerTest(
         record.topic shouldBe kafkaTopicProperties.amtNavAnsattPersonaliaTopic
         record.key shouldBe ansatt.id.toString()
         record.value shouldBe forventetValue
+        val payload = objectMapper.readValue<Map<String, Any?>>(record.value.shouldNotBeNull())
+        payload["navident"] shouldBe ansatt.navIdent
+        payload.containsKey("navIdent") shouldBe false
     }
 
     @Test
