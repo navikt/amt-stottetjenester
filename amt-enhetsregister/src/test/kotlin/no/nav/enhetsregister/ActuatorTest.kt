@@ -2,6 +2,7 @@ package no.nav.enhetsregister
 
 import no.nav.enhetsregister.testutils.IntegrationTest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -41,5 +42,6 @@ class ActuatorTest(
         val response = restTemplate.getForEntity<String>(uri)
 
         assertEquals(HttpStatus.OK, response.statusCode)
+        assertTrue(response.body.orEmpty().contains("amt_enhetsregister_kafka_outbox_ventende "))
     }
 }

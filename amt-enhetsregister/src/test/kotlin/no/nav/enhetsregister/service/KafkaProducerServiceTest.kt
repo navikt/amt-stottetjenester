@@ -9,10 +9,12 @@ import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import org.springframework.transaction.support.TransactionTemplate
 
 class KafkaProducerServiceTest(
     private val kafkaProducerService: KafkaProducerService,
     private val kafkaTopicProperties: KafkaTopicProperties,
+    private val transactionTemplate: TransactionTemplate,
 ) : IntegrationTest() {
     @Test
     fun `skal publisere virksomhet pa topic`() {
@@ -22,7 +24,9 @@ class KafkaProducerServiceTest(
             overordnetEnhetOrganisasjonsnummer = "987654321",
         )
 
-        kafkaProducerService.publiserVirksomhet(virksomhetV1Dto)
+        transactionTemplate.executeWithoutResult {
+            kafkaProducerService.publiserVirksomhet(virksomhetV1Dto)
+        }
 
         await().untilAsserted {
             val records: ConsumerRecords<String, String>? =

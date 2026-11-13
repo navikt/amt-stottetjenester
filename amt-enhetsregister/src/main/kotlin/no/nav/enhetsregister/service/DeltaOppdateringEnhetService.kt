@@ -6,12 +6,14 @@ import no.nav.enhetsregister.domain.EnhetType
 import no.nav.enhetsregister.repository.DeltaOppdateringProgresjonRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.support.TransactionTemplate
 
 @Service
 class DeltaOppdateringEnhetService(
     private val enhetService: EnhetService,
     private val deltaOppdateringRepository: DeltaOppdateringProgresjonRepository,
     private val bronnoysundClient: BronnoysundClient,
+    private val transactionTemplate: TransactionTemplate,
 ) {
     companion object {
         const val OPPDATERINGER_SIZE = 500
@@ -58,7 +60,7 @@ class DeltaOppdateringEnhetService(
             if (underenhet == null) { // GONE
                 log.info("Underenhet orgnr=${it.organisasjonsnummer} er fjernet fra brreg")
                 val opprinneligOverordnetEnhet =
-                    enhetService.hentEnhet(it.organisasjonsnummer)?.overordnetEnhetOrganisasjonsnummer
+                    enhetService.hentLagretOverordnetEnhet(it.organisasjonsnummer)
 
                 return@deltaOppdaterEnhet EnhetService.UpsertEnhet(
                     organisasjonsnummer = it.organisasjonsnummer,
@@ -70,7 +72,7 @@ class DeltaOppdateringEnhetService(
             if (underenhet.slettedato != null) {
                 log.info("Underenhet orgnr=${it.organisasjonsnummer} er slettet fra brreg")
                 val opprinneligOverordnetEnhet =
-                    enhetService.hentEnhet(it.organisasjonsnummer)?.overordnetEnhetOrganisasjonsnummer
+                    enhetService.hentLagretOverordnetEnhet(it.organisasjonsnummer)
 
                 return@deltaOppdaterEnhet EnhetService.UpsertEnhet(
                     organisasjonsnummer = it.organisasjonsnummer,
@@ -82,7 +84,7 @@ class DeltaOppdateringEnhetService(
             if (underenhet.overordnetEnhet == null) {
                 log.warn("Underenhet orgnr=${underenhet.organisasjonsnummer} mangler overordnet enhet. oppdatering_id=${it.oppdateringId}")
                 val opprinneligOverordnetEnhet =
-                    enhetService.hentEnhet(it.organisasjonsnummer)?.overordnetEnhetOrganisasjonsnummer
+                    enhetService.hentLagretOverordnetEnhet(it.organisasjonsnummer)
 
                 return@deltaOppdaterEnhet EnhetService.UpsertEnhet(
                     organisasjonsnummer = it.organisasjonsnummer,
@@ -125,12 +127,12 @@ class DeltaOppdateringEnhetService(
             oppdateringer
                 .mapNotNull { mapper.invoke(it) }
 
-        enhetService.oppdaterEnheter(upserts)
-
         val sisteOppdateringId = oppdateringer.maxOf { it.oppdateringId }
 
-        // Legger til +1 på oppdatering id slik at vi ikke henter den siste enheten i neste bolk
-        deltaOppdateringRepository.oppdaterProgresjon(enhetType, sisteOppdateringId + 1)
+        transactionTemplate.executeWithoutResult {
+            enhetService.oppdaterEnheter(upserts)
+            deltaOppdateringRepository.oppdaterProgresjon(enhetType, sisteOppdateringId + 1)
+        }
 
         log.info("Fullførte delta oppdatering av $enhetType, sisteOppdateringId=$sisteOppdateringId")
     }

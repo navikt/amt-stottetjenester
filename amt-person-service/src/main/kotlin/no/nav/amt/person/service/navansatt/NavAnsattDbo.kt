@@ -1,8 +1,10 @@
 package no.nav.amt.person.service.navansatt
 
+import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.dto.NavAnsattDto
 import java.time.LocalDateTime
 import java.util.UUID
+import no.nav.amt.lib.models.person.dto.NavAnsattDto as NavAnsattKafkaDto
 
 data class NavAnsattDbo(
     val id: UUID,

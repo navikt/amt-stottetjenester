@@ -13,6 +13,8 @@ import no.nav.enhetsregister.repository.DeltaOppdateringProgresjonRepository
 import no.nav.enhetsregister.repository.model.DeltaEnhetOppdateringProgresjon
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.support.TransactionTemplate
 import java.time.ZonedDateTime
 
 class DeltaOppdateringEnhetServiceTest {
@@ -24,6 +26,7 @@ class DeltaOppdateringEnhetServiceTest {
             enhetService = enhetService,
             deltaOppdateringRepository = deltaOppdateringProgresjonRepository,
             bronnoysundClient = bronnoysundClient,
+            transactionTemplate = TransactionTemplate(mockk<PlatformTransactionManager>(relaxed = true)),
         )
 
     @BeforeEach
@@ -294,13 +297,8 @@ class DeltaOppdateringEnhetServiceTest {
         )
 
         every {
-            enhetService.hentEnhet("899000000")
-        } returns EnhetService.EnhetMedOverordnetEnhet(
-            organisasjonsnummer = "899000000",
-            navn = "Orgnavn",
-            overordnetEnhetOrganisasjonsnummer = "999000000",
-            overordnetEnhetNavn = "Moderenhetnavn",
-        )
+            enhetService.hentLagretOverordnetEnhet("899000000")
+        } returns "999000000"
 
         deltaOppdateringEnhetService.deltaOppdaterUnderenheter()
 
@@ -335,13 +333,8 @@ class DeltaOppdateringEnhetServiceTest {
         } returns null
 
         every {
-            enhetService.hentEnhet("899000000")
-        } returns EnhetService.EnhetMedOverordnetEnhet(
-            organisasjonsnummer = "899000000",
-            navn = "Orgnavn",
-            overordnetEnhetOrganisasjonsnummer = "999000000",
-            overordnetEnhetNavn = "Moderenhetnavn",
-        )
+            enhetService.hentLagretOverordnetEnhet("899000000")
+        } returns "999000000"
 
         deltaOppdateringEnhetService.deltaOppdaterUnderenheter()
 

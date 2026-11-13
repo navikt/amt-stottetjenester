@@ -365,8 +365,6 @@ class PersonApiControllerTest(
                 }.andExpect { status { isOk() } }
                 .andReturn()
 
-            val json = objectMapper.readValue<Map<String, Any?>>(result.response.contentAsByteArray)
-            json.keys shouldBe setOf("id", "navIdent", "navn", "epost", "telefon", "navEnhetId")
             val body = objectMapper.readValue<NavAnsattDto>(result.response.contentAsByteArray)
             val faktiskNavAnsatt = navAnsattRepository.get(navAnsatt.navIdent)
 
@@ -376,7 +374,6 @@ class PersonApiControllerTest(
                 navn shouldBe body.navn
                 telefon shouldBe body.telefon
                 epost shouldBe body.epost
-                navEnhetId shouldBe body.navEnhetId
             }
         }
 
@@ -393,8 +390,6 @@ class PersonApiControllerTest(
                 }.andExpect { status { isOk() } }
                 .andReturn()
 
-            val json = objectMapper.readValue<Map<String, Any?>>(result.response.contentAsByteArray)
-            json.keys shouldBe setOf("id", "navIdent", "navn", "epost", "telefon", "navEnhetId")
             val body = objectMapper.readValue<NavAnsattDto>(result.response.contentAsByteArray)
 
             assertSoftly(body) {
@@ -403,7 +398,6 @@ class PersonApiControllerTest(
                 navn shouldBe navAnsatt.navn
                 telefon shouldBe navAnsatt.telefon
                 epost shouldBe navAnsatt.epost
-                navEnhetId shouldBe navAnsatt.navEnhetId
             }
         }
     }

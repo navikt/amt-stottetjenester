@@ -19,6 +19,6 @@ class ApplicationConfig {
         addUrlPatterns("/*")
     }
 
-    @Bean
+    @Bean(destroyMethod = "close")
     fun leaderElectionClient(jdbcTemplate: JdbcTemplate) = ShedLockLeaderElectionClient(JdbcTemplateLockProvider(jdbcTemplate))
 }

@@ -2,6 +2,7 @@ package no.nav.amt.person.service.kafka.producer
 
 import no.nav.amt.person.service.kafka.config.KafkaTopicProperties
 import no.nav.amt.person.service.kafka.producer.dto.ArrangorAnsattDtoV1
+import no.nav.amt.person.service.kafka.producer.dto.NavBrukerDtoV1
 import no.nav.amt.person.service.navansatt.NavAnsattDbo
 import no.nav.amt.person.service.navansatt.toDto
 import no.nav.amt.person.service.navbruker.NavBrukerDbo
