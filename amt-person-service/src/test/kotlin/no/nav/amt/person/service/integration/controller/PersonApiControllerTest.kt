@@ -4,13 +4,13 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
+import no.nav.amt.lib.models.person.dto.NavBrukerFodselsarDto
+import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.person.service.TestJwtConfig
 import no.nav.amt.person.service.api.dto.AdressebeskyttelseDto
 import no.nav.amt.person.service.api.dto.ArrangorAnsattDto
 import no.nav.amt.person.service.api.dto.NavAnsattDto
 import no.nav.amt.person.service.api.dto.NavBrukerDto
-import no.nav.amt.person.service.api.dto.NavBrukerFodselsdatoDto
-import no.nav.amt.person.service.api.dto.NavEnhetDto
 import no.nav.amt.person.service.clients.krr.Kontaktinformasjon
 import no.nav.amt.person.service.clients.nom.NomNavAnsatt
 import no.nav.amt.person.service.clients.norg.toNorgNavEnhetDto
@@ -301,7 +301,7 @@ class PersonApiControllerTest(
                 }.andExpect { status { isOk() } }
                 .andReturn()
 
-            val body = objectMapper.readValue<NavBrukerFodselsdatoDto>(result.response.contentAsByteArray)
+            val body = objectMapper.readValue<NavBrukerFodselsarDto>(result.response.contentAsByteArray)
             body.fodselsar shouldBe forventetFodselsar
         }
     }
