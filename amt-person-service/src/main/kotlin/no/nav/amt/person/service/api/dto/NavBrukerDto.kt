@@ -1,9 +1,11 @@
 package no.nav.amt.person.service.api.dto
 
+import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.person.service.navbruker.Adressebeskyttelse
 import no.nav.amt.person.service.navbruker.InnsatsgruppeV1
 import no.nav.amt.person.service.navbruker.NavBrukerDbo
 import no.nav.amt.person.service.navbruker.Oppfolgingsperiode
+import no.nav.amt.person.service.navenhet.toDto
 import no.nav.amt.person.service.person.model.Adresse
 import java.util.UUID
 
@@ -33,7 +35,7 @@ data class NavBrukerDto(
             etternavn = source.person.etternavn,
             harFalskIdentitet = source.person.erFalskIdentitet,
             navVeilederId = source.navVeileder?.id,
-            navEnhet = source.navEnhet?.let { NavEnhetDto.fromDbo(it) },
+            navEnhet = source.navEnhet?.toDto(),
             telefon = source.telefon,
             epost = source.epost,
             erSkjermet = source.erSkjermet,

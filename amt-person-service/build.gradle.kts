@@ -18,6 +18,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
+    implementation(libs.amt.lib.models)
     implementation(libs.amt.lib.utils)
     implementation(libs.amt.lib.spring.boot)
     implementation(libs.nav.common.kafka)

@@ -1,6 +1,6 @@
 package no.nav.amt.person.service.internal
 
-import no.nav.amt.person.service.api.request.NavBrukerRequest
+import no.nav.amt.lib.models.person.dto.NavBrukerRequest
 import no.nav.common.job.JobRunner
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable

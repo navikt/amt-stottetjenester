@@ -1,16 +1,16 @@
 package no.nav.amt.person.service.api
 
+import no.nav.amt.lib.models.person.dto.NavAnsattRequest
+import no.nav.amt.lib.models.person.dto.NavBrukerFodselsarDto
+import no.nav.amt.lib.models.person.dto.NavBrukerRequest
+import no.nav.amt.lib.models.person.dto.NavEnhetDto
+import no.nav.amt.lib.models.person.dto.NavEnhetRequest
 import no.nav.amt.person.service.api.dto.AdressebeskyttelseDto
 import no.nav.amt.person.service.api.dto.ArrangorAnsattDto
 import no.nav.amt.person.service.api.dto.NavAnsattDto
 import no.nav.amt.person.service.api.dto.NavBrukerDto
-import no.nav.amt.person.service.api.dto.NavBrukerFodselsdatoDto
-import no.nav.amt.person.service.api.dto.NavEnhetDto
 import no.nav.amt.person.service.api.request.AdressebeskyttelseRequest
 import no.nav.amt.person.service.api.request.ArrangorAnsattRequest
-import no.nav.amt.person.service.api.request.NavAnsattRequest
-import no.nav.amt.person.service.api.request.NavBrukerRequest
-import no.nav.amt.person.service.api.request.NavEnhetRequest
 import no.nav.amt.person.service.clients.krr.Kontaktinformasjon
 import no.nav.amt.person.service.clients.pdl.PdlClient
 import no.nav.amt.person.service.navansatt.NavAnsattRepository
@@ -18,6 +18,7 @@ import no.nav.amt.person.service.navansatt.NavAnsattService
 import no.nav.amt.person.service.navbruker.NavBrukerService
 import no.nav.amt.person.service.navenhet.NavEnhetRepository
 import no.nav.amt.person.service.navenhet.NavEnhetService
+import no.nav.amt.person.service.navenhet.toDto
 import no.nav.amt.person.service.person.ArrangorAnsattService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -46,7 +47,7 @@ class PersonApiController(
     @PostMapping("/nav-bruker-fodselsar")
     fun hentNavBrukerFodselsar(
         @RequestBody request: NavBrukerRequest,
-    ) = NavBrukerFodselsdatoDto(pdlClient.hentPersonFodselsar(request.personident))
+    ) = NavBrukerFodselsarDto(pdlClient.hentPersonFodselsar(request.personident))
 
     @PostMapping("/nav-bruker/kontaktinformasjon")
     fun hentNavBrukerKontaktinformasjon(
@@ -73,13 +74,13 @@ class PersonApiController(
         @RequestBody request: NavEnhetRequest,
     ): NavEnhetDto = navEnhetService
         .hentEllerOpprettNavEnhet(request.enhetId)
-        ?.let { NavEnhetDto.fromDbo(it) }
+        ?.toDto()
         ?: throw NoSuchElementException("Klarte ikke å hente Nav-enhet med enhet-id: ${request.enhetId}")
 
     @GetMapping("/nav-enhet/{id}")
     fun hentNavEnhet(
         @PathVariable id: UUID,
-    ) = NavEnhetDto.fromDbo(navEnhetsRepository.get(id))
+    ) = navEnhetsRepository.get(id).toDto()
 
     @PostMapping("/person/adressebeskyttelse")
     fun hentAdressebeskyttelse(
