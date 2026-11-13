@@ -303,7 +303,6 @@ class PersonApiControllerTest(
 
             val body = objectMapper.readValue<NavBrukerFodselsarDto>(result.response.contentAsByteArray)
             body.fodselsar shouldBe forventetFodselsar
-            objectMapper.readTree(result.response.contentAsByteArray) shouldBe
         }
     }
 
