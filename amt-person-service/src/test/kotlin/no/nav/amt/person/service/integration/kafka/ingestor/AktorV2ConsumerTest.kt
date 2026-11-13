@@ -4,10 +4,10 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.amt.lib.models.person.dto.NavBrukerDto
 import no.nav.amt.person.service.data.TestData
 import no.nav.amt.person.service.integration.IntegrationTestBase
 import no.nav.amt.person.service.kafka.consumer.AktorV2Consumer
-import no.nav.amt.person.service.kafka.producer.dto.NavBrukerDtoV1
 import no.nav.amt.person.service.person.PersonRepository
 import no.nav.amt.person.service.person.PersonidentRepository
 import no.nav.amt.person.service.person.model.IdentType
@@ -49,7 +49,7 @@ class AktorV2ConsumerTest(
                 it.type shouldBe IdentType.FOLKEREGISTERIDENT
             }
             val record = outboxRecords().single()
-            val navBrukerRecord = objectMapper.readValue(record.value, NavBrukerDtoV1::class.java)
+            val navBrukerRecord = objectMapper.readValue(record.value, NavBrukerDto::class.java)
             record.key shouldBe person.id.toString()
             navBrukerRecord.personident shouldBe nyttFnr
         }
