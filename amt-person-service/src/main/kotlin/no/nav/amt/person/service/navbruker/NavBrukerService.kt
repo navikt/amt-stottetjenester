@@ -1,5 +1,7 @@
 package no.nav.amt.person.service.navbruker
 
+import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.person.service.clients.krr.Kontaktinformasjon
 import no.nav.amt.person.service.clients.krr.KrrProxyClient
 import no.nav.amt.person.service.clients.pdl.PdlClient
@@ -15,7 +17,6 @@ import no.nav.amt.person.service.person.PersonUpdateEvent
 import no.nav.amt.person.service.person.RolleRepository
 import no.nav.amt.person.service.person.dbo.PersonDbo
 import no.nav.amt.person.service.person.dbo.PersonDbo.Companion.UNKNOWN_NAME
-import no.nav.amt.person.service.person.model.Adresse
 import no.nav.amt.person.service.person.model.Rolle
 import no.nav.amt.person.service.utils.EnvUtils
 import no.nav.poao_tilgang.client.PoaoTilgangClient
@@ -155,7 +156,7 @@ class NavBrukerService(
 
     fun oppdaterInnsatsgruppe(
         navBrukerId: UUID,
-        innsatsgruppe: InnsatsgruppeV1,
+        innsatsgruppe: Innsatsgruppe,
     ) {
         val bruker = navBrukerRepository.get(navBrukerId)
 

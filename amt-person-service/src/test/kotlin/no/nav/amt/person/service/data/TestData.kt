@@ -1,22 +1,22 @@
 package no.nav.amt.person.service.data
 
+import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.person.address.Adresse
+import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.models.person.address.Bostedsadresse
+import no.nav.amt.lib.models.person.address.Kontaktadresse
 import no.nav.amt.lib.models.person.address.Matrikkeladresse
 import no.nav.amt.lib.models.person.address.Vegadresse
 import no.nav.amt.person.service.clients.nom.NomQueries
 import no.nav.amt.person.service.clients.pdl.PdlPerson
 import no.nav.amt.person.service.navansatt.NavAnsattDbo
-import no.nav.amt.person.service.navbruker.Adressebeskyttelse
-import no.nav.amt.person.service.navbruker.InnsatsgruppeV1
 import no.nav.amt.person.service.navbruker.NavBrukerDbo
 import no.nav.amt.person.service.navbruker.Oppfolgingsperiode
 import no.nav.amt.person.service.navenhet.NavEnhetDbo
 import no.nav.amt.person.service.person.dbo.PersonDbo
 import no.nav.amt.person.service.person.dbo.PersonidentDbo
-import no.nav.amt.person.service.person.model.Adresse
 import no.nav.amt.person.service.person.model.AdressebeskyttelseGradering
 import no.nav.amt.person.service.person.model.IdentType
-import no.nav.amt.person.service.person.model.Kontaktadresse
 import no.nav.amt.person.service.person.model.Personident
 import no.nav.amt.person.service.poststed.Postnummer
 import java.time.LocalDate
@@ -110,7 +110,7 @@ object TestData {
         modifiedAt: LocalDateTime = LocalDateTime.now(),
         adressebeskyttelse: Adressebeskyttelse? = null,
         oppfolgingsperioder: List<Oppfolgingsperiode> = listOf(lagOppfolgingsperiode()),
-        innsatsgruppe: InnsatsgruppeV1? = InnsatsgruppeV1.STANDARD_INNSATS,
+        innsatsgruppe: Innsatsgruppe? = Innsatsgruppe.STANDARD_INNSATS,
     ) = NavBrukerDbo(
         id = id,
         person = person,

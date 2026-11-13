@@ -1,8 +1,8 @@
 package no.nav.amt.person.service.clients.pdl
 
-import no.nav.amt.person.service.navbruker.Adressebeskyttelse
+import no.nav.amt.lib.models.person.address.Adresse
+import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.person.service.person.dbo.PersonDbo
-import no.nav.amt.person.service.person.model.Adresse
 import no.nav.amt.person.service.person.model.AdressebeskyttelseGradering
 import no.nav.amt.person.service.person.model.Personident
 import no.nav.amt.person.service.person.model.Personident.Companion.finnGjeldendeIdent

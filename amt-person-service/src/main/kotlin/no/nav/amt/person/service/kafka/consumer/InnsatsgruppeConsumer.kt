@@ -1,7 +1,7 @@
 package no.nav.amt.person.service.kafka.consumer
 
+import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.person.service.clients.pdl.PdlClient
-import no.nav.amt.person.service.navbruker.InnsatsgruppeV1
 import no.nav.amt.person.service.navbruker.NavBrukerRepository
 import no.nav.amt.person.service.navbruker.NavBrukerService
 import no.nav.amt.person.service.person.model.Personident.Companion.finnGjeldendeIdent
@@ -43,6 +43,6 @@ class InnsatsgruppeConsumer(
 
     data class Siste14aVedtak(
         val aktorId: String,
-        val innsatsgruppe: InnsatsgruppeV1,
+        val innsatsgruppe: Innsatsgruppe,
     )
 }

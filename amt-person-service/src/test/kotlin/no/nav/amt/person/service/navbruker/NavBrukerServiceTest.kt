@@ -7,6 +7,8 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.person.service.clients.krr.Kontaktinformasjon
 import no.nav.amt.person.service.clients.krr.KrrProxyClient
 import no.nav.amt.person.service.clients.pdl.PdlClient
@@ -449,7 +451,7 @@ class NavBrukerServiceTest {
             every { navBrukerRepository.get(brukerInTest.id) } returns brukerInTest
             every {
                 veilarbvedtaksstotteClient.hentInnsatsgruppe(brukerInTest.person.personident)
-            } returns InnsatsgruppeV1.STANDARD_INNSATS
+            } returns Innsatsgruppe.STANDARD_INNSATS
         }
 
         @Test
@@ -540,17 +542,17 @@ class NavBrukerServiceTest {
                         sluttdato = null,
                     ),
                 ),
-                innsatsgruppe = InnsatsgruppeV1.STANDARD_INNSATS,
+                innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             )
             every { navBrukerRepository.get(bruker.id) } returns bruker
             mockExecuteWithoutResult(transactionTemplate)
 
-            sut.oppdaterInnsatsgruppe(bruker.id, InnsatsgruppeV1.SITUASJONSBESTEMT_INNSATS)
+            sut.oppdaterInnsatsgruppe(bruker.id, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS)
 
             verify(exactly = 1) {
                 navBrukerRepository.upsert(
                     match {
-                        it.innsatsgruppe == InnsatsgruppeV1.SITUASJONSBESTEMT_INNSATS
+                        it.innsatsgruppe == Innsatsgruppe.SITUASJONSBESTEMT_INNSATS
                     },
                 )
             }
@@ -566,12 +568,12 @@ class NavBrukerServiceTest {
                         sluttdato = null,
                     ),
                 ),
-                innsatsgruppe = InnsatsgruppeV1.STANDARD_INNSATS,
+                innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             )
             every { navBrukerRepository.get(bruker.id) } returns bruker
             mockExecuteWithoutResult(transactionTemplate)
 
-            sut.oppdaterInnsatsgruppe(bruker.id, InnsatsgruppeV1.STANDARD_INNSATS)
+            sut.oppdaterInnsatsgruppe(bruker.id, Innsatsgruppe.STANDARD_INNSATS)
 
             verify(exactly = 0) { navBrukerRepository.upsert(any()) }
         }
@@ -586,12 +588,12 @@ class NavBrukerServiceTest {
                         sluttdato = LocalDateTime.now().minusMonths(2),
                     ),
                 ),
-                innsatsgruppe = InnsatsgruppeV1.STANDARD_INNSATS,
+                innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
             )
             every { navBrukerRepository.get(bruker.id) } returns bruker
             mockExecuteWithoutResult(transactionTemplate)
 
-            sut.oppdaterInnsatsgruppe(bruker.id, InnsatsgruppeV1.SITUASJONSBESTEMT_INNSATS)
+            sut.oppdaterInnsatsgruppe(bruker.id, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS)
 
             verify(exactly = 1) {
                 navBrukerRepository.upsert(
@@ -617,7 +619,7 @@ class NavBrukerServiceTest {
             every { navBrukerRepository.get(bruker.id) } returns bruker
             mockExecuteWithoutResult(transactionTemplate)
 
-            sut.oppdaterInnsatsgruppe(bruker.id, InnsatsgruppeV1.SITUASJONSBESTEMT_INNSATS)
+            sut.oppdaterInnsatsgruppe(bruker.id, Innsatsgruppe.SITUASJONSBESTEMT_INNSATS)
 
             verify(exactly = 0) { navBrukerRepository.upsert(any()) }
         }
