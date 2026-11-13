@@ -85,5 +85,22 @@ jobs:
             echo "::error::amt-lib model sources are missing from the review context"
             exit 1
           fi
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          provenance = {
+              "repository": "navikt/amt-deltakelser",
+              "dependency_version": os.environ["AMT_LIB_VERSION"],
+              "source_commit": os.environ["AMT_LIB_REVISION"],
+              "source_directory": ".copilot-context/amt-deltakelser/amt-lib/models/src/main/kotlin",
+          }
+          Path(".copilot-context/amt-lib-provenance.json").write_text(
+              json.dumps(provenance, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
           printf 'amt-lib %s (%s) is available in .copilot-context/amt-deltakelser/amt-lib/models\n' \
             "$AMT_LIB_VERSION" "$actual_revision"
+          echo "Setup-verified provenance is available in .copilot-context/amt-lib-provenance.json"
