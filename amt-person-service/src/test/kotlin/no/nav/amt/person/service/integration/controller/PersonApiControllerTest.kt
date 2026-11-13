@@ -4,12 +4,12 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
+import no.nav.amt.kontrakter.person.ArrangorAnsattDto
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.person.dto.NavBrukerFodselsarDto
 import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.person.service.TestJwtConfig
 import no.nav.amt.person.service.api.dto.AdressebeskyttelseDto
-import no.nav.amt.person.service.api.dto.ArrangorAnsattDto
 import no.nav.amt.person.service.api.dto.NavAnsattDto
 import no.nav.amt.person.service.api.dto.NavBrukerDto
 import no.nav.amt.person.service.clients.krr.Kontaktinformasjon

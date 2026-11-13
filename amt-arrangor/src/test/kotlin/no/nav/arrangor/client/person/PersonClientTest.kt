@@ -2,6 +2,7 @@ package no.nav.arrangor.client.person
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.amt.kontrakter.person.ArrangorAnsattDto
 import no.nav.arrangor.client.RestClientTestBase
 import org.junit.jupiter.api.Test
 import org.springframework.boot.restclient.test.autoconfigure.RestClientTest
@@ -46,7 +47,7 @@ class PersonClientTest(
             )
 
         sut.hentPersonalia("12345678910").getOrThrow() shouldBe
-            PersonApi.PersonResponse(id, "12345678910", "Ola", null, "Nordmann")
+            ArrangorAnsattDto(id, "12345678910", "Ola", null, "Nordmann")
     }
 
     @Test

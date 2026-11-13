@@ -45,6 +45,10 @@ Alle applikasjonene bygges fra samme Gradle-oppsett. Felles versjoner ligger i
 [`gradle/libs.versions.toml`](gradle/libs.versions.toml), og felles byggkonfigurasjon ligger i
 [`buildSrc`](buildSrc).
 
+[`amt-kontrakter`](amt-kontrakter) deler requesten og personalia-DTO-en for arrangøransatte mellom
+`amt-person-service` og `amt-arrangor`. Modulen bygges som et internt bibliotek, uten egen publisering eller deploy.
+Mapping fra database og til domenemodeller ligger i appene.
+
 ```bash
 # Bygg én applikasjon
 ./gradlew :amt-arrangor:build
@@ -71,6 +75,8 @@ Pull requests kjører tester for alle sju applikasjonene. CodeQL analyserer Kotl
 
 Når endringer merges til `main`, bygger GitHub Actions et image for hver berørte applikasjon. Workflowen deployer
 først til dev og deretter til prod. Det opprettes ingen GitHub Release eller tag.
+
+Endringer i `amt-kontrakter` utløser tester og bygg av begge appene som bruker kontraktene.
 
 De fleste applikasjonene kjører i `dev-gcp` og `prod-gcp`. `amt-arena-ords-proxy` kjører i FSS og har to
 dev-miljøer, Q1 og Q2. Hver applikasjon har Nais-manifest og miljøvariabler i sin egen `.nais`-mappe.

@@ -6,6 +6,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.amt.kontrakter.person.ArrangorAnsattDto
 import no.nav.arrangor.IntegrationTest
 import no.nav.arrangor.ansatt.repository.AnsattArrangorRepository
 import no.nav.arrangor.ansatt.repository.AnsattDbo
@@ -18,7 +19,6 @@ import no.nav.arrangor.client.enhetsregister.Virksomhet
 import no.nav.arrangor.deltaker.DeltakerRepository
 import no.nav.arrangor.domain.AnsattRolle
 import no.nav.arrangor.domain.VeilederType
-import no.nav.arrangor.kafka.model.AnsattPersonaliaDto
 import no.nav.arrangor.kafka.model.Deltaker
 import no.nav.arrangor.kafka.model.DeltakerStatus
 import no.nav.arrangor.kafka.model.DeltakerStatusType
@@ -233,7 +233,7 @@ class ConsumerServiceTest(
         ansattRepository.insertOrUpdate(ansatt)
 
         val nyPersonalia =
-            AnsattPersonaliaDto(
+            ArrangorAnsattDto(
                 ansatt.personId,
                 "ny ident",
                 "nytt",
@@ -268,7 +268,7 @@ class ConsumerServiceTest(
         ansattRepository.insertOrUpdate(ansatt)
 
         val personalia =
-            AnsattPersonaliaDto(
+            ArrangorAnsattDto(
                 ansatt.personId,
                 ansatt.personident,
                 ansatt.fornavn,

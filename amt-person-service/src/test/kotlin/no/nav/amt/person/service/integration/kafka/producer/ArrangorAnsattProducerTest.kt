@@ -2,13 +2,14 @@ package no.nav.amt.person.service.integration.kafka.producer
 
 import io.kotest.matchers.shouldBe
 import io.mockk.every
+import no.nav.amt.kontrakter.person.ArrangorAnsattDto
 import no.nav.amt.person.service.data.TestData
 import no.nav.amt.person.service.integration.IntegrationTestBase
 import no.nav.amt.person.service.kafka.config.KafkaTopicProperties
 import no.nav.amt.person.service.kafka.producer.KafkaProducerService
-import no.nav.amt.person.service.kafka.producer.dto.ArrangorAnsattDtoV1
 import no.nav.amt.person.service.person.ArrangorAnsattService
 import no.nav.amt.person.service.person.PersonService
+import no.nav.amt.person.service.person.dbo.PersonDbo
 import no.nav.amt.person.service.person.model.Rolle
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -31,7 +32,7 @@ class ArrangorAnsattProducerTest(
 
         // Assert
         val record = outboxRecords().single()
-        val forventetValue = objectMapper.writeValueAsString(ArrangorAnsattDtoV1.fromDbo(ansatt))
+        val forventetValue = ansattTilV1Json(ansatt)
 
         record.topic shouldBe kafkaTopicProperties.amtArrangorAnsattPersonaliaTopic
         record.key shouldBe ansatt.id.toString()
@@ -58,7 +59,7 @@ class ArrangorAnsattProducerTest(
 
             // Assert
             val record = outboxRecords().single()
-            val forventetValue = objectMapper.writeValueAsString(ArrangorAnsattDtoV1.fromDbo(oppdatertAnsatt))
+            val forventetValue = ansattTilV1Json(oppdatertAnsatt)
             record.key shouldBe ansatt.id.toString()
             record.value shouldBe forventetValue
         }
@@ -121,4 +122,14 @@ class ArrangorAnsattProducerTest(
         // Assert
         outboxRecords().none { it.topic == kafkaTopicProperties.amtArrangorAnsattPersonaliaTopic } shouldBe true
     }
+
+    private fun ansattTilV1Json(ansatt: PersonDbo): String = objectMapper.writeValueAsString(
+        ArrangorAnsattDto(
+            id = ansatt.id,
+            personident = ansatt.personident,
+            fornavn = ansatt.fornavn,
+            mellomnavn = ansatt.mellomnavn,
+            etternavn = ansatt.etternavn,
+        ),
+    )
 }

@@ -3,11 +3,11 @@ package no.nav.arrangor
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.clearMocks
 import io.mockk.every
+import no.nav.amt.kontrakter.person.ArrangorAnsattDto
 import no.nav.arrangor.client.altinn.AltinnAclClient
 import no.nav.arrangor.client.altinn.AltinnRolle
 import no.nav.arrangor.client.enhetsregister.EnhetsregisterClient
 import no.nav.arrangor.client.enhetsregister.Virksomhet
-import no.nav.arrangor.client.person.PersonApi
 import no.nav.arrangor.client.person.PersonClient
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
@@ -85,7 +85,7 @@ abstract class IntegrationTest : RepositoryTestBase() {
         etternavn: String,
     ) {
         every { personClient.hentPersonalia(personident) } returns Result.success(
-            PersonApi.PersonResponse(id, personident, fornavn, mellomnavn, etternavn),
+            ArrangorAnsattDto(id, personident, fornavn, mellomnavn, etternavn),
         )
     }
 

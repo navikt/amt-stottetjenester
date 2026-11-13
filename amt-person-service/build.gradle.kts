@@ -14,6 +14,8 @@ dependencyManagement {
 }
 
 dependencies {
+    implementation(project(":amt-kontrakter"))
+
     implementation("org.springframework.boot:spring-boot-restclient")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
@@ -61,4 +63,8 @@ tasks.named("runKtlintCheckOverMainSourceSet") {
 
 tasks.named("runKtlintFormatOverMainSourceSet") {
     dependsOn("generateAvroJava")
+}
+
+tasks.named("check") {
+    dependsOn(":amt-kontrakter:check")
 }

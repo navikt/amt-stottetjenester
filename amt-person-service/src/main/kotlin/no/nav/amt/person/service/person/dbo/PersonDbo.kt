@@ -1,5 +1,6 @@
 package no.nav.amt.person.service.person.dbo
 
+import no.nav.amt.kontrakter.person.ArrangorAnsattDto
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -17,3 +18,11 @@ data class PersonDbo(
         const val UNKNOWN_NAME = "Ukjent"
     }
 }
+
+fun PersonDbo.toArrangorAnsattDto(): ArrangorAnsattDto = ArrangorAnsattDto(
+    id = id,
+    personident = personident,
+    fornavn = fornavn,
+    mellomnavn = mellomnavn,
+    etternavn = etternavn,
+)

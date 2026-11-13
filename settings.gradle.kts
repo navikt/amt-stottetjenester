@@ -6,6 +6,7 @@ include(
     ":amt-arena-ords-proxy",
     ":amt-arrangor",
     ":amt-enhetsregister",
+    ":amt-kontrakter",
     ":amt-person-service",
 )
 
