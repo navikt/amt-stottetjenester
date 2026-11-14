@@ -33,7 +33,7 @@ poao-tilgang = "4.2026.11.01_13.44-d689025f9ad9"
 # Diverse
 guava = "33.7.2-jre"
 lz4-java = "1.12.0"
-nimbus = "11.38.2"
+nimbus = "11.39"
 okhttp = "5.5.1"
 snappy-java = "1.1.10.12"
 shedlock = "7.10.1"
