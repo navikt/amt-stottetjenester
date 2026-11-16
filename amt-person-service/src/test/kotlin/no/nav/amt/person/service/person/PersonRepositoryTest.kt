@@ -154,64 +154,6 @@ class PersonRepositoryTest(
     }
 
     @Test
-    fun `oppdaterNavnHvisPersonidentUendret - ident matcher - oppdaterer bare navn og returnerer raden`() {
-        val originalPerson = TestData.lagPerson(erFalskIdentitet = true)
-        personRepository.upsert(originalPerson)
-
-        val oppdatertPerson = personRepository.oppdaterNavnHvisPersonidentUendret(
-            personId = originalPerson.id,
-            forventetPersonident = originalPerson.personident,
-            fornavn = "Nytt fornavn",
-            mellomnavn = "Nytt mellomnavn",
-            etternavn = "Nytt etternavn",
-        )
-
-        val faktiskPerson = checkNotNull(oppdatertPerson)
-        assertSoftly(faktiskPerson) {
-            id shouldBe originalPerson.id
-            personident shouldBe originalPerson.personident
-            erFalskIdentitet shouldBe originalPerson.erFalskIdentitet
-            fornavn shouldBe "Nytt fornavn"
-            mellomnavn shouldBe "Nytt mellomnavn"
-            etternavn shouldBe "Nytt etternavn"
-            createdAt shouldBeCloseTo originalPerson.createdAt
-            modifiedAt shouldBeCloseTo LocalDateTime.now()
-        }
-
-        personRepository.get(originalPerson.id) shouldBe faktiskPerson
-    }
-
-    @Test
-    fun `oppdaterNavnHvisPersonidentUendret - ident har endret seg - oppdaterer ikke raden`() {
-        val originalPerson = TestData.lagPerson()
-        val gjeldendePerson = originalPerson.copy(
-            personident = TestData.randomIdent(),
-            erFalskIdentitet = true,
-            fornavn = "Gjeldende fornavn",
-        )
-        personRepository.upsert(gjeldendePerson)
-
-        val oppdatertPerson = personRepository.oppdaterNavnHvisPersonidentUendret(
-            personId = originalPerson.id,
-            forventetPersonident = originalPerson.personident,
-            fornavn = "Foreldet fornavn",
-            mellomnavn = null,
-            etternavn = "Foreldet etternavn",
-        )
-
-        oppdatertPerson shouldBe null
-
-        val faktiskPerson = personRepository.get(originalPerson.id)
-        assertSoftly(faktiskPerson) {
-            personident shouldBe gjeldendePerson.personident
-            erFalskIdentitet shouldBe true
-            fornavn shouldBe "Gjeldende fornavn"
-            mellomnavn shouldBe gjeldendePerson.mellomnavn
-            etternavn shouldBe gjeldendePerson.etternavn
-        }
-    }
-
-    @Test
     fun `upsert - ny ident - oppdaterer person`() {
         val originalPerson = TestData.lagPerson(
             createdAt = LocalDateTime.now().minusMonths(6),

@@ -34,7 +34,6 @@ class InternalControllerTest(
     @BeforeEach
     fun setup() {
         justRun { internalService.oppdaterPersonidenter(any()) }
-        justRun { internalService.oppdaterAllePersonnavn() }
         justRun { internalService.oppdaterNavn(any()) }
         justRun { internalService.republiserNavBrukere(any(), any()) }
         justRun { internalService.oppdaterAdresseOgRepubliserNavBrukere(any(), any(), any()) }
@@ -120,28 +119,6 @@ class InternalControllerTest(
                 }.andExpect { status { isOk() } }
 
             verify(timeout = 5_000) { internalService.oppdaterPersonidenter(100) }
-        }
-    }
-
-    @Nested
-    inner class OppdaterAllePersonnavn {
-        @Test
-        fun `skal starte oppdatering for intern request`() {
-            mockMvc
-                .post("/internal/person/navn")
-                .andExpect { status { isOk() } }
-
-            verify(timeout = 5_000) { internalService.oppdaterAllePersonnavn() }
-        }
-
-        @Test
-        fun `skal avvise request fra ekstern adresse`() {
-            mockMvc
-                .post("/internal/person/navn") {
-                    fraEksternAdresse()
-                }.andExpect { status { isUnauthorized() } }
-
-            verify(exactly = 0) { internalService.oppdaterAllePersonnavn() }
         }
     }
 
