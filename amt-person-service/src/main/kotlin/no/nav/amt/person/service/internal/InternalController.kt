@@ -38,6 +38,13 @@ class InternalController(
         }
     }
 
+    @PostMapping("/person/navn")
+    fun oppdaterAllePersonnavn() {
+        JobRunner.runAsync("oppdater_alle_personnavn") {
+            internalService.oppdaterAllePersonnavn()
+        }
+    }
+
     @GetMapping("/person/navn/{id}")
     fun oppdaterNavn(
         @PathVariable id: UUID,

@@ -112,6 +112,29 @@ class PersonService(
             throw e
         }
 
+        oppdaterNavn(person, pdlPerson)
+    }
+
+    fun oppdaterNavnForBulk(person: PersonDbo): Result<Unit> {
+        val pdlPerson = try {
+            pdlClient.hentPerson(person.personident)
+        } catch (e: DataAccessException) {
+            throw e
+        } catch (e: TransactionException) {
+            throw e
+        } catch (e: RuntimeException) {
+            return Result.failure(e)
+        }
+
+        // Lagring skjer utenfor catch-blokken, slik at databasefeil stopper jobben.
+        oppdaterNavn(person, pdlPerson)
+        return Result.success(Unit)
+    }
+
+    private fun oppdaterNavn(
+        person: PersonDbo,
+        pdlPerson: PdlPerson,
+    ) {
         val oppdatertPerson = person.copy(
             fornavn = pdlPerson.fornavn.titlecase(),
             mellomnavn = pdlPerson.mellomnavn?.titlecase(),
@@ -127,11 +150,25 @@ class PersonService(
             return
         }
 
+        var navnOppdatert = false
         transactionTemplate.executeWithoutResult {
-            upsert(oppdatertPerson)
+            val lagretPerson = personRepository.oppdaterNavnHvisPersonidentUendret(
+                personId = person.id,
+                forventetPersonident = person.personident,
+                fornavn = oppdatertPerson.fornavn,
+                mellomnavn = oppdatertPerson.mellomnavn,
+                etternavn = oppdatertPerson.etternavn,
+            ) ?: return@executeWithoutResult
+
+            applicationEventPublisher.publishEvent(PersonUpdateEvent(lagretPerson))
+            navnOppdatert = true
         }
 
-        log.info("Oppdaterte navn på person ${person.id}")
+        if (navnOppdatert) {
+            log.info("Oppdaterte navn på person ${person.id}")
+        } else {
+            log.warn("Hoppet over navneoppdatering for person {} fordi personident ikke lenger matcher PDL-oppslaget", person.id)
+        }
     }
 
     private fun upsert(person: PersonDbo) {

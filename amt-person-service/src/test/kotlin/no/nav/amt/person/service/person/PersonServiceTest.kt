@@ -25,9 +25,11 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.dao.DataAccessException
+import org.springframework.dao.DataAccessResourceFailureException
 import org.springframework.resilience.annotation.Retryable
 import org.springframework.transaction.TransactionException
 import org.springframework.transaction.TransactionStatus
+import org.springframework.transaction.TransactionSystemException
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.client.RestClientException
 import java.util.function.Consumer
@@ -228,6 +230,46 @@ class PersonServiceTest {
         }
 
         @Test
+        fun `bulk navneoppdatering returnerer PDL-feil uten å skrive`() {
+            val person = TestData.lagPerson()
+            val exception = IllegalStateException("PDL-feil")
+            every { pdlClient.hentPerson(person.personident) } throws exception
+
+            val result = service.oppdaterNavnForBulk(person)
+
+            result.exceptionOrNull() shouldBe exception
+            verifyNoWrites()
+        }
+
+        @Test
+        fun `bulk navneoppdatering propagerer databasefeil fra PDL-oppslag`() {
+            val person = TestData.lagPerson()
+            val exception = DataAccessResourceFailureException("Databasefeil")
+            every { pdlClient.hentPerson(person.personident) } throws exception
+
+            val thrown = shouldThrow<DataAccessException> {
+                service.oppdaterNavnForBulk(person)
+            }
+
+            thrown shouldBe exception
+            verifyNoWrites()
+        }
+
+        @Test
+        fun `bulk navneoppdatering propagerer transaksjonsfeil fra PDL-oppslag`() {
+            val person = TestData.lagPerson()
+            val exception = TransactionSystemException("Transaksjonsfeil")
+            every { pdlClient.hentPerson(person.personident) } throws exception
+
+            val thrown = shouldThrow<TransactionException> {
+                service.oppdaterNavnForBulk(person)
+            }
+
+            thrown shouldBe exception
+            verifyNoWrites()
+        }
+
+        @Test
         fun `normaliserer navn selv om PDL-navnet er uendret`() {
             // Arrange
             val person = TestData.lagPerson(
@@ -236,21 +278,64 @@ class PersonServiceTest {
                 etternavn = "ETTERNAVN",
             )
             val pdlPerson = TestData.lagPdlPerson(person)
+            val oppdatertPerson = person.copy(
+                erFalskIdentitet = true,
+                fornavn = "Fornavn",
+                mellomnavn = "Mellomnavn",
+                etternavn = "Etternavn",
+            )
             every { pdlClient.hentPerson(person.personident) } returns pdlPerson
+            every {
+                personRepository.oppdaterNavnHvisPersonidentUendret(
+                    person.id,
+                    person.personident,
+                    "Fornavn",
+                    "Mellomnavn",
+                    "Etternavn",
+                )
+            } returns oppdatertPerson
 
             // Act
             service.oppdaterNavn(person)
 
             // Assert
             verify {
-                personRepository.upsert(
-                    match {
-                        it.fornavn == "Fornavn" &&
-                            it.mellomnavn == "Mellomnavn" &&
-                            it.etternavn == "Etternavn"
-                    },
+                personRepository.oppdaterNavnHvisPersonidentUendret(
+                    person.id,
+                    person.personident,
+                    "Fornavn",
+                    "Mellomnavn",
+                    "Etternavn",
                 )
             }
+            verify { applicationEventPublisher.publishEvent(PersonUpdateEvent(oppdatertPerson)) }
+            verify(exactly = 0) { personRepository.upsert(any()) }
+        }
+
+        @Test
+        fun `hopper over navneoppdatering når personident er endret etter PDL-oppslag`() {
+            val person = TestData.lagPerson(
+                fornavn = "FORNAVN",
+                mellomnavn = "MELLOMNAVN",
+                etternavn = "ETTERNAVN",
+            )
+            val pdlPerson = TestData.lagPdlPerson(person)
+            every { pdlClient.hentPerson(person.personident) } returns pdlPerson
+            every {
+                personRepository.oppdaterNavnHvisPersonidentUendret(
+                    person.id,
+                    person.personident,
+                    "Fornavn",
+                    "Mellomnavn",
+                    "Etternavn",
+                )
+            } returns null
+
+            val result = service.oppdaterNavnForBulk(person)
+
+            result.isSuccess shouldBe true
+            verify(exactly = 0) { applicationEventPublisher.publishEvent(any()) }
+            verify(exactly = 0) { personRepository.upsert(any()) }
         }
 
         @Test
@@ -323,6 +408,9 @@ class PersonServiceTest {
         private fun verifyNoWrites() {
             verify(exactly = 0) {
                 transactionTemplate.executeWithoutResult(any<Consumer<TransactionStatus>>())
+            }
+            verify(exactly = 0) {
+                personRepository.oppdaterNavnHvisPersonidentUendret(any(), any(), any(), any(), any())
             }
             verify(exactly = 0) { personRepository.upsert(any()) }
             verify(exactly = 0) { personidentRepository.upsert(any()) }

@@ -82,6 +82,45 @@ class PersonRepository(
         template.update(sql, parameters)
     }
 
+    fun oppdaterNavnHvisPersonidentUendret(
+        personId: UUID,
+        forventetPersonident: String,
+        fornavn: String,
+        mellomnavn: String?,
+        etternavn: String,
+    ): PersonDbo? {
+        val sql =
+            """
+            UPDATE person
+            SET fornavn = :fornavn,
+                mellomnavn = :mellomnavn,
+                etternavn = :etternavn,
+                modified_at = CURRENT_TIMESTAMP
+            WHERE
+                id = :id
+                AND personident = :personident
+            RETURNING
+                id,
+                personident,
+                er_falsk_identitet,
+                fornavn,
+                mellomnavn,
+                etternavn,
+                created_at,
+                modified_at
+            """.trimIndent()
+
+        val parameters = sqlParameters(
+            "id" to personId,
+            "personident" to forventetPersonident,
+            "fornavn" to fornavn,
+            "mellomnavn" to mellomnavn,
+            "etternavn" to etternavn,
+        )
+
+        return template.query(sql, parameters, rowMapper).firstOrNull()
+    }
+
     fun getPersoner(identer: Set<String>): List<PersonDbo> {
         if (identer.isEmpty()) return emptyList()
 
