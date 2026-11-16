@@ -112,23 +112,23 @@ class PersonService(
             throw e
         }
 
+        val oppdatertPerson = person.copy(
+            fornavn = pdlPerson.fornavn.titlecase(),
+            mellomnavn = pdlPerson.mellomnavn?.titlecase(),
+            etternavn = pdlPerson.etternavn.titlecase(),
+        )
+
         if (
-            person.fornavn == pdlPerson.fornavn &&
-            person.mellomnavn == pdlPerson.mellomnavn &&
-            person.etternavn == pdlPerson.etternavn
+            person.fornavn == oppdatertPerson.fornavn &&
+            person.mellomnavn == oppdatertPerson.mellomnavn &&
+            person.etternavn == oppdatertPerson.etternavn
         ) {
             log.info("Navn på person ${person.id} er allerede oppdatert, ingen endringer gjort.")
             return
         }
 
         transactionTemplate.executeWithoutResult {
-            upsert(
-                person.copy(
-                    fornavn = pdlPerson.fornavn.titlecase(),
-                    mellomnavn = pdlPerson.mellomnavn?.titlecase(),
-                    etternavn = pdlPerson.etternavn.titlecase(),
-                ),
-            )
+            upsert(oppdatertPerson)
         }
 
         log.info("Oppdaterte navn på person ${person.id}")
