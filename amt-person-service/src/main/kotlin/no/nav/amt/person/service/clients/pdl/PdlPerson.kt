@@ -6,6 +6,7 @@ import no.nav.amt.person.service.person.dbo.PersonDbo
 import no.nav.amt.person.service.person.model.AdressebeskyttelseGradering
 import no.nav.amt.person.service.person.model.Personident
 import no.nav.amt.person.service.person.model.Personident.Companion.finnGjeldendeIdent
+import no.nav.amt.person.service.utils.titlecase
 import java.util.UUID
 
 data class PdlPerson(
@@ -31,9 +32,9 @@ data class PdlPerson(
             id = UUID.randomUUID(),
             personident = gjeldendeIdent.ident,
             erFalskIdentitet = erFalskIdentitet,
-            fornavn = fornavn,
-            mellomnavn = mellomnavn,
-            etternavn = etternavn,
+            fornavn = fornavn.titlecase(),
+            mellomnavn = mellomnavn?.titlecase(),
+            etternavn = etternavn.titlecase(),
         )
     }
 }

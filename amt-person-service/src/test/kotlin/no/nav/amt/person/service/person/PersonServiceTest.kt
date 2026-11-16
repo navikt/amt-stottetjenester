@@ -74,15 +74,15 @@ class PersonServiceTest {
         }
 
         @Test
-        fun `personen finnes ikke - opprettes fra PDL`() {
+        fun `personen finnes ikke - opprettes med normalisert navnekapitalisering`() {
             // Arrange
             val personident = TestData.randomIdent()
             val identType = IdentType.FOLKEREGISTERIDENT
             val pdlPerson = PdlPerson(
                 erFalskIdentitet = false,
-                fornavn = "Fornavn",
-                mellomnavn = "Mellomnavn",
-                etternavn = "Etternavn",
+                fornavn = "FORNAVN",
+                mellomnavn = "MELLOMNAVN",
+                etternavn = "ETTERNAVN",
                 telefonnummer = "81549300",
                 adressebeskyttelseGradering = null,
                 identer = listOf(
@@ -101,9 +101,9 @@ class PersonServiceTest {
             // Assert
             assertSoftly(person) {
                 this.personident shouldBe personident
-                fornavn shouldBe pdlPerson.fornavn
-                mellomnavn shouldBe pdlPerson.mellomnavn
-                etternavn shouldBe pdlPerson.etternavn
+                fornavn shouldBe "Fornavn"
+                mellomnavn shouldBe "Mellomnavn"
+                etternavn shouldBe "Etternavn"
             }
         }
 
@@ -225,6 +225,32 @@ class PersonServiceTest {
         @AfterEach
         fun unmockEnvUtils() {
             unmockkObject(EnvUtils)
+        }
+
+        @Test
+        fun `normaliserer navn selv om PDL-navnet er uendret`() {
+            // Arrange
+            val person = TestData.lagPerson(
+                fornavn = "FORNAVN",
+                mellomnavn = "MELLOMNAVN",
+                etternavn = "ETTERNAVN",
+            )
+            val pdlPerson = TestData.lagPdlPerson(person)
+            every { pdlClient.hentPerson(person.personident) } returns pdlPerson
+
+            // Act
+            service.oppdaterNavn(person)
+
+            // Assert
+            verify {
+                personRepository.upsert(
+                    match {
+                        it.fornavn == "Fornavn" &&
+                            it.mellomnavn == "Mellomnavn" &&
+                            it.etternavn == "Etternavn"
+                    },
+                )
+            }
         }
 
         @Test
