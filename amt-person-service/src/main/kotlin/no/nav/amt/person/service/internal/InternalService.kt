@@ -50,10 +50,6 @@ class InternalService(
         personUpdater.oppdaterPersonidenter(offset)
     }
 
-    fun oppdaterAllePersonnavn() {
-        personUpdater.oppdaterAllePersonnavn()
-    }
-
     fun oppdaterNavn(id: UUID) {
         val person = personRepository.get(id)
         if (person.erFalskIdentitet) log.warn("Person $id har erFalskIdentitet = true")
