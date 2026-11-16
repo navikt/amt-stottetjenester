@@ -150,11 +150,25 @@ class PersonService(
             return
         }
 
+        var navnOppdatert = false
         transactionTemplate.executeWithoutResult {
-            upsert(oppdatertPerson)
+            val lagretPerson = personRepository.oppdaterNavnHvisPersonidentUendret(
+                personId = person.id,
+                forventetPersonident = person.personident,
+                fornavn = oppdatertPerson.fornavn,
+                mellomnavn = oppdatertPerson.mellomnavn,
+                etternavn = oppdatertPerson.etternavn,
+            ) ?: return@executeWithoutResult
+
+            applicationEventPublisher.publishEvent(PersonUpdateEvent(lagretPerson))
+            navnOppdatert = true
         }
 
-        log.info("Oppdaterte navn på person ${person.id}")
+        if (navnOppdatert) {
+            log.info("Oppdaterte navn på person ${person.id}")
+        } else {
+            log.warn("Hoppet over navneoppdatering for person {} fordi personident ikke lenger matcher PDL-oppslaget", person.id)
+        }
     }
 
     private fun upsert(person: PersonDbo) {

@@ -278,21 +278,64 @@ class PersonServiceTest {
                 etternavn = "ETTERNAVN",
             )
             val pdlPerson = TestData.lagPdlPerson(person)
+            val oppdatertPerson = person.copy(
+                erFalskIdentitet = true,
+                fornavn = "Fornavn",
+                mellomnavn = "Mellomnavn",
+                etternavn = "Etternavn",
+            )
             every { pdlClient.hentPerson(person.personident) } returns pdlPerson
+            every {
+                personRepository.oppdaterNavnHvisPersonidentUendret(
+                    person.id,
+                    person.personident,
+                    "Fornavn",
+                    "Mellomnavn",
+                    "Etternavn",
+                )
+            } returns oppdatertPerson
 
             // Act
             service.oppdaterNavn(person)
 
             // Assert
             verify {
-                personRepository.upsert(
-                    match {
-                        it.fornavn == "Fornavn" &&
-                            it.mellomnavn == "Mellomnavn" &&
-                            it.etternavn == "Etternavn"
-                    },
+                personRepository.oppdaterNavnHvisPersonidentUendret(
+                    person.id,
+                    person.personident,
+                    "Fornavn",
+                    "Mellomnavn",
+                    "Etternavn",
                 )
             }
+            verify { applicationEventPublisher.publishEvent(PersonUpdateEvent(oppdatertPerson)) }
+            verify(exactly = 0) { personRepository.upsert(any()) }
+        }
+
+        @Test
+        fun `hopper over navneoppdatering når personident er endret etter PDL-oppslag`() {
+            val person = TestData.lagPerson(
+                fornavn = "FORNAVN",
+                mellomnavn = "MELLOMNAVN",
+                etternavn = "ETTERNAVN",
+            )
+            val pdlPerson = TestData.lagPdlPerson(person)
+            every { pdlClient.hentPerson(person.personident) } returns pdlPerson
+            every {
+                personRepository.oppdaterNavnHvisPersonidentUendret(
+                    person.id,
+                    person.personident,
+                    "Fornavn",
+                    "Mellomnavn",
+                    "Etternavn",
+                )
+            } returns null
+
+            val result = service.oppdaterNavnForBulk(person)
+
+            result.isSuccess shouldBe true
+            verify(exactly = 0) { applicationEventPublisher.publishEvent(any()) }
+            verify(exactly = 0) { personRepository.upsert(any()) }
         }
 
         @Test
@@ -365,6 +408,9 @@ class PersonServiceTest {
         private fun verifyNoWrites() {
             verify(exactly = 0) {
                 transactionTemplate.executeWithoutResult(any<Consumer<TransactionStatus>>())
+            }
+            verify(exactly = 0) {
+                personRepository.oppdaterNavnHvisPersonidentUendret(any(), any(), any(), any(), any())
             }
             verify(exactly = 0) { personRepository.upsert(any()) }
             verify(exactly = 0) { personidentRepository.upsert(any()) }
