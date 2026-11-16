@@ -112,6 +112,29 @@ class PersonService(
             throw e
         }
 
+        oppdaterNavn(person, pdlPerson)
+    }
+
+    fun oppdaterNavnForBulk(person: PersonDbo): Result<Unit> {
+        val pdlPerson = try {
+            pdlClient.hentPerson(person.personident)
+        } catch (e: DataAccessException) {
+            throw e
+        } catch (e: TransactionException) {
+            throw e
+        } catch (e: RuntimeException) {
+            return Result.failure(e)
+        }
+
+        // Lagring skjer utenfor catch-blokken, slik at databasefeil stopper jobben.
+        oppdaterNavn(person, pdlPerson)
+        return Result.success(Unit)
+    }
+
+    private fun oppdaterNavn(
+        person: PersonDbo,
+        pdlPerson: PdlPerson,
+    ) {
         val oppdatertPerson = person.copy(
             fornavn = pdlPerson.fornavn.titlecase(),
             mellomnavn = pdlPerson.mellomnavn?.titlecase(),

@@ -25,9 +25,11 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.dao.DataAccessException
+import org.springframework.dao.DataAccessResourceFailureException
 import org.springframework.resilience.annotation.Retryable
 import org.springframework.transaction.TransactionException
 import org.springframework.transaction.TransactionStatus
+import org.springframework.transaction.TransactionSystemException
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.client.RestClientException
 import java.util.function.Consumer
@@ -225,6 +227,46 @@ class PersonServiceTest {
         @AfterEach
         fun unmockEnvUtils() {
             unmockkObject(EnvUtils)
+        }
+
+        @Test
+        fun `bulk navneoppdatering returnerer PDL-feil uten å skrive`() {
+            val person = TestData.lagPerson()
+            val exception = IllegalStateException("PDL-feil")
+            every { pdlClient.hentPerson(person.personident) } throws exception
+
+            val result = service.oppdaterNavnForBulk(person)
+
+            result.exceptionOrNull() shouldBe exception
+            verifyNoWrites()
+        }
+
+        @Test
+        fun `bulk navneoppdatering propagerer databasefeil fra PDL-oppslag`() {
+            val person = TestData.lagPerson()
+            val exception = DataAccessResourceFailureException("Databasefeil")
+            every { pdlClient.hentPerson(person.personident) } throws exception
+
+            val thrown = shouldThrow<DataAccessException> {
+                service.oppdaterNavnForBulk(person)
+            }
+
+            thrown shouldBe exception
+            verifyNoWrites()
+        }
+
+        @Test
+        fun `bulk navneoppdatering propagerer transaksjonsfeil fra PDL-oppslag`() {
+            val person = TestData.lagPerson()
+            val exception = TransactionSystemException("Transaksjonsfeil")
+            every { pdlClient.hentPerson(person.personident) } throws exception
+
+            val thrown = shouldThrow<TransactionException> {
+                service.oppdaterNavnForBulk(person)
+            }
+
+            thrown shouldBe exception
+            verifyNoWrites()
         }
 
         @Test

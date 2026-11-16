@@ -67,6 +67,16 @@ class InternalServiceTest {
     }
 
     @Nested
+    inner class OppdaterAllePersonnavn {
+        @Test
+        fun `delegerer til personUpdater`() {
+            service.oppdaterAllePersonnavn()
+
+            verify { personUpdater.oppdaterAllePersonnavn() }
+        }
+    }
+
+    @Nested
     inner class OppdaterNavn {
         @Test
         fun `henter person og kaller oppdaterNavn`() {
