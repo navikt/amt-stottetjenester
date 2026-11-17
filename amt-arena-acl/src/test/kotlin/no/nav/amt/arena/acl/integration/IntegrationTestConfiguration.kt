@@ -1,6 +1,5 @@
 package no.nav.amt.arena.acl.integration
 
-import io.getunleash.FakeUnleash
 import no.nav.amt.arena.acl.integration.kafka.KafkaAmtIntegrationConsumer
 import no.nav.amt.arena.acl.kafka.KafkaProperties
 import no.nav.common.kafka.util.KafkaPropertiesBuilder
@@ -61,7 +60,4 @@ class IntegrationTestConfiguration {
 		kafkaProperties = properties,
 		topic = consumerTopic,
 	)
-
-	@Bean
-	fun unleashClient() = FakeUnleash().apply { enableAll() }
 }
