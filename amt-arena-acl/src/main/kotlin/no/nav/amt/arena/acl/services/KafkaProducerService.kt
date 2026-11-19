@@ -15,6 +15,7 @@ class KafkaProducerService(
 	@Value($$"${app.env.amtTopic}") private val amtTiltakTopic: String,
 	@Value($$"${app.env.amtEnkeltplassDeltakerTopic}") private val amtEnkeltplassDeltakerTopic: String,
 ) {
+    //TODO: Denne må erstattes med en ny topic når vi skal ta over nye tiltakstyper
 	fun sendTilAmtTiltak(
 		messageKey: UUID,
 		data: AmtKafkaMessageDto<*>,
