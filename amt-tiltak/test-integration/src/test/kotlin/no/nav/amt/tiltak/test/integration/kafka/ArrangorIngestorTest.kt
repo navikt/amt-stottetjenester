@@ -5,24 +5,63 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.amt.tiltak.arrangor.ArrangorRepository
 import no.nav.amt.tiltak.clients.amt_arrangor_client.AmtArrangorClient
 import no.nav.amt.tiltak.kafka.arrangor_ingestor.ArrangorIngestorImpl
+import no.nav.amt.tiltak.kafka.config.KafkaProperties
+import no.nav.amt.tiltak.kafka.config.KafkaTopicProperties
 import no.nav.amt.tiltak.test.database.DbTestDataUtils
 import no.nav.amt.tiltak.test.integration.IntegrationTestBase
 import no.nav.amt.tiltak.test.utils.AsyncUtils.eventually
 import no.nav.common.json.JsonUtils
+import org.apache.kafka.clients.admin.Admin
+import org.apache.kafka.clients.admin.AdminClientConfig
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.common.GroupState
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
+import java.time.Duration
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 class ArrangorIngestorTest : IntegrationTestBase() {
 	@Autowired
 	private lateinit var arrangorRepository: ArrangorRepository
 
+	@Autowired
+	private lateinit var kafkaProperties: KafkaProperties
+
+	@Autowired
+	private lateinit var kafkaTopicProperties: KafkaTopicProperties
+
 	@BeforeEach
 	fun setUp() {
+		waitForArrangorConsumer()
 		DbTestDataUtils.cleanAndInitDatabaseWithTestData(dataSource)
 		resetMockServersAndAddDefaultData()
+	}
+
+	/** Venter på partisjonstildeling før testens ti sekunders frist for meldingsbehandling starter. */
+	private fun waitForArrangorConsumer() {
+		val properties = kafkaProperties.consumer()
+		val groupId = requireNotNull(properties.getProperty(ConsumerConfig.GROUP_ID_CONFIG))
+
+		Admin.create(
+			mapOf(
+				AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to properties.getValue(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG)
+			)
+		).use { admin ->
+			eventually(until = Duration.ofSeconds(30)) {
+				val group = admin.describeConsumerGroups(listOf(groupId))
+					.all()
+					.get(5, TimeUnit.SECONDS)
+					.getValue(groupId)
+
+				group.groupState() shouldBe GroupState.STABLE
+				group.members()
+					.flatMap { it.assignment().topicPartitions() }
+					.any { it.topic() == kafkaTopicProperties.amtArrangorTopic } shouldBe true
+			}
+		}
 	}
 
 	@Test
