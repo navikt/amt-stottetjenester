@@ -20,23 +20,23 @@ class SisteOppfolgingsperiodeConsumer(
 
     fun ingest(value: String) {
         val sisteOppfolgingsperiodePayload = objectMapper.readValue<SisteOppfolgingsperiodePayload>(value)
-
         val navBruker = navBrukerRepository.get(sisteOppfolgingsperiodePayload.ident) ?: return
-
-        /*
-         * At kontor er null betyr at oppfølgingsperioden er avsluttet.
-         * Tidligere når vi hentet oppfølgingsenhet fra Arena var det ikke mulig å slette enhet i Arena.
-         * Ny vurdering når det nå er mulig å slette er at vi likevel beholder den.
-         * Oppfølgingsenhet deles på deltaker-v1, deltaker-ekstern-v1 og finnes i arrangør-flaten.
-         */
-        if (sisteOppfolgingsperiodePayload.kontor == null) return
-
-        if (navBruker.navEnhet?.enhetId == sisteOppfolgingsperiodePayload.kontor.kontorId) return
 
         log.info("Endrer oppfolgingsenhet på NavBruker med id=${navBruker.id}")
 
-        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(sisteOppfolgingsperiodePayload.kontor.kontorId)
+        /*
+         * Kontor nulles ut når en person går ut av oppfølging men dette ønskes ikke at vi viderefører.
+         * Tidligere hentet vi oppfølgingsenhet fra Arena og der var det ikke mulig å slette oppfølgingsenhet.
+         * Vurderingen, når det nå er mulig å slette, er at vi likevel beholder den.
+         * Oppfølgingsenhet deles på deltaker-v1, deltaker-ekstern-v1 og finnes i arrangør-flaten.
+         */
+        val navEnhet = sisteOppfolgingsperiodePayload.kontor?.let {
+            navEnhetService.hentEllerOpprettNavEnhet(sisteOppfolgingsperiodePayload.kontor.kontorId)
+        } ?: navBruker.navEnhet
 
-        navBrukerService.upsert(navBruker.copy(navEnhet = navEnhet))
+        navBrukerService.oppdaterOppfolgingsperiodeOgInnsatsgruppe(
+            navBruker = navBruker.copy(navEnhet = navEnhet),
+            oppfolgingsperiode = sisteOppfolgingsperiodePayload.toOppfolgingsperiode(),
+        )
     }
 }
