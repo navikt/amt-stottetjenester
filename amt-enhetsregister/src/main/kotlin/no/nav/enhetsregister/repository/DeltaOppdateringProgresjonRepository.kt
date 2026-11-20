@@ -36,7 +36,9 @@ class DeltaOppdateringProgresjonRepository(
             WHERE $ENHET_TYPE = ?::enhet_type
             """.trimIndent()
 
-        jdbcTemplate.update(sql, oppdateringId, enhetType.toDatabaseValue())
+        check(jdbcTemplate.update(sql, oppdateringId, enhetType.toDatabaseValue()) == 1) {
+            "Forventet å oppdatere én progresjonsrad for $enhetType"
+        }
     }
 
     private companion object Table {
