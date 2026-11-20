@@ -1,10 +1,5 @@
 package no.nav.amt.arena.acl.consumer
 
-import no.nav.amt.arena.acl.clients.amttiltak.AmtTiltakClient
-import no.nav.amt.arena.acl.clients.amttiltak.DeltakerDto
-import no.nav.amt.arena.acl.clients.amttiltak.DeltakerStatus
-import no.nav.amt.arena.acl.clients.mulighetsrommet.Gjennomforing
-import no.nav.amt.arena.acl.clients.ordsproxy.ArenaOrdsProxyClient
 import no.nav.amt.arena.acl.domain.db.toUpsertInputWithStatusHandled
 import no.nav.amt.arena.acl.domain.kafka.amt.AmtDeltaker
 import no.nav.amt.arena.acl.domain.kafka.amt.AmtKafkaMessageDto
@@ -13,7 +8,6 @@ import no.nav.amt.arena.acl.domain.kafka.amt.PayloadType
 import no.nav.amt.arena.acl.domain.kafka.amt.erAvsluttende
 import no.nav.amt.arena.acl.domain.kafka.arena.ArenaHistDeltaker
 import no.nav.amt.arena.acl.domain.kafka.arena.ArenaHistDeltakerKafkaMessage
-import no.nav.amt.arena.acl.domain.kafka.arena.TiltakDeltaker
 import no.nav.amt.arena.acl.exceptions.ExternalSourceSystemException
 import no.nav.amt.arena.acl.exceptions.IgnoredException
 import no.nav.amt.arena.acl.exceptions.OperationNotImplementedException
@@ -30,13 +24,17 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.UUID
 
+/**
+ * Consumer for hist deltakere
+ * Når man oppretter en ny deltakelse på samme gjennomføring og samme person, så historiseres den gamle deltakelsen.
+ * I disse tilfellene så ønsker vi, ved overtakelse av deltakelser på ny tiltakstype, å lese inn de deltakelsene som
+ * allerede er historisert.
+ */
 @Component
 class HistDeltakerConsumer(
 	private val arenaDataRepository: ArenaDataRepository,
-	private val ordsClient: ArenaOrdsProxyClient,
 	private val kafkaProducerService: KafkaProducerService,
 	private val arenaDeltakerConsumer: ArenaDeltakerConsumer,
-	private val amtTiltakClient: AmtTiltakClient,
 	private val deltakerRepository: DeltakerRepository,
 	private val arenaDataIdTranslationService: ArenaDataIdTranslationService,
 ) : ArenaMessageConsumer<ArenaHistDeltakerKafkaMessage> {
@@ -59,10 +57,6 @@ class HistDeltakerConsumer(
 					.tryRun { it.mapTiltakDeltaker() }
 					.getOrThrow()
 
-			val personIdent =
-				ordsClient.hentFnr(histDeltaker.personId)
-					?: throw ValidationException("Arena mangler personlig ident for personId=${histDeltaker.personId}")
-
 			val eksisterendeDeltaker = getMatchingDeltaker(arenaDeltakerRaw)
 
 			if (eksisterendeDeltaker == null) {
@@ -74,6 +68,11 @@ class HistDeltakerConsumer(
 				log.info(
 					"Fant ingen match for hist-deltaker $arenaHistDeltakerId, oppretter ny deltaker ${nyDeltaker.id} og lagrer mapping og sender videre",
 				)
+                /*
+                    Her må det produseres melding til ny topic hvis vi skal lese historiserte deltakelser
+                    på tiltak som vi skal bli master for
+                    Tidligere ble det produsert data til amt-tiltak-v1 men denne topicen skal ikke brukes mer(siden data da går vi amt-tiltak)
+                 */
 				sendMessage(nyDeltaker, arenaHistDeltakerId)
 			} else {
 				log.info("Hist deltaker $arenaHistDeltakerId matcher deltaker ${eksisterendeDeltaker.arenaId}")
@@ -83,20 +82,10 @@ class HistDeltakerConsumer(
 						?: throw ValidationException(
 							"Fant matchende deltaker for hist deltaker $arenaHistDeltakerId men fant ikke deltakeren igjen i translation tabellen",
 						)
-				val deltakerFraAmtTiltak =
-					getAmtDeltaker(eksisterendeDeltakerAmtId, personIdent)
-						?: throw ValidationException(
-							"Fant matchende deltaker for hist deltaker $arenaHistDeltakerId men fant ikke deltakeren igjen i amt-tiltak",
-						)
-
 				arenaDataIdTranslationService.lagreHistDeltakerId(
-					amtDeltakerId = deltakerFraAmtTiltak.id,
+					amtDeltakerId = eksisterendeDeltakerAmtId,
 					histDeltakerArenaId = arenaHistDeltakerId,
 				)
-				if (deltakerFraAmtTiltak.status == DeltakerStatus.FEILREGISTRERT) {
-					log.info("amt-deltaker ${deltakerFraAmtTiltak.id} er feilregistrert, gjenoppretter")
-					gjenopprettFeilregistrertDeltaker(histDeltaker, deltakerFraAmtTiltak.id, gjennomforing, personIdent)
-				}
 			}
 			arenaDataRepository.upsert(
 				message.toUpsertInputWithStatusHandled(arenaHistDeltakerId, note = "Fant match? ${eksisterendeDeltaker != null}"),
@@ -145,42 +134,6 @@ class HistDeltakerConsumer(
 		log.info(
 			"Melding for deltaker id=${deltaker.id} arenaId=$arenaDeltakerId transactionId=${deltakerKafkaMessage.transactionId} op=${deltakerKafkaMessage.operation} er sendt",
 		)
-	}
-
-	private fun gjenopprettFeilregistrertDeltaker(
-		arenaDeltaker: TiltakDeltaker,
-		amtDeltakerId: UUID,
-		gjennomforing: Gjennomforing,
-		personIdent: String,
-	) {
-		val deltaker =
-			arenaDeltaker.constructDeltaker(
-				amtDeltakerId = amtDeltakerId,
-				gjennomforing = gjennomforing,
-				erEnkeltplass = gjennomforing.erEnkelplass(),
-				deltakelseKreverGodkjenningLoep = gjennomforing.erKurs() || gjennomforing.erEnkelplass(),
-				personIdent = personIdent,
-			)
-		val deltakerKafkaMessage =
-			AmtKafkaMessageDto(
-				type = PayloadType.DELTAKER,
-				operation = AmtOperation.MODIFIED,
-				payload = deltaker,
-			)
-		deltaker.validerGyldigHistDeltaker()
-		kafkaProducerService.sendTilAmtTiltak(deltaker.id, deltakerKafkaMessage)
-		log.info(
-			"Melding for hist-deltaker id=${deltaker.id} arenaHistId=${arenaDeltaker.tiltakdeltakerId} transactionId=${deltakerKafkaMessage.transactionId} op=${deltakerKafkaMessage.operation} er sendt",
-		)
-	}
-
-	private fun getAmtDeltaker(
-		id: UUID,
-		personIdent: String,
-	): DeltakerDto? {
-		val deltakelser = amtTiltakClient.hentDeltakelserForPerson(personIdent)
-		return deltakelser
-			.find { it.id == id }
 	}
 
 	private fun getMatchingDeltaker(arenaHistDeltaker: ArenaHistDeltaker): DeltakerDbo? {

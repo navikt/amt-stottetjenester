@@ -71,7 +71,7 @@ republisere data.
 
 ## Integrasjoner
 
-Applikasjonen bruker PostgreSQL, Kafka og Unleash. Den kaller `amt-arena-ords-proxy`, Mulighetsrommet API og
+Applikasjonen bruker PostgreSQL og Kafka. Den kaller `amt-arena-ords-proxy`, Mulighetsrommet API og
 `amt-tiltak`.
 
 ## Deploy

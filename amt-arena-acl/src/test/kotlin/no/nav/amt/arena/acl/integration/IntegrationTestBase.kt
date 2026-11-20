@@ -5,7 +5,6 @@ import net.javacrumbs.shedlock.core.LockProvider
 import no.nav.amt.arena.acl.integration.kafka.KafkaMessageConsumer
 import no.nav.amt.arena.acl.integration.utils.MockOAuthServer
 import no.nav.amt.arena.acl.kafka.KafkaConsumer
-import no.nav.amt.arena.acl.mocks.MockAmtTiltakServer
 import no.nav.amt.arena.acl.mocks.MockArenaOrdsProxyHttpServer
 import no.nav.amt.arena.acl.mocks.MockMachineToMachineHttpServer
 import no.nav.amt.arena.acl.mocks.MockMulighetsrommetApiServer
@@ -52,7 +51,6 @@ abstract class IntegrationTestBase(
 	fun cleanup() {
 		mockArenaOrdsProxyHttpServer.reset()
 		mockMulighetsrommetApiServer.reset()
-		mockAmtTiltakServer.reset()
 
 		if (!useKafkaConsumers) return
 
@@ -70,7 +68,6 @@ abstract class IntegrationTestBase(
 		val mockMachineToMachineHttpServer = MockMachineToMachineHttpServer()
 		val mockMulighetsrommetApiServer = MockMulighetsrommetApiServer()
 		val mockArenaOrdsProxyHttpServer = MockArenaOrdsProxyHttpServer()
-		val mockAmtTiltakServer = MockAmtTiltakServer()
 
 		val kafkaContainer =
 			KafkaContainer(DockerImageName.parse("apache/kafka")).apply {
@@ -95,10 +92,6 @@ abstract class IntegrationTestBase(
 			mockArenaOrdsProxyHttpServer.start()
 			registry.add("amt-arena-ords-proxy.scope") { "test.amt-arena-ords-proxy" }
 			registry.add("amt-arena-ords-proxy.url") { mockArenaOrdsProxyHttpServer.serverUrl() }
-
-			mockAmtTiltakServer.start()
-			registry.add("amt-tiltak.scope") { "test.amt-tiltak" }
-			registry.add("amt-tiltak.url") { mockAmtTiltakServer.serverUrl() }
 
 			mockMachineToMachineHttpServer.start()
 			registry.add("nais.env.azureOpenIdConfigTokenEndpoint") {

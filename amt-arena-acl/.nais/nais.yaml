@@ -50,14 +50,11 @@ spec:
         - application: amt-tiltak
       external:
         - host: "{{arena_ords_proxy_host}}"
-        - host: amt-unleash-api.nav.cloud.nais.io
     inbound:
       rules:
         - application: amt-aktivitetskort-publisher
   kafka:
     pool: {{kafka_pool}}
-  envFrom:
-    - secret: amt-arena-acl-unleash-api-token
   env:
     - name: JDK_JAVA_OPTIONS
       value: "{{jdk_java_options}}"
@@ -69,10 +66,6 @@ spec:
       value: api://{{cluster}}.team-mulighetsrommet.mulighetsrommet-api/.default
     - name: MULIGHETSROMMET_API_URL
       value: http://mulighetsrommet-api.team-mulighetsrommet.svc.cluster.local
-    - name: AMTTILTAK_SCOPE
-      value: api://{{cluster}}.amt.amt-tiltak/.default
-    - name: AMTTILTAK_URL
-      value: http://amt-tiltak
     - name: AMT_ENKELTPLASS_TOPIC
       value: amt.arena-enkeltplass-deltaker-v1
 

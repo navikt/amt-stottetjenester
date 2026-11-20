@@ -45,8 +45,6 @@ dependencies {
         exclude(group = "io.confluent", module = "kafka-avro-serializer")
     }
 
-    implementation(libs.unleash)
-
     implementation(libs.amt.lib.models)
 
     testImplementation(libs.kotest.runner.junit5)
