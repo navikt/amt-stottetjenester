@@ -24,7 +24,7 @@ logstash-encoder = "9.0"
 org-json = "20260814"
 
 # Nav
-nav-common = "4.2026.11.20_13.48-f8ecfd1ed802"
+nav-common = "4.2026.11.20_21.59-c0e8159bf802"
 amt-lib = "1.2026.11.19_10.17-4bc9eec8e030"
 token-support = "7.1.0"
 mock-oauth2-server = "7.0.1"
