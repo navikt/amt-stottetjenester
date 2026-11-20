@@ -29,6 +29,7 @@ dependencies {
 
     testImplementation("org.springframework.boot:spring-boot-restclient-test")
     testImplementation("org.testcontainers:testcontainers-kafka")
+    testImplementation("org.flywaydb:flyway-core")
 
     testImplementation(libs.mock.oauth2.server)
 }

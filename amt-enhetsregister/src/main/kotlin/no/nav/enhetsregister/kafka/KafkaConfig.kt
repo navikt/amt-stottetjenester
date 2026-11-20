@@ -1,9 +1,11 @@
 package no.nav.enhetsregister.kafka
 
-import no.nav.common.kafka.producer.KafkaProducerClientImpl
+import io.micrometer.core.instrument.MeterRegistry
+import no.nav.common.kafka.producer.util.KafkaProducerClientBuilder
 import no.nav.common.kafka.util.KafkaPropertiesBuilder
 import no.nav.common.kafka.util.KafkaPropertiesPreset
 import org.apache.kafka.common.serialization.ByteArraySerializer
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -31,7 +33,12 @@ class KafkaConfig {
             .build()
     }
 
-    @Bean
-    fun kafkaProducer(kafkaProducerProperties: KafkaProducerProperties) =
-        KafkaProducerClientImpl<ByteArray, ByteArray>(kafkaProducerProperties.producer())
+    @Bean(destroyMethod = "")
+    @ConditionalOnProperty("kafka.enabled", havingValue = "true", matchIfMissing = true)
+    fun kafkaProducer(kafkaProducerProperties: KafkaProducerProperties, meterRegistry: MeterRegistry) =
+        KafkaProducerClientBuilder
+            .builder<ByteArray, ByteArray>()
+            .withProperties(kafkaProducerProperties.producer())
+            .withMetrics(meterRegistry)
+            .build()
 }
