@@ -1,6 +1,5 @@
 package no.nav.arrangor.kafka
 
-import no.nav.amt.kontrakter.person.ArrangorAnsattDto
 import no.nav.arrangor.ansatt.AnsattService
 import no.nav.arrangor.ansatt.repository.AnsattDbo
 import no.nav.arrangor.ansatt.repository.AnsattRepository
@@ -8,6 +7,7 @@ import no.nav.arrangor.arrangor.ArrangorRepository
 import no.nav.arrangor.client.enhetsregister.EnhetsregisterClient
 import no.nav.arrangor.deltaker.DeltakerRepository
 import no.nav.arrangor.kafka.model.AVSLUTTENDE_STATUSER
+import no.nav.arrangor.kafka.model.AnsattPersonaliaDto
 import no.nav.arrangor.kafka.model.Deltaker
 import no.nav.arrangor.kafka.model.SKJULES_ALLTID_STATUSER
 import no.nav.arrangor.kafka.model.VirksomhetDto
@@ -128,7 +128,7 @@ class ConsumerService(
         return overordnetArrangor?.id
     }
 
-    fun handleAnsattPersonalia(ansattPersonalia: ArrangorAnsattDto) {
+    fun handleAnsattPersonalia(ansattPersonalia: AnsattPersonaliaDto) {
         val ansatt = ansattRepository.getByPersonId(ansattPersonalia.id)
             ?: return logger.warn("Mottok personalia men fant ikke ansatt med personId ${ansattPersonalia.id}")
 
@@ -152,7 +152,7 @@ class ConsumerService(
 
     private fun harPersonaliaEndringer(
         ansatt: AnsattDbo,
-        ansattPersonalia: ArrangorAnsattDto,
+        ansattPersonalia: AnsattPersonaliaDto,
     ): Boolean = ansatt.personident != ansattPersonalia.personident ||
         ansatt.fornavn != ansattPersonalia.fornavn ||
         ansatt.mellomnavn != ansattPersonalia.mellomnavn ||

@@ -12,7 +12,6 @@ on:
       - "amt-arena-ords-proxy/**"
       - "amt-arrangor/**"
       - "amt-enhetsregister/**"
-      - "amt-kontrakter/**"
       - "amt-person-service/**"
       - "amt-tiltak/**"
       - "buildSrc/**"
@@ -54,12 +53,10 @@ jobs:
               - amt-arena-ords-proxy/**
             amt-arrangor:
               - amt-arrangor/**
-              - amt-kontrakter/**
             amt-enhetsregister:
               - amt-enhetsregister/**
             amt-person-service:
               - amt-person-service/**
-              - amt-kontrakter/**
             amt-tiltak:
               - amt-tiltak/**
             all:

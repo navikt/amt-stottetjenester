@@ -1,16 +1,16 @@
 package no.nav.amt.person.service.api
 
-import no.nav.amt.kontrakter.person.ArrangorAnsattDto
-import no.nav.amt.kontrakter.person.ArrangorAnsattRequest
 import no.nav.amt.lib.models.person.dto.NavAnsattRequest
 import no.nav.amt.lib.models.person.dto.NavBrukerFodselsarDto
 import no.nav.amt.lib.models.person.dto.NavBrukerRequest
 import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.lib.models.person.dto.NavEnhetRequest
 import no.nav.amt.person.service.api.dto.AdressebeskyttelseDto
+import no.nav.amt.person.service.api.dto.ArrangorAnsattDto
 import no.nav.amt.person.service.api.dto.NavAnsattDto
 import no.nav.amt.person.service.api.dto.NavBrukerDto
 import no.nav.amt.person.service.api.request.AdressebeskyttelseRequest
+import no.nav.amt.person.service.api.request.ArrangorAnsattRequest
 import no.nav.amt.person.service.clients.krr.Kontaktinformasjon
 import no.nav.amt.person.service.clients.pdl.PdlClient
 import no.nav.amt.person.service.navansatt.NavAnsattRepository
@@ -20,7 +20,6 @@ import no.nav.amt.person.service.navenhet.NavEnhetRepository
 import no.nav.amt.person.service.navenhet.NavEnhetService
 import no.nav.amt.person.service.navenhet.toDto
 import no.nav.amt.person.service.person.ArrangorAnsattService
-import no.nav.amt.person.service.person.dbo.toArrangorAnsattDto
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -58,17 +57,17 @@ class PersonApiController(
     @PostMapping("/nav-ansatt")
     fun hentEllerOpprettNavAnsatt(
         @RequestBody request: NavAnsattRequest,
-    ): NavAnsattDto = NavAnsattDto.fromDbo(navAnsattService.hentEllerOpprettAnsatt(request.navIdent))
+    ) = NavAnsattDto.fromDbo(navAnsattService.hentEllerOpprettAnsatt(request.navIdent))
 
     @GetMapping("/nav-ansatt/{id}")
     fun hentNavAnsatt(
         @PathVariable id: UUID,
-    ): NavAnsattDto = NavAnsattDto.fromDbo(navAnsattRepository.get(id))
+    ) = NavAnsattDto.fromDbo(navAnsattRepository.get(id))
 
     @PostMapping("/arrangor-ansatt")
     fun hentEllerOpprettArrangorAnsatt(
         @RequestBody request: ArrangorAnsattRequest,
-    ): ArrangorAnsattDto = arrangorAnsattService.hentEllerOpprettAnsatt(request.personident).toArrangorAnsattDto()
+    ) = ArrangorAnsattDto.fromDbo(arrangorAnsattService.hentEllerOpprettAnsatt(request.personident))
 
     @PostMapping("/nav-enhet")
     fun hentEllerOpprettNavEnhet(

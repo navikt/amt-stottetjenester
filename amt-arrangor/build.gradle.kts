@@ -4,8 +4,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":amt-kontrakter"))
-
     // Kafka
     implementation("org.springframework.boot:spring-boot-kafka")
     implementation(libs.kafka.clients) {
@@ -37,8 +35,4 @@ dependencies {
     // Test – autentisering og assertions
     testImplementation(libs.mock.oauth2.server)
     testImplementation(libs.kotest.assertions.core)
-}
-
-tasks.named("check") {
-    dependsOn(":amt-kontrakter:check")
 }

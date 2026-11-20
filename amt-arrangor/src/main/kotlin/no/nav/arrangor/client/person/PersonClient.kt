@@ -1,7 +1,5 @@
 package no.nav.arrangor.client.person
 
-import no.nav.amt.kontrakter.person.ArrangorAnsattDto
-import no.nav.amt.kontrakter.person.ArrangorAnsattRequest
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -11,9 +9,9 @@ class PersonClient(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun hentPersonalia(personident: String): Result<ArrangorAnsattDto> = runCatching {
+    fun hentPersonalia(personident: String): Result<PersonApi.PersonResponse> = runCatching {
         personApi
-            .hentPersonalia(ArrangorAnsattRequest(personident))
+            .hentPersonalia(PersonApi.PersonRequest(personident))
             .also { log.debug("Hentet personalia for person") }
     }
 }

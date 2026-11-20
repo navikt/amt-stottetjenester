@@ -1,4 +1,4 @@
-package no.nav.amt.kontrakter.person
+package no.nav.amt.person.service.api.request
 
 data class ArrangorAnsattRequest(
     val personident: String,

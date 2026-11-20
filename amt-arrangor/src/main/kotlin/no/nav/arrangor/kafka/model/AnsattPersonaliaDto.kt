@@ -1,8 +1,8 @@
-package no.nav.amt.kontrakter.person
+package no.nav.arrangor.kafka.model
 
 import java.util.UUID
 
-data class ArrangorAnsattDto(
+data class AnsattPersonaliaDto(
     val id: UUID,
     val personident: String,
     val fornavn: String,
