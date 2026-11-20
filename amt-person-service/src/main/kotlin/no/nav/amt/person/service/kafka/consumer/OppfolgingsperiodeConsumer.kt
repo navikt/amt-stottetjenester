@@ -10,6 +10,10 @@ import org.springframework.stereotype.Component
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.readValue
 
+/**
+ * Consumer for oppfølgingsperioder som skal fases ut til fordel for
+ * poao.siste-oppfolgingsperiode-v3
+ */
 @Component
 class OppfolgingsperiodeConsumer(
     private val pdlClient: PdlClient,
@@ -43,7 +47,7 @@ class OppfolgingsperiodeConsumer(
         }
 
         navBrukerService.oppdaterOppfolgingsperiodeOgInnsatsgruppe(
-            navBrukerId = brukerId,
+            navBruker = navBrukerRepository.get(brukerId),
             oppfolgingsperiode = sisteOppfolgingsperiode.toOppfolgingsperiode(),
         )
 

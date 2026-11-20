@@ -1,10 +1,10 @@
 package no.nav.amt.person.service.data.kafka
 
 import no.nav.amt.person.service.data.TestData
-import no.nav.amt.person.service.data.kafka.message.KontorPayload
-import no.nav.amt.person.service.data.kafka.message.SisteOppfolgingsperiodePayload
 import no.nav.amt.person.service.data.kafka.message.TildeltVeilederMsg
 import no.nav.amt.person.service.kafka.consumer.OpplysningsType
+import no.nav.amt.person.service.kafka.consumer.dto.KontorPayload
+import no.nav.amt.person.service.kafka.consumer.dto.SisteOppfolgingsperiodePayload
 import no.nav.person.pdl.leesah.Endringstype
 import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.person.pdl.leesah.adressebeskyttelse.Adressebeskyttelse
@@ -21,11 +21,17 @@ object KafkaMessageCreator {
             kontorId = TestData.randomEnhetId(),
             kontorNavn = "NAV ${TestData.randomEnhetId()}",
         ),
-        sisteEndringsType: String = "ENDRET_KONTOR",
+        sisteEndringsType: String = "ARBEIDSOPPFOLGINGSKONTOR_ENDRET",
+        oppfolgingsperiodeUuid: UUID = UUID.randomUUID(),
+        startTidspunkt: ZonedDateTime = ZonedDateTime.now().minusMonths(1),
+        sluttTidspunkt: ZonedDateTime? = null,
     ) = SisteOppfolgingsperiodePayload(
+        oppfolgingsperiodeUuid = oppfolgingsperiodeUuid,
         ident = ident,
         kontor = kontor,
         sisteEndringsType = sisteEndringsType,
+        startTidspunkt = startTidspunkt,
+        sluttTidspunkt = sluttTidspunkt,
     )
 
     fun lagTildeltVeilederMsg(

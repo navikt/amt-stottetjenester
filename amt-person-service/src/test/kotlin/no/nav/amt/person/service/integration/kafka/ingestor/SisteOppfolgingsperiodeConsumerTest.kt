@@ -4,12 +4,13 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
+import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.person.service.clients.norg.toNorgNavEnhetDto
 import no.nav.amt.person.service.data.TestData
 import no.nav.amt.person.service.data.kafka.KafkaMessageCreator
-import no.nav.amt.person.service.data.kafka.message.KontorPayload
 import no.nav.amt.person.service.integration.IntegrationTestBase
 import no.nav.amt.person.service.kafka.consumer.SisteOppfolgingsperiodeConsumer
+import no.nav.amt.person.service.kafka.consumer.dto.KontorPayload
 import no.nav.amt.person.service.navbruker.NavBrukerRepository
 import org.junit.jupiter.api.Test
 
@@ -30,6 +31,7 @@ class SisteOppfolgingsperiodeConsumerTest(
         testDataRepository.insertNavBruker(navBruker)
 
         every { norgClient.hentNavEnhet(navEnhet.enhetId) } returns navEnhet.toNorgNavEnhetDto()
+        every { veilarbvedtaksstotteClient.hentInnsatsgruppe(navBruker.person.personident) } returns Innsatsgruppe.STANDARD_INNSATS
 
         sisteOppfolgingsperiodeConsumer.ingest(objectMapper.writeValueAsString(kafkaPayload))
 
