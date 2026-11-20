@@ -22,6 +22,7 @@ import no.nav.amt.arena.acl.services.SUPPORTED_TILTAK
 import no.nav.amt.arena.acl.utils.ARENA_HIST_DELTAKER_TABLE_NAME
 import no.nav.amt.arena.acl.utils.JsonUtils.objectMapper
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -212,6 +213,39 @@ class HistDeltakerIntegrationTest(
 			val deltakerRecord = kafkaMessageConsumer.getLatestRecord(KafkaMessageConsumer.Topic.AMT_TILTAK)
 			deltakerRecord.shouldBeNull()
 		}
+	}
+
+	@Test
+	fun `ingest deltaker - enkeltplass - ignoreres og publiseres ikke`() {
+		mockMulighetsrommetApiServer.reset()
+		mockMulighetsrommetApiServer.mockHentGjennomforingId(baseGjennomforing.TILTAKGJENNOMFORING_ID, gjennomforingIdMR)
+		mockMulighetsrommetApiServer.mockHentGjennomforingV2Data(
+			gjennomforingIdMR,
+			gjennomforingMRData,
+			Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+		)
+		mockArenaOrdsProxyHttpServer.mockHentFnr(baseDeltaker.PERSON_ID!!, fnr)
+		gjennomforingService.upsert(baseGjennomforing.TILTAKGJENNOMFORING_ID.toString(), "ENKELAMO", true)
+
+		val pos = "88"
+		kafkaMessageSender.publiserArenaHistDeltaker(
+			baseDeltaker.HIST_TILTAKDELTAKER_ID,
+			objectMapper.writeValueAsString(KafkaMessageCreator.opprettArenaHistDeltaker(baseDeltaker, opPos = pos)),
+		)
+
+		await().untilAsserted {
+			val arenaData =
+				arenaDataRepository.get(
+					tableName = ARENA_HIST_DELTAKER_TABLE_NAME,
+					operation = AmtOperation.CREATED,
+					position = pos,
+				)
+			arenaData.shouldNotBeNull()
+			arenaData.ingestStatus shouldBe IngestStatus.IGNORED
+		}
+
+		kafkaMessageConsumer.getLatestRecord(KafkaMessageConsumer.Topic.AMT_TILTAK).shouldBeNull()
+		kafkaMessageConsumer.getLatestRecord(KafkaMessageConsumer.Topic.AMT_ENKELTPLASS_DELTAKER).shouldBeNull()
 	}
 
 	private fun AmtDeltaker.validate(baseDeltaker: ArenaHistDeltaker) {
