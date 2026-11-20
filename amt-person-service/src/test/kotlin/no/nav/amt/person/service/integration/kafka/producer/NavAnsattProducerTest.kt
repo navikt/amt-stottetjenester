@@ -1,18 +1,20 @@
 package no.nav.amt.person.service.integration.kafka.producer
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
+import no.nav.amt.lib.models.person.dto.NavAnsattDto
 import no.nav.amt.person.service.clients.nom.NomNavAnsatt
 import no.nav.amt.person.service.data.TestData
 import no.nav.amt.person.service.integration.IntegrationTestBase
 import no.nav.amt.person.service.kafka.config.KafkaTopicProperties
 import no.nav.amt.person.service.kafka.producer.KafkaProducerService
-import no.nav.amt.person.service.kafka.producer.dto.NavAnsattDtoV1
 import no.nav.amt.person.service.navansatt.NavAnsattDbo
 import no.nav.amt.person.service.navansatt.NavAnsattService
 import no.nav.amt.person.service.navansatt.NavAnsattUpdater
 import org.junit.jupiter.api.Test
 import org.springframework.transaction.support.TransactionTemplate
+import tools.jackson.module.kotlin.readValue
 
 class NavAnsattProducerTest(
     private val kafkaProducerService: KafkaProducerService,
@@ -36,6 +38,9 @@ class NavAnsattProducerTest(
         record.topic shouldBe kafkaTopicProperties.amtNavAnsattPersonaliaTopic
         record.key shouldBe ansatt.id.toString()
         record.value shouldBe forventetValue
+        val payload = objectMapper.readValue<Map<String, Any?>>(record.value.shouldNotBeNull())
+        payload["navident"] shouldBe ansatt.navIdent
+        payload.containsKey("navIdent") shouldBe false
     }
 
     @Test
@@ -96,7 +101,7 @@ class NavAnsattProducerTest(
     }
 
     private fun ansattTilV1Json(ansatt: NavAnsattDbo): String = objectMapper.writeValueAsString(
-        NavAnsattDtoV1(
+        NavAnsattDto(
             id = ansatt.id,
             navident = ansatt.navIdent,
             navn = ansatt.navn,
