@@ -30,8 +30,11 @@ dependencies {
     implementation(libs.shedlock.spring)
     implementation(libs.shedlock.jdbc.template)
 
+    testImplementation("org.springframework.boot:spring-boot-resttestclient")
     testImplementation("org.springframework.boot:spring-boot-restclient-test")
     testImplementation("org.springframework.boot:spring-boot-webmvc-test")
+    testImplementation(libs.mockk)
+    testImplementation(libs.springmockk)
 
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.amt.lib.testing)

@@ -20,6 +20,7 @@ dependencies {
     testImplementation(libs.kotest.assertions.json)
     testImplementation(project(":amt-tiltak:test:database"))
     testImplementation(project(":amt-tiltak:tiltak"))
-    testImplementation("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
     testImplementation(project(":amt-tiltak:arrangor"))
 }

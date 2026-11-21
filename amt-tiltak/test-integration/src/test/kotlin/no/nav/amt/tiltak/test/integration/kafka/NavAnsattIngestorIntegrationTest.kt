@@ -10,7 +10,7 @@ import no.nav.amt.tiltak.test.database.SingletonPostgresContainer
 import no.nav.amt.tiltak.test.database.data.inputs.NavAnsattInput
 import no.nav.amt.tiltak.test.integration.IntegrationTestBase
 import no.nav.amt.tiltak.test.integration.utils.NavAnsattMsg
-import org.junit.AfterClass
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -20,7 +20,7 @@ class NavAnsattIngestorIntegrationTest(
 ) : IntegrationTestBase() {
     companion object {
         @JvmStatic
-        @AfterClass
+        @AfterAll
         fun tearDown() {
             DbTestDataUtils.cleanDatabase(SingletonPostgresContainer.getDataSource())
         }

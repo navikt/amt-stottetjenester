@@ -16,7 +16,6 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.mockito:mockito-core")
     testImplementation(libs.mockito.kotlin)
-    testImplementation("org.junit.jupiter:junit-jupiter-engine")
     testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation(libs.kotest.assertions.core)

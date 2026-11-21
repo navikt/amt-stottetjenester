@@ -3,7 +3,7 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(libs.versions.java.version.get().toInt())
 }
 
 repositories {
@@ -14,7 +14,6 @@ repositories {
 dependencies {
     implementation(libs.kotlin.gradle.plugin)
     implementation(libs.kotlin.spring.gradle.plugin)
-    implementation(libs.kotlin.serialization.gradle.plugin)
     implementation(libs.spring.boot.gradle.plugin)
     implementation(libs.spring.dependency.management.gradle.plugin)
     implementation(libs.ktlint.gradle.plugin)

@@ -5,7 +5,6 @@ plugins {
 dependencies {
     api(project(":amt-tiltak:core"))
     api(project(":amt-tiltak:clients:amt-arrangor-client"))
-    api(project(":amt-tiltak:test:test-utils"))
     api(libs.nav.common.job) {
         exclude(group = "com.squareup.okhttp3", module = "okhttp")
     }

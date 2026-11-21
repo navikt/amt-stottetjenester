@@ -2,7 +2,7 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
 
-    <logger name="org.apache.kafka.*" level="error" additivity="false">
+    <logger name="org.apache.kafka" level="error" additivity="false">
         <appender-ref ref="CONSOLE"/>
     </logger>
 

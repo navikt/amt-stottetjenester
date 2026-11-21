@@ -28,7 +28,9 @@ dependencies {
     api(project(":amt-tiltak:test:test-utils"))
     api(libs.kotest.assertions.core)
     api(libs.mockk)
-    api("org.springframework.boot:spring-boot-starter-test")
+    api("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "com.vaadin.external.google", module = "android-json")
+    }
     api(libs.mockwebserver)
     api(libs.mock.oauth2.server)
 }

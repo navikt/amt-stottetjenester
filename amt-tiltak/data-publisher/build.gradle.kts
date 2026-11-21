@@ -29,7 +29,6 @@ dependencies {
     testImplementation("org.mockito:mockito-core")
     testImplementation(libs.mockito.kotlin)
     testImplementation(project(":amt-tiltak:test:database"))
-    testImplementation("org.junit.jupiter:junit-jupiter-engine")
     testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation(libs.kotest.runner.junit5)

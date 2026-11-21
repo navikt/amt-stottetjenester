@@ -21,8 +21,11 @@ dependencies {
     implementation(libs.nav.common.job)
 
     // Spring Boot-teststøtte
+    testImplementation("org.springframework.boot:spring-boot-resttestclient")
     testImplementation("org.springframework.boot:spring-boot-restclient-test")
     testImplementation("org.springframework.boot:spring-boot-webmvc-test")
+    testImplementation(libs.mockk)
+    testImplementation(libs.springmockk)
 
     // Assertions og coroutines i tester
     testImplementation(libs.kotest.assertions.core)

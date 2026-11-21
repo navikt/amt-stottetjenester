@@ -41,9 +41,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.springframework.boot:spring-boot-flyway")
     implementation(libs.shedlock.spring)
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation(project(":amt-tiltak:test:database"))
-    testImplementation(libs.mockk)
 }
 
 springBoot {

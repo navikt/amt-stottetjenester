@@ -33,11 +33,8 @@ dependencies {
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     runtimeOnly(versionCatalog.findLibrary("logstash-encoder").get())
 
-    // HTTP-testing og mocking er felles for appene, også uten database.
+    // Felles testgrunnlag. HTTP-testklient og mocking deklareres i appene som bruker dem.
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.boot:spring-boot-resttestclient")
-    testImplementation(versionCatalog.findLibrary("mockk").get())
-    testImplementation(versionCatalog.findLibrary("springmockk").get())
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

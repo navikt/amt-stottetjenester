@@ -26,6 +26,5 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.assertions.core)
-    api(project(":amt-tiltak:test:test-utils"))
     testImplementation(libs.mockk)
 }

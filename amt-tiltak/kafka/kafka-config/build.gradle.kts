@@ -13,11 +13,4 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter")
     api(libs.shedlock.jdbc.template)
     api("io.micrometer:micrometer-core")
-    testImplementation(libs.postgresql)
-    testImplementation(libs.testcontainers.kafka)
-    testImplementation("org.junit.jupiter:junit-jupiter-engine")
-    testImplementation(libs.testcontainers.junit.jupiter)
-    testImplementation("org.junit.jupiter:junit-jupiter-api")
-    testImplementation("org.junit.jupiter:junit-jupiter-params")
-    testImplementation(project(":amt-tiltak:test:database"))
 }
