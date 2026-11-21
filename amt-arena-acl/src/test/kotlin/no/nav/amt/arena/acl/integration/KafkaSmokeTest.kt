@@ -105,8 +105,8 @@ class KafkaSmokeTest(
     fun `deltakermelding leveres til den midlertidige konsumenten gjennom ekte Kafka`() {
         val deltaker = KafkaMessageCreator.baseDeltaker(
             startDato = LocalDate.now().plusDays(1),
-            deltakerStatusKode = "AKTU",
-        ).copy(EKSTERN_ID = "")
+            deltakerStatusKode = "AKTUELL",
+        )
         val gjennomforingId = UUID.randomUUID()
         val position = Random.nextLong(1, Long.MAX_VALUE).toString()
         gjennomforingService.upsert(deltaker.TILTAKGJENNOMFORING_ID.toString(), "ENKELAMO", true)
