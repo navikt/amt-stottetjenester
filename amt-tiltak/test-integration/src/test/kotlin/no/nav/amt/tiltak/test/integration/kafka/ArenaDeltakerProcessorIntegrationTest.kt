@@ -6,6 +6,8 @@ import no.nav.amt.tiltak.clients.amt_arrangor_client.AmtArrangorClient
 import no.nav.amt.tiltak.clients.mulighetsrommet_api_client.GjennomforingArenaData
 import no.nav.amt.tiltak.core.domain.tiltak.DeltakerStatus
 import no.nav.amt.tiltak.core.domain.tiltak.Kilde
+import no.nav.amt.tiltak.core.kafka.ArenaAclIngestor
+import no.nav.amt.tiltak.core.kafka.GjennomforingIngestor
 import no.nav.amt.tiltak.core.port.DeltakerService
 import no.nav.amt.tiltak.test.database.DbTestDataUtils
 import no.nav.amt.tiltak.test.database.DbUtils.shouldBeEqualTo
@@ -18,232 +20,216 @@ import no.nav.amt.tiltak.test.integration.mocks.mockNavBruker
 import no.nav.amt.tiltak.test.integration.utils.DeltakerMessage
 import no.nav.amt.tiltak.test.integration.utils.GjennomforingMessage
 import no.nav.amt.tiltak.test.integration.utils.KafkaMessageCreator
-import no.nav.amt.tiltak.test.utils.AsyncUtils
 import no.nav.amt.tiltak.tiltak.repositories.GjennomforingRepository
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import java.util.UUID
 
-class ArenaDeltakerProcessorIntegrationTest : IntegrationTestBase() {
+class ArenaDeltakerProcessorIntegrationTest(
+    private val arenaAclIngestor: ArenaAclIngestor,
+    private val gjennomforingIngestor: GjennomforingIngestor,
+    private val deltakerService: DeltakerService,
+    private val gjennomforingRepository: GjennomforingRepository,
+) : IntegrationTestBase() {
+    @BeforeEach
+    internal fun setUp() {
+        DbTestDataUtils.cleanAndInitDatabaseWithTestData(dataSource)
+        resetMockServersAndAddDefaultData()
+    }
 
-	@Autowired
-	lateinit var deltakerService: DeltakerService
+    @Test
+    @Disabled
+    fun `ingest deltaker - gjennomforing er ingestet`() {
+        val mockNavBruker = mockNavBruker(
+            BRUKER_1.copy(
+                id = UUID.randomUUID(),
+                personIdent = (1..Long.MAX_VALUE).random().toString(),
+            ),
+            NAV_ENHET_1,
+        )
 
-	@Autowired
-	lateinit var gjennomforingRepository: GjennomforingRepository
+        mockAmtPersonHttpServer.addNavBrukerResponse(mockNavBruker)
 
-	@BeforeEach
-	internal fun setUp() {
-		DbTestDataUtils.cleanAndInitDatabaseWithTestData(dataSource)
-		resetMockServersAndAddDefaultData()
-	}
+        val gjennomforing = ingestGjennomforing()
+        val message = DeltakerMessage(gjennomforingId = gjennomforing.id, personIdent = mockNavBruker.personident)
 
-	@Test
-	@Disabled
-	fun `ingest deltaker - gjennomforing er ingestet`() {
-		val mockNavBruker = mockNavBruker(
-			BRUKER_1.copy(
-				id = UUID.randomUUID(),
-				personIdent = (1..Long.MAX_VALUE).random().toString()
-			),
-			NAV_ENHET_1,
-		)
+        arenaAclIngestor.ingestKafkaRecord(KafkaMessageCreator.opprettAmtTiltakDeltakerMessage(message))
 
-		mockAmtPersonHttpServer.addNavBrukerResponse(mockNavBruker)
+        run {
+            val maybeDeltaker = deltakerService.hentDeltaker(message.id)
 
-		val gjennomforing = ingestGjennomforing()
-		val message = DeltakerMessage(gjennomforingId = gjennomforing.id, personIdent = mockNavBruker.personident)
+            maybeDeltaker shouldNotBe null
 
+            val deltaker = maybeDeltaker!!
+            deltaker.personIdent shouldBe message.personIdent
+            deltaker.gjennomforingId shouldBe message.gjennomforingId
+            deltaker.prosentStilling shouldBe message.prosentDeltid
+            deltaker.dagerPerUke shouldBe message.dagerPerUke
+            deltaker.registrertDato shouldBeEqualTo message.registrertDato
+            deltaker.startDato shouldBe message.startDato
+            deltaker.sluttDato shouldBe message.sluttDato
+            deltaker.status.type shouldBe message.status
+            deltaker.status.aarsak shouldBe message.statusAarsak
+            deltaker.innsokBegrunnelse shouldBe message.innsokBegrunnelse
+            deltaker.erSkjermet shouldBe false
+            deltaker.fornavn shouldBe mockNavBruker.fornavn
+            deltaker.etternavn shouldBe mockNavBruker.etternavn
+            deltaker.kilde shouldBe Kilde.ARENA
+        }
+    }
 
-		kafkaMessageSender.sendTilAmtTiltakTopic(KafkaMessageCreator.opprettAmtTiltakDeltakerMessage(message))
+    @Test
+    @Disabled
+    fun `ingest deltaker - gjennomforing er kurs - ingestes uten feil`() {
+        val mockNavBruker = mockNavBruker(
+            BRUKER_1.copy(
+                id = UUID.randomUUID(),
+                personIdent = (1..Long.MAX_VALUE).random().toString(),
+            ),
+            NAV_ENHET_1,
+        )
 
-		AsyncUtils.eventually {
-			val maybeDeltaker = deltakerService.hentDeltaker(message.id)
+        mockAmtPersonHttpServer.addNavBrukerResponse(mockNavBruker)
 
-			maybeDeltaker shouldNotBe null
+        val gjennomforing = ingestGjennomforing(tiltakKode = "GRUPPEAMO")
+        val message = DeltakerMessage(
+            gjennomforingId = gjennomforing.id,
+            personIdent = mockNavBruker.personident,
+            status = DeltakerStatus.Type.VURDERES,
+        )
 
-			val deltaker = maybeDeltaker!!
-			deltaker.personIdent shouldBe message.personIdent
-			deltaker.gjennomforingId shouldBe message.gjennomforingId
-			deltaker.prosentStilling shouldBe message.prosentDeltid
-			deltaker.dagerPerUke shouldBe message.dagerPerUke
-			deltaker.registrertDato shouldBeEqualTo message.registrertDato
-			deltaker.startDato shouldBe message.startDato
-			deltaker.sluttDato shouldBe message.sluttDato
-			deltaker.status.type shouldBe message.status
-			deltaker.status.aarsak shouldBe message.statusAarsak
-			deltaker.innsokBegrunnelse shouldBe message.innsokBegrunnelse
-			deltaker.erSkjermet shouldBe false
-			deltaker.fornavn shouldBe mockNavBruker.fornavn
-			deltaker.etternavn shouldBe mockNavBruker.etternavn
-			deltaker.kilde shouldBe Kilde.ARENA
-		}
+        arenaAclIngestor.ingestKafkaRecord(KafkaMessageCreator.opprettAmtTiltakDeltakerMessage(message))
 
-	}
+        run {
+            val maybeDeltaker = deltakerService.hentDeltaker(message.id)
 
-	@Test
-	@Disabled
-	fun `ingest deltaker - gjennomforing er kurs - ingestes uten feil`() {
-		val mockNavBruker = mockNavBruker(
-			BRUKER_1.copy(
-				id = UUID.randomUUID(),
-				personIdent = (1..Long.MAX_VALUE).random().toString()
-			),
-			NAV_ENHET_1,
-		)
+            maybeDeltaker shouldNotBe null
 
-		mockAmtPersonHttpServer.addNavBrukerResponse(mockNavBruker)
+            val deltaker = maybeDeltaker!!
+            deltaker.personIdent shouldBe message.personIdent
+            deltaker.gjennomforingId shouldBe message.gjennomforingId
+            deltaker.prosentStilling shouldBe message.prosentDeltid
+            deltaker.dagerPerUke shouldBe message.dagerPerUke
+            deltaker.registrertDato shouldBeEqualTo message.registrertDato
+            deltaker.startDato shouldBe message.startDato
+            deltaker.sluttDato shouldBe message.sluttDato
+            deltaker.status.type shouldBe message.status
+            deltaker.status.aarsak shouldBe message.statusAarsak
+            deltaker.innsokBegrunnelse shouldBe message.innsokBegrunnelse
+            deltaker.erSkjermet shouldBe false
+            deltaker.fornavn shouldBe mockNavBruker.fornavn
+            deltaker.etternavn shouldBe mockNavBruker.etternavn
+            deltaker.kilde shouldBe Kilde.ARENA
+        }
+    }
 
-		val gjennomforing = ingestGjennomforing(tiltakKode = "GRUPPEAMO")
-		val message = DeltakerMessage(
-			gjennomforingId = gjennomforing.id,
-			personIdent = mockNavBruker.personident,
-			status = DeltakerStatus.Type.VURDERES
-		)
+    @Test
+    fun `ingest deltaker - deltaker er skjermet - skal inserte ny deltaker med skjermingsdata`() {
+        val mockNavBruker = mockNavBruker(
+            BRUKER_1.copy(
+                id = UUID.randomUUID(),
+                personIdent = (1..Long.MAX_VALUE).random().toString(),
+                erSkjermet = true,
+            ),
+            NAV_ENHET_1,
+        )
 
-		kafkaMessageSender.sendTilAmtTiltakTopic(KafkaMessageCreator.opprettAmtTiltakDeltakerMessage(message))
+        mockAmtPersonHttpServer.addNavBrukerResponse(mockNavBruker)
 
-		AsyncUtils.eventually {
-			val maybeDeltaker = deltakerService.hentDeltaker(message.id)
+        val message = DeltakerMessage(gjennomforingId = GJENNOMFORING_1.id, personIdent = mockNavBruker.personident)
 
-			maybeDeltaker shouldNotBe null
+        arenaAclIngestor.ingestKafkaRecord(KafkaMessageCreator.opprettAmtTiltakDeltakerMessage(message))
 
-			val deltaker = maybeDeltaker!!
-			deltaker.personIdent shouldBe message.personIdent
-			deltaker.gjennomforingId shouldBe message.gjennomforingId
-			deltaker.prosentStilling shouldBe message.prosentDeltid
-			deltaker.dagerPerUke shouldBe message.dagerPerUke
-			deltaker.registrertDato shouldBeEqualTo message.registrertDato
-			deltaker.startDato shouldBe message.startDato
-			deltaker.sluttDato shouldBe message.sluttDato
-			deltaker.status.type shouldBe message.status
-			deltaker.status.aarsak shouldBe message.statusAarsak
-			deltaker.innsokBegrunnelse shouldBe message.innsokBegrunnelse
-			deltaker.erSkjermet shouldBe false
-			deltaker.fornavn shouldBe mockNavBruker.fornavn
-			deltaker.etternavn shouldBe mockNavBruker.etternavn
-			deltaker.kilde shouldBe Kilde.ARENA
-		}
+        run {
+            val maybeDeltaker = deltakerService.hentDeltaker(message.id)
 
-	}
+            maybeDeltaker shouldNotBe null
 
-	@Test
-	fun `ingest deltaker - deltaker er skjermet - skal inserte ny deltaker med skjermingsdata`() {
-		val mockNavBruker = mockNavBruker(
-			BRUKER_1.copy(
-				id = UUID.randomUUID(),
-				personIdent = (1..Long.MAX_VALUE).random().toString(),
-				erSkjermet = true,
-			),
-			NAV_ENHET_1,
-		)
+            val deltaker = maybeDeltaker!!
+            deltaker.personIdent shouldBe message.personIdent
+            deltaker.gjennomforingId shouldBe message.gjennomforingId
+            deltaker.erSkjermet shouldBe true
+            deltaker.fornavn shouldBe mockNavBruker.fornavn
+            deltaker.etternavn shouldBe mockNavBruker.etternavn
+        }
+    }
 
-		mockAmtPersonHttpServer.addNavBrukerResponse(mockNavBruker)
+    @Test
+    @Disabled
+    fun `ingest deltaker - status feilregistrert - skal oppdatere deltaker`() {
+        val mockNavBruker = mockNavBruker(
+            BRUKER_1.copy(
+                id = UUID.randomUUID(),
+                personIdent = (1..Long.MAX_VALUE).random().toString(),
+            ),
+            NAV_ENHET_1,
+        )
 
+        mockAmtPersonHttpServer.addNavBrukerResponse(mockNavBruker)
 
-		val message = DeltakerMessage(gjennomforingId = GJENNOMFORING_1.id, personIdent = mockNavBruker.personident)
+        val gjennomforing = ingestGjennomforing()
+        val message = DeltakerMessage(
+            gjennomforingId = gjennomforing.id,
+            personIdent = mockNavBruker.personident,
+            status = DeltakerStatus.Type.FEILREGISTRERT,
+        )
 
-		kafkaMessageSender.sendTilAmtTiltakTopic(KafkaMessageCreator.opprettAmtTiltakDeltakerMessage(message))
+        arenaAclIngestor.ingestKafkaRecord(KafkaMessageCreator.opprettAmtTiltakDeltakerMessage(message))
 
-		AsyncUtils.eventually {
-			val maybeDeltaker = deltakerService.hentDeltaker(message.id)
+        val deltaker = deltakerService.hentDeltaker(message.id)
+        deltaker shouldNotBe null
+        deltaker?.status?.type shouldBe DeltakerStatus.Type.FEILREGISTRERT
+    }
 
-			maybeDeltaker shouldNotBe null
+    @Test
+    fun `ingest deltaker - DELETE operation - skal slette deltaker`() {
+        deltakerService.hentDeltaker(DELTAKER_1.id) shouldNotBe null
 
-			val deltaker = maybeDeltaker!!
-			deltaker.personIdent shouldBe message.personIdent
-			deltaker.gjennomforingId shouldBe message.gjennomforingId
-			deltaker.erSkjermet shouldBe true
-			deltaker.fornavn shouldBe mockNavBruker.fornavn
-			deltaker.etternavn shouldBe mockNavBruker.etternavn
-		}
+        val message =
+            DeltakerMessage(id = DELTAKER_1.id, gjennomforingId = DELTAKER_1.gjennomforingId, operation = "DELETED")
 
-	}
+        arenaAclIngestor.ingestKafkaRecord(KafkaMessageCreator.opprettAmtTiltakDeltakerMessage(message))
 
-	@Test
-	@Disabled
-	fun `ingest deltaker - status feilregistrert - skal oppdatere deltaker`() {
-		val mockNavBruker = mockNavBruker(
-			BRUKER_1.copy(
-				id = UUID.randomUUID(),
-				personIdent = (1..Long.MAX_VALUE).random().toString()
-			),
-			NAV_ENHET_1,
-		)
+        deltakerService.hentDeltaker(DELTAKER_1.id) shouldBe null
+    }
 
-		mockAmtPersonHttpServer.addNavBrukerResponse(mockNavBruker)
+    private fun ingestGjennomforing(tiltakKode: String = "GRUPPEAMO"): GjennomforingMessage {
+        val overordnetArrangor = AmtArrangorClient.ArrangorMedOverordnetArrangor(
+            id = UUID.randomUUID(),
+            organisasjonsnummer = "888666555",
+            navn = "Arrangor Org",
+            overordnetArrangor = null,
+        )
+        val arrangor = AmtArrangorClient.ArrangorMedOverordnetArrangor(
+            id = UUID.randomUUID(),
+            organisasjonsnummer = "999888777",
+            navn = "Arrangor",
+            overordnetArrangor = AmtArrangorClient.Arrangor(
+                id = overordnetArrangor.id,
+                navn = overordnetArrangor.navn,
+                organisasjonsnummer = overordnetArrangor.organisasjonsnummer,
+            ),
+        )
 
-		val gjennomforing = ingestGjennomforing()
-		val message = DeltakerMessage(
-			gjennomforingId = gjennomforing.id,
-			personIdent = mockNavBruker.personident,
-			status = DeltakerStatus.Type.FEILREGISTRERT
-		)
+        val gjennomforingArenaData = GjennomforingArenaData(
+            opprettetAar = 2022,
+            lopenr = 123,
+        )
 
-		kafkaMessageSender.sendTilAmtTiltakTopic(KafkaMessageCreator.opprettAmtTiltakDeltakerMessage(message))
+        val gjennomforingMessage =
+            GjennomforingMessage(tiltakArenaKode = tiltakKode, virksomhetsnummer = arrangor.organisasjonsnummer)
+        val jsonObjekt = KafkaMessageCreator.opprettGjennomforingMessage(gjennomforingMessage)
 
-		AsyncUtils.eventually {
-			val deltaker = deltakerService.hentDeltaker(message.id)
-			deltaker shouldNotBe null
-			deltaker?.status?.type shouldBe DeltakerStatus.Type.FEILREGISTRERT
-		}
+        mockMulighetsrommetApiServer.gjennomforingArenaData(gjennomforingMessage.id, gjennomforingArenaData)
 
-	}
+        mockArrangorServer.addArrangorResponse(arrangor)
+        mockArrangorServer.addArrangorResponse(overordnetArrangor)
 
-	@Test
-	fun `ingest deltaker - DELETE operation - skal slette deltaker`() {
-		deltakerService.hentDeltaker(DELTAKER_1.id) shouldNotBe null
+        gjennomforingIngestor.ingestKafkaRecord(gjennomforingMessage.id.toString(), jsonObjekt)
 
-		val message =
-			DeltakerMessage(id = DELTAKER_1.id, gjennomforingId = DELTAKER_1.gjennomforingId, operation = "DELETED")
-
-		kafkaMessageSender.sendTilAmtTiltakTopic(KafkaMessageCreator.opprettAmtTiltakDeltakerMessage(message))
-
-		AsyncUtils.eventually {
-			deltakerService.hentDeltaker(DELTAKER_1.id) shouldBe null
-		}
-	}
-
-	private fun ingestGjennomforing(tiltakKode: String = "GRUPPEAMO"): GjennomforingMessage {
-		val overordnetArrangor = AmtArrangorClient.ArrangorMedOverordnetArrangor(
-			id = UUID.randomUUID(),
-			organisasjonsnummer = "888666555",
-			navn = "Arrangor Org",
-			overordnetArrangor = null
-		)
-		val arrangor = AmtArrangorClient.ArrangorMedOverordnetArrangor(
-			id = UUID.randomUUID(),
-			organisasjonsnummer = "999888777",
-			navn = "Arrangor",
-			overordnetArrangor = AmtArrangorClient.Arrangor(
-				id = overordnetArrangor.id,
-				navn = overordnetArrangor.navn,
-				organisasjonsnummer = overordnetArrangor.organisasjonsnummer
-			)
-		)
-
-		val gjennomforingArenaData = GjennomforingArenaData(
-			opprettetAar = 2022,
-			lopenr = 123
-		)
-
-		val gjennomforingMessage =
-			GjennomforingMessage(tiltakArenaKode = tiltakKode, virksomhetsnummer = arrangor.organisasjonsnummer)
-		val jsonObjekt = KafkaMessageCreator.opprettGjennomforingMessage(gjennomforingMessage)
-
-		mockMulighetsrommetApiServer.gjennomforingArenaData(gjennomforingMessage.id, gjennomforingArenaData)
-
-		mockArrangorServer.addArrangorResponse(arrangor)
-		mockArrangorServer.addArrangorResponse(overordnetArrangor)
-
-		kafkaMessageSender.sendTilSisteTiltaksgjennomforingTopic(jsonObjekt)
-
-		AsyncUtils.eventually {
-			val maybeGjennomforing = gjennomforingRepository.get(gjennomforingMessage.id)
-			maybeGjennomforing shouldNotBe null
-		}
-		return gjennomforingMessage
-	}
+        val maybeGjennomforing = gjennomforingRepository.get(gjennomforingMessage.id)
+        maybeGjennomforing shouldNotBe null
+        return gjennomforingMessage
+    }
 }

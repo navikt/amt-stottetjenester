@@ -1,85 +1,37 @@
 package no.nav.amt.arena.acl.integration.kafka
 
-import no.nav.amt.arena.acl.kafka.KafkaProperties
 import no.nav.amt.arena.acl.kafka.KafkaTopicProperties
-import no.nav.common.kafka.consumer.KafkaConsumerClient
-import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
-import no.nav.common.kafka.consumer.util.deserializer.Deserializers
-import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
-import java.util.Collections
-import java.util.Properties
+import java.util.concurrent.CopyOnWriteArrayList
 
 @Component
+@ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "false")
 class KafkaMessageConsumer(
-	private val kafkaTopicProperties: KafkaTopicProperties,
-	kafkaProperties: KafkaProperties,
+    private val kafkaTopicProperties: KafkaTopicProperties,
 ) {
-	private val records = Collections.synchronizedList(mutableListOf<ConsumerRecord<String, String>>())
-	private val client: KafkaConsumerClient
+    private val records = CopyOnWriteArrayList<ProducerRecord<String, String>>()
 
-	init {
-		val properties = Properties()
-		kafkaProperties.consumer().forEach { properties[it.key] = it.value }
-		properties[ConsumerConfig.GROUP_ID_CONFIG] = javaClass.canonicalName
+    fun capture(record: ProducerRecord<String, String>) {
+        check(record.topic() in setOf(kafkaTopicProperties.amtTopic, kafkaTopicProperties.amtEnkeltplassDeltakerTopic))
+        check(!record.key().isNullOrBlank())
+        records.add(record)
+    }
 
-		val configs =
-			listOf(
-				kafkaTopicProperties.arenaTiltakDeltakerTopic,
-				kafkaTopicProperties.arenaHistTiltakDeltakerTopic,
-				kafkaTopicProperties.arenaTiltakGjennomforingTopic,
-				kafkaTopicProperties.amtTopic,
-				kafkaTopicProperties.amtEnkeltplassDeltakerTopic,
-			).map(::createTopicConfig)
+    fun getRecords(topic: Topic): List<ProducerRecord<String, String>> = records.filter { it.topic() == mapKafkaTopic(topic) }
 
-		client =
-			KafkaConsumerClientBuilder
-				.builder()
-				.withProperties(properties)
-				.withTopicConfigs(configs)
-				.build()
-	}
+    fun getLatestRecord(topic: Topic): ProducerRecord<String, String>? = getRecords(topic).lastOrNull()
 
-	fun start() = client.start()
+    fun reset() = records.clear()
 
-	fun stop() = client.stop()
+    private fun mapKafkaTopic(topic: Topic): String = when (topic) {
+        Topic.AMT_TILTAK -> kafkaTopicProperties.amtTopic
+        Topic.AMT_ENKELTPLASS_DELTAKER -> kafkaTopicProperties.amtEnkeltplassDeltakerTopic
+    }
 
-	fun getRecords(topic: Topic): List<ConsumerRecord<String, String>> = records.filter { it.topic() == mapKafkaTopic(topic) }
-
-	fun getLatestRecord(topic: Topic): ConsumerRecord<String, String>? =
-		records.filter { it.topic() == mapKafkaTopic(topic) }.maxByOrNull { it.offset() }
-
-	fun reset() = records.clear()
-
-	private fun createTopicConfig(topic: String): KafkaConsumerClientBuilder.TopicConfig<String, String> =
-		KafkaConsumerClientBuilder
-			.TopicConfig<String, String>()
-			.withConsumerConfig(
-				topic,
-				Deserializers.stringDeserializer(),
-				Deserializers.stringDeserializer(),
-				::handleRecord,
-			)
-
-	private fun handleRecord(record: ConsumerRecord<String, String>) {
-		records.add(record)
-	}
-
-	private fun mapKafkaTopic(topic: Topic): String =
-		when (topic) {
-			Topic.ARENA_TILTAK_DELTAKER -> kafkaTopicProperties.arenaTiltakDeltakerTopic
-			Topic.ARENA_HIST_TILTAK_DELTAKER -> kafkaTopicProperties.arenaHistTiltakDeltakerTopic
-			Topic.ARENA_TILTAK_GJENNOMFORING -> kafkaTopicProperties.arenaTiltakGjennomforingTopic
-			Topic.AMT_TILTAK -> kafkaTopicProperties.amtTopic
-			Topic.AMT_ENKELTPLASS_DELTAKER -> kafkaTopicProperties.amtEnkeltplassDeltakerTopic
-		}
-
-	enum class Topic {
-		ARENA_TILTAK_DELTAKER,
-		ARENA_HIST_TILTAK_DELTAKER,
-		ARENA_TILTAK_GJENNOMFORING,
-		AMT_TILTAK,
-		AMT_ENKELTPLASS_DELTAKER,
-	}
+    enum class Topic {
+        AMT_TILTAK,
+        AMT_ENKELTPLASS_DELTAKER,
+    }
 }

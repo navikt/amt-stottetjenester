@@ -12,78 +12,78 @@ import no.nav.amt.tiltak.test.integration.test_utils.ApiTestUtils.testTiltaksarr
 import okhttp3.Request
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import java.util.UUID
 
-class EndringsmeldingAPIIntegrationTest : IntegrationTestBase() {
+class EndringsmeldingAPIIntegrationTest(
+    private val endringsmeldingRepository: EndringsmeldingRepository,
+) : IntegrationTestBase() {
+    val createAnsatt1AuthHeader =
+        { mapOf("Authorization" to "Bearer ${mockOAuthServer.issueTokenXToken(ARRANGOR_ANSATT_1.personligIdent)}") }
+    val createAnsatt2AuthHeader =
+        { mapOf("Authorization" to "Bearer ${mockOAuthServer.issueTokenXToken(ARRANGOR_ANSATT_2.personligIdent)}") }
 
-	val createAnsatt1AuthHeader = { mapOf("Authorization" to "Bearer ${mockOAuthServer.issueTokenXToken(ARRANGOR_ANSATT_1.personligIdent)}") }
-	val createAnsatt2AuthHeader = { mapOf("Authorization" to "Bearer ${mockOAuthServer.issueTokenXToken(ARRANGOR_ANSATT_2.personligIdent)}") }
+    @BeforeEach
+    internal fun setUp() {
+        DbTestDataUtils.cleanAndInitDatabaseWithTestData(dataSource)
+        resetMockServersAndAddDefaultData()
+    }
 
+    @Test
+    internal fun `skal teste token autentisering`() {
+        val requestBuilders = listOf(
+            Request
+                .Builder()
+                .patch(emptyRequest())
+                .url("${serverUrl()}/api/tiltaksarrangor/endringsmelding/${UUID.randomUUID()}/tilbakekall"),
+        )
 
-	@Autowired
-	lateinit var endringsmeldingRepository: EndringsmeldingRepository
+        testTiltaksarrangorAutentisering(requestBuilders, client, mockOAuthServer)
+    }
 
-	@BeforeEach
-	internal fun setUp() {
-		DbTestDataUtils.cleanAndInitDatabaseWithTestData(dataSource)
-		resetMockServersAndAddDefaultData()
-	}
+    @Test
+    fun `tilbakekallEndringsmelding() skal returnere 403 om Ansatt kun er veileder`() {
+        val response = sendRequest(
+            method = "PATCH",
+            url = "/api/tiltaksarrangor/endringsmelding/${ENDRINGSMELDING_1_DELTAKER_1.id}/tilbakekall",
+            headers = createAnsatt2AuthHeader(),
+            body = emptyRequest(),
+        )
 
-	@Test
-	internal fun `skal teste token autentisering`() {
-		val requestBuilders = listOf(
-			Request.Builder().patch(emptyRequest()).url("${serverUrl()}/api/tiltaksarrangor/endringsmelding/${UUID.randomUUID()}/tilbakekall"),
-		)
+        response.code shouldBe 403
+    }
 
-		testTiltaksarrangorAutentisering(requestBuilders, client, mockOAuthServer)
-	}
+    @Test
+    fun `tilbakekallEndringsmelding() - skal returnere 200 om endringsmeldingen ble tilbakekalt`() {
+        val response = sendRequest(
+            method = "PATCH",
+            url = "/api/tiltaksarrangor/endringsmelding/${ENDRINGSMELDING_1_DELTAKER_1.id}/tilbakekall",
+            headers = createAnsatt1AuthHeader(),
+            body = emptyRequest(),
+        )
 
-	@Test
-	fun `tilbakekallEndringsmelding() skal returnere 403 om Ansatt kun er veileder`() {
-		val response = sendRequest(
-			method = "PATCH",
-			url = "/api/tiltaksarrangor/endringsmelding/${ENDRINGSMELDING_1_DELTAKER_1.id}/tilbakekall",
-			headers = createAnsatt2AuthHeader(),
-			body = emptyRequest(),
-		)
+        response.code shouldBe 200
 
-		response.code shouldBe 403
-	}
+        val oppdatertMelding = endringsmeldingRepository.get(ENDRINGSMELDING_1_DELTAKER_1.id)
 
+        oppdatertMelding.status shouldBe Endringsmelding.Status.TILBAKEKALT
+    }
 
-	@Test
-	fun `tilbakekallEndringsmelding() - skal returnere 200 om endringsmeldingen ble tilbakekalt`() {
-		val response = sendRequest(
-			method = "PATCH",
-			url = "/api/tiltaksarrangor/endringsmelding/${ENDRINGSMELDING_1_DELTAKER_1.id}/tilbakekall",
-			headers = createAnsatt1AuthHeader(),
-			body = emptyRequest(),
-		)
+    @Test
+    fun `tilbakekallEndringsmelding() - skal returnere 400 om endringsmeldingen ikke ble tilbakekalt`() {
+        val utfortEndringsmelding = ENDRINGSMELDING_1_DELTAKER_1.copy(id = UUID.randomUUID(), status = Endringsmelding.Status.UTFORT)
+        testDataRepository.insertEndringsmelding(utfortEndringsmelding)
 
-		response.code shouldBe 200
+        val response = sendRequest(
+            method = "PATCH",
+            url = "/api/tiltaksarrangor/endringsmelding/${utfortEndringsmelding.id}/tilbakekall",
+            headers = createAnsatt1AuthHeader(),
+            body = emptyRequest(),
+        )
 
-		val oppdatertMelding = endringsmeldingRepository.get(ENDRINGSMELDING_1_DELTAKER_1.id)
+        response.code shouldBe 400
 
-		oppdatertMelding.status shouldBe Endringsmelding.Status.TILBAKEKALT
-	}
+        val melding = endringsmeldingRepository.get(utfortEndringsmelding.id)
 
-	@Test
-	fun `tilbakekallEndringsmelding() - skal returnere 400 om endringsmeldingen ikke ble tilbakekalt`() {
-		val utfortEndringsmelding = ENDRINGSMELDING_1_DELTAKER_1.copy(id = UUID.randomUUID(), status = Endringsmelding.Status.UTFORT)
-		testDataRepository.insertEndringsmelding(utfortEndringsmelding)
-
-		val response = sendRequest(
-			method = "PATCH",
-			url = "/api/tiltaksarrangor/endringsmelding/${utfortEndringsmelding.id}/tilbakekall",
-			headers = createAnsatt1AuthHeader(),
-			body = emptyRequest(),
-		)
-
-		response.code shouldBe 400
-
-		val melding = endringsmeldingRepository.get(utfortEndringsmelding.id)
-
-		melding.status shouldBe Endringsmelding.Status.UTFORT
-	}
+        melding.status shouldBe Endringsmelding.Status.UTFORT
+    }
 }

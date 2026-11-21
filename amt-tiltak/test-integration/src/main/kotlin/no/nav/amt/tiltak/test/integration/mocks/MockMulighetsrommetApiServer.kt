@@ -7,10 +7,6 @@ import java.util.UUID
 
 class MockMulighetsrommetApiServer : MockHttpServer(name = "MockMulighetsrommetApiServer") {
 
-	fun reset() {
-		resetHttpServer()
-	}
-
 	fun gjennomforingArenaData(id: UUID, arenaDataResponse: GjennomforingArenaData?) {
 		if (arenaDataResponse == null) {
 			val response = MockResponse().setResponseCode(200)

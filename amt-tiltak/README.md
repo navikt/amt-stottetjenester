@@ -59,7 +59,16 @@ Kjør fra roten av `amt-stottetjenester`:
 
 # Kjør check i alle amt-tiltak-modulene
 ./gradlew :amt-tiltak:checkAll
+
+# Kjør Kafka-røykprøver separat
+./gradlew :amt-tiltak:test-integration:kafkaTest --max-workers=1
 ```
+
+De vanlige integrasjonstestene starter ikke Kafka. Kafka-testene kaller de ekte ingestorene med JSON-input og
+kontrollerer databaseendringene i PostgreSQL. Kafka-produsenten erstattes med MockK.
+Røykprøvene bruker en ekte broker og dekker innkommende meldinger og utgående records.
+
+PR-kontrollen kjører begge testoppgavene automatisk, med Kafka-røykprøvene etter de vanlige testene.
 
 Testene bruker tidssonen `Europe/Oslo` i CI.
 

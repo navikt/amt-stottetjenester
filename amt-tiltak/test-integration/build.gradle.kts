@@ -27,7 +27,28 @@ dependencies {
     api(project(":amt-tiltak:test:database"))
     api(project(":amt-tiltak:test:test-utils"))
     api(libs.kotest.assertions.core)
+    api(libs.mockk)
     api("org.springframework.boot:spring-boot-starter-test")
     api(libs.mockwebserver)
     api(libs.mock.oauth2.server)
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform {
+        excludeTags("kafka-smoke")
+    }
+}
+
+tasks.register<Test>("kafkaTest") {
+    group = "verification"
+    description = "Runs amt-tiltak smoke tests against a real Kafka broker."
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    dependsOn(tasks.named("testClasses"))
+    mustRunAfter(tasks.named("test"))
+    maxParallelForks = 1
+    jvmArgs("-Xshare:off", "-XX:+EnableDynamicAgentLoading")
+    useJUnitPlatform {
+        includeTags("kafka-smoke")
+    }
 }

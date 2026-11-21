@@ -31,10 +31,19 @@ Kjør tester for én applikasjon:
 ./gradlew :amt-person-service:check
 ```
 
-`amt-tiltak` er et multiprosjekt. Kjør alle testene i prosjektet med:
+`amt-tiltak` er et multiprosjekt. Kjør de vanlige testene uten Kafka-broker med:
 
 ```bash
 ./gradlew :amt-tiltak:checkAll
+```
+
+Integrasjonstestene i `amt-tiltak` og `amt-arena-acl` beholder ekte PostgreSQL og meldingsbehandling,
+men bruker MockK ved Kafka-produsenten.
+Kafka-røykprøvene kjøres separat med en ekte broker:
+
+```bash
+./gradlew :amt-tiltak:test-integration:kafkaTest --max-workers=1
+./gradlew :amt-arena-acl:kafkaTest --max-workers=1
 ```
 
 Se README-en til hver applikasjon for lokalt oppsett og appspesifikke kommandoer.
@@ -68,6 +77,10 @@ Spring Boot-moduler.
 ## Test og deploy
 
 Pull requests kjører tester for alle sju applikasjonene. CodeQL analyserer Kotlin- og Java-koden.
+
+For `amt-tiltak` og `amt-arena-acl` kjører PR-kontrollen først de vanlige testene og deretter Kafka-røykprøvene
+i appens testjobb.
+Begge kjøringene må lykkes for at jobbens status skal bli grønn.
 
 Når endringer merges til `main`, bygger GitHub Actions et image for hver berørte applikasjon. Workflowen deployer
 først til dev og deretter til prod. Det opprettes ingen GitHub Release eller tag.

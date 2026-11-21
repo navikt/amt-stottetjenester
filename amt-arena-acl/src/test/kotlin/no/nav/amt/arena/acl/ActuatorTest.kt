@@ -15,49 +15,49 @@ import org.springframework.web.util.UriComponentsBuilder
 
 @AutoConfigureTestRestTemplate
 class ActuatorTest(
-	@LocalManagementPort private val managementPort: Int,
-	private val restTemplate: TestRestTemplate,
-) : IntegrationTestBase(useKafkaConsumers = false) {
-	@ParameterizedTest(name = "{0} probe skal returnere OK og status = UP")
-	@ValueSource(strings = ["liveness", "readiness"])
-	fun probe_skal_returnere_OK_og_status_UP(probeName: String) {
-		val uri =
-			UriComponentsBuilder
-				.fromUriString("http://localhost:{port}/internal/health/{probeName}")
-				.buildAndExpand(managementPort, probeName)
-				.toUri()
+    @LocalManagementPort private val managementPort: Int,
+    private val restTemplate: TestRestTemplate,
+) : IntegrationTestBase() {
+    @ParameterizedTest(name = "{0} probe skal returnere OK og status = UP")
+    @ValueSource(strings = ["liveness", "readiness"])
+    fun probe_skal_returnere_OK_og_status_UP(probeName: String) {
+        val uri =
+            UriComponentsBuilder
+                .fromUriString("http://localhost:{port}/internal/health/{probeName}")
+                .buildAndExpand(managementPort, probeName)
+                .toUri()
 
-		val response = restTemplate.getForEntity<String>(uri)
+        val response = restTemplate.getForEntity<String>(uri)
 
-		assertSoftly(response) {
-			statusCode shouldBe HttpStatus.OK
-			body shouldBe "{\"status\":\"UP\"}"
-		}
-	}
+        assertSoftly(response) {
+            statusCode shouldBe HttpStatus.OK
+            body shouldBe "{\"status\":\"UP\"}"
+        }
+    }
 
-	@Test
-	fun `Prometheus-endepunktet skal returnere OK`() {
-		val uri =
-			UriComponentsBuilder
-				.fromUriString("http://localhost:{port}/internal/prometheus")
-				.buildAndExpand(managementPort)
-				.toUri()
+    @Test
+    fun `Prometheus-endepunktet skal returnere OK`() {
+        val uri =
+            UriComponentsBuilder
+                .fromUriString("http://localhost:{port}/internal/prometheus")
+                .buildAndExpand(managementPort)
+                .toUri()
 
-		val response = restTemplate.getForEntity<String>(uri)
+        val response = restTemplate.getForEntity<String>(uri)
 
-		response.statusCode shouldBe HttpStatus.OK
-	}
+        response.statusCode shouldBe HttpStatus.OK
+    }
 
-	@Test
-	fun `Metrics-endepunktet skal returnere NOT_FOUND`() {
-		val uri =
-			UriComponentsBuilder
-				.fromUriString("http://localhost:{port}/internal/metrics")
-				.buildAndExpand(managementPort)
-				.toUri()
+    @Test
+    fun `Metrics-endepunktet skal returnere NOT_FOUND`() {
+        val uri =
+            UriComponentsBuilder
+                .fromUriString("http://localhost:{port}/internal/metrics")
+                .buildAndExpand(managementPort)
+                .toUri()
 
-		val response = restTemplate.getForEntity<String>(uri)
+        val response = restTemplate.getForEntity<String>(uri)
 
-		response.statusCode shouldBe HttpStatus.NOT_FOUND
-	}
+        response.statusCode shouldBe HttpStatus.NOT_FOUND
+    }
 }
