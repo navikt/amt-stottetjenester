@@ -7,9 +7,9 @@ import no.nav.amt.arena.acl.domain.db.IngestStatus
 import no.nav.amt.arena.acl.domain.kafka.amt.AmtOperation
 import no.nav.amt.arena.acl.domain.kafka.arena.ArenaDeltaker
 import no.nav.amt.arena.acl.extensions.toOperationPosition
+import no.nav.amt.arena.acl.integration.kafka.ArenaMessageTestSender
 import no.nav.amt.arena.acl.integration.kafka.KafkaMessageConsumer
 import no.nav.amt.arena.acl.integration.kafka.KafkaMessageCreator
-import no.nav.amt.arena.acl.integration.kafka.KafkaMessageSender
 import no.nav.amt.arena.acl.repositories.ArenaDataRepository
 import no.nav.amt.arena.acl.services.GjennomforingService
 import no.nav.amt.arena.acl.services.RetryArenaMessageProcessorService
@@ -24,120 +24,120 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class RetryArenaMessageConsumerServiceTest(
-	private val kafkaMessageSender: KafkaMessageSender,
-	private val arenaDataRepository: ArenaDataRepository,
-	private val retryArenaMessageProcessorService: RetryArenaMessageProcessorService,
-	private val gjennomforingService: GjennomforingService,
+    private val kafkaMessageSender: ArenaMessageTestSender,
+    private val arenaDataRepository: ArenaDataRepository,
+    private val retryArenaMessageProcessorService: RetryArenaMessageProcessorService,
+    private val gjennomforingService: GjennomforingService,
 ) : IntegrationTestBase() {
-	val gjennomforingArenaId = 5435345L
-	val gjennomforingIdMR: UUID = UUID.randomUUID()
+    val gjennomforingArenaId = 5435345L
+    val gjennomforingIdMR: UUID = UUID.randomUUID()
 
-	@Test
-	fun `processMessages - deltaker har status RETRY pga manglende gjennomføring - får status HANDLED når gjennomføring er ingestet`() {
-		val deltakere: MutableList<Pair<String, ArenaDeltaker>> = mutableListOf()
-		var pos = 1
+    @Test
+    fun `processMessages - deltaker har status RETRY pga manglende gjennomføring - får status HANDLED når gjennomføring er ingestet`() {
+        val deltakere: MutableList<Pair<String, ArenaDeltaker>> = mutableListOf()
+        var pos = 1
 
-		repeat(3) {
-			val currentPos = pos++.toOperationPosition()
-			val deltaker = publiserDeltaker(currentPos)
-			deltakere.add(Pair(currentPos, deltaker))
-		}
+        repeat(3) {
+            val currentPos = pos++.toOperationPosition()
+            val deltaker = publiserDeltaker(currentPos)
+            deltakere.add(Pair(currentPos, deltaker))
+        }
 
-		publiserGjennomforing(pos.toOperationPosition())
+        publiserGjennomforing(pos.toOperationPosition())
 
-		retryArenaMessageProcessorService.processRetryMessages(2)
+        retryArenaMessageProcessorService.processRetryMessages(2)
 
-		deltakere.forEach { (position, _) ->
-			val arenaData =
-				arenaDataRepository.get(
-					tableName = ARENA_DELTAKER_TABLE_NAME,
-					operation = AmtOperation.CREATED,
-					position = position,
-				)
+        deltakere.forEach { (position, _) ->
+            val arenaData =
+                arenaDataRepository.get(
+                    tableName = ARENA_DELTAKER_TABLE_NAME,
+                    operation = AmtOperation.CREATED,
+                    position = position,
+                )
 
-			arenaData.shouldNotBeNull()
-			arenaData.ingestStatus shouldBe IngestStatus.HANDLED
-		}
+            arenaData.shouldNotBeNull()
+            arenaData.ingestStatus shouldBe IngestStatus.HANDLED
+        }
 
-		await().untilAsserted {
-			val deltakerRecords = kafkaMessageConsumer.getRecords(KafkaMessageConsumer.Topic.AMT_TILTAK)
-			deltakerRecords.size shouldBe 3
-		}
-	}
+        await().untilAsserted {
+            val deltakerRecords = kafkaMessageConsumer.getRecords(KafkaMessageConsumer.Topic.AMT_TILTAK)
+            deltakerRecords.size shouldBe 3
+        }
+    }
 
-	private fun publiserDeltaker(pos: String): ArenaDeltaker {
-		val deltaker =
-			KafkaMessageCreator.baseDeltaker(
-				gjennomforingId = gjennomforingArenaId,
-			)
-		val gjennomforingData =
-			Gjennomforing(
-				id = gjennomforingIdMR,
-				tiltakstype =
-					Gjennomforing.Tiltakstype(
-						id = UUID.randomUUID(),
-						navn = "Navn på tiltak",
-						arenaKode = "INDOPPFAG",
-					),
-				navn = "navn på gjennomføring",
-				startDato = LocalDate.now(),
-				sluttDato = LocalDate.now().plusDays(5),
-				status = Gjennomforing.Status.GJENNOMFORES,
-				virksomhetsnummer = "999888777",
-				oppstart = Oppstartstype.LOPENDE,
-			)
+    private fun publiserDeltaker(pos: String): ArenaDeltaker {
+        val deltaker =
+            KafkaMessageCreator.baseDeltaker(
+                gjennomforingId = gjennomforingArenaId,
+            )
+        val gjennomforingData =
+            Gjennomforing(
+                id = gjennomforingIdMR,
+                tiltakstype =
+                    Gjennomforing.Tiltakstype(
+                        id = UUID.randomUUID(),
+                        navn = "Navn på tiltak",
+                        arenaKode = "INDOPPFAG",
+                    ),
+                navn = "navn på gjennomføring",
+                startDato = LocalDate.now(),
+                sluttDato = LocalDate.now().plusDays(5),
+                status = Gjennomforing.Status.GJENNOMFORES,
+                virksomhetsnummer = "999888777",
+                oppstart = Oppstartstype.LOPENDE,
+            )
 
-		mockArenaOrdsProxyHttpServer.mockHentFnr(deltaker.PERSON_ID!!, (1..Long.MAX_VALUE).random().toString())
-		mockMulighetsrommetApiServer.mockHentGjennomforingV2Data(gjennomforingIdMR, gjennomforingData)
+        mockArenaOrdsProxyHttpServer.mockHentFnr(deltaker.PERSON_ID!!, (1..Long.MAX_VALUE).random().toString())
+        mockMulighetsrommetApiServer.mockHentGjennomforingV2Data(gjennomforingIdMR, gjennomforingData)
 
-		kafkaMessageSender.publiserArenaDeltaker(
-			deltaker.TILTAKDELTAKER_ID,
-			objectMapper.writeValueAsString(KafkaMessageCreator.opprettArenaDeltaker(arenaDeltaker = deltaker, opPos = pos)),
-		)
+        kafkaMessageSender.publiserArenaDeltaker(
+            deltaker.TILTAKDELTAKER_ID,
+            objectMapper.writeValueAsString(KafkaMessageCreator.opprettArenaDeltaker(arenaDeltaker = deltaker, opPos = pos)),
+        )
 
-		await().untilAsserted {
-			val arenaData =
-				arenaDataRepository.get(
-					tableName = ARENA_DELTAKER_TABLE_NAME,
-					operation = AmtOperation.CREATED,
-					position = pos,
-				)
-			arenaData.shouldNotBeNull()
-			arenaData.ingestStatus shouldBe IngestStatus.RETRY
-		}
+        await().untilAsserted {
+            val arenaData =
+                arenaDataRepository.get(
+                    tableName = ARENA_DELTAKER_TABLE_NAME,
+                    operation = AmtOperation.CREATED,
+                    position = pos,
+                )
+            arenaData.shouldNotBeNull()
+            arenaData.ingestStatus shouldBe IngestStatus.RETRY
+        }
 
-		return deltaker
-	}
+        return deltaker
+    }
 
-	private fun publiserGjennomforing(pos: String) {
-		val gjennomforing =
-			KafkaMessageCreator.baseGjennomforing(
-				arenaGjennomforingId = gjennomforingArenaId,
-				arbgivIdArrangor = 68968L,
-				datoFra = LocalDateTime.now().minusDays(3),
-				datoTil = LocalDateTime.now().plusDays(3),
-			)
+    private fun publiserGjennomforing(pos: String) {
+        val gjennomforing =
+            KafkaMessageCreator.baseGjennomforing(
+                arenaGjennomforingId = gjennomforingArenaId,
+                arbgivIdArrangor = 68968L,
+                datoFra = LocalDateTime.now().minusDays(3),
+                datoTil = LocalDateTime.now().plusDays(3),
+            )
 
-		mockMulighetsrommetApiServer.mockHentGjennomforingId(gjennomforingArenaId, gjennomforingIdMR)
+        mockMulighetsrommetApiServer.mockHentGjennomforingId(gjennomforingArenaId, gjennomforingIdMR)
 
-		kafkaMessageSender.publiserArenaGjennomforing(
-			gjennomforingArenaId,
-			objectMapper.writeValueAsString(KafkaMessageCreator.opprettArenaGjennomforingMessage(gjennomforing, opPos = pos)),
-		)
+        kafkaMessageSender.publiserArenaGjennomforing(
+            gjennomforingArenaId,
+            objectMapper.writeValueAsString(KafkaMessageCreator.opprettArenaGjennomforingMessage(gjennomforing, opPos = pos)),
+        )
 
-		await().untilAsserted {
-			val arenaData =
-				arenaDataRepository.get(
-					tableName = ARENA_GJENNOMFORING_TABLE_NAME,
-					operation = AmtOperation.CREATED,
-					position = pos,
-				)
+        await().untilAsserted {
+            val arenaData =
+                arenaDataRepository.get(
+                    tableName = ARENA_GJENNOMFORING_TABLE_NAME,
+                    operation = AmtOperation.CREATED,
+                    position = pos,
+                )
 
-			arenaData.shouldNotBeNull()
-			arenaData.ingestStatus shouldBe IngestStatus.HANDLED
+            arenaData.shouldNotBeNull()
+            arenaData.ingestStatus shouldBe IngestStatus.HANDLED
 
-			val gjennomforingResult = gjennomforingService.get(gjennomforing.TILTAKGJENNOMFORING_ID.toString())
-			gjennomforingResult.shouldNotBeNull()
-		}
-	}
+            val gjennomforingResult = gjennomforingService.get(gjennomforing.TILTAKGJENNOMFORING_ID.toString())
+            gjennomforingResult.shouldNotBeNull()
+        }
+    }
 }

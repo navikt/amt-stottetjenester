@@ -4,161 +4,116 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.tiltak.arrangor.ArrangorRepository
 import no.nav.amt.tiltak.clients.amt_arrangor_client.AmtArrangorClient
+import no.nav.amt.tiltak.core.kafka.AmtArrangorIngestor
 import no.nav.amt.tiltak.kafka.arrangor_ingestor.ArrangorIngestorImpl
-import no.nav.amt.tiltak.kafka.config.KafkaProperties
-import no.nav.amt.tiltak.kafka.config.KafkaTopicProperties
 import no.nav.amt.tiltak.test.database.DbTestDataUtils
 import no.nav.amt.tiltak.test.integration.IntegrationTestBase
-import no.nav.amt.tiltak.test.utils.AsyncUtils.eventually
 import no.nav.common.json.JsonUtils
-import org.apache.kafka.clients.admin.Admin
-import org.apache.kafka.clients.admin.AdminClientConfig
-import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.common.GroupState
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.beans.factory.annotation.Autowired
-import java.time.Duration
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
-class ArrangorIngestorTest : IntegrationTestBase() {
-	@Autowired
-	private lateinit var arrangorRepository: ArrangorRepository
+class ArrangorIngestorTest(
+    private val arrangorIngestor: AmtArrangorIngestor,
+    private val arrangorRepository: ArrangorRepository,
+) : IntegrationTestBase() {
+    @BeforeEach
+    fun setUp() {
+        DbTestDataUtils.cleanAndInitDatabaseWithTestData(dataSource)
+        resetMockServersAndAddDefaultData()
+    }
 
-	@Autowired
-	private lateinit var kafkaProperties: KafkaProperties
+    @Test
+    fun `ingestArrangor - source er null - kaster meldingen`() {
+        val dto = arrangorDto()
 
-	@Autowired
-	private lateinit var kafkaTopicProperties: KafkaTopicProperties
+        arrangorIngestor.ingestArrangor(JsonUtils.toJson(dto))
 
-	@BeforeEach
-	fun setUp() {
-		waitForArrangorConsumer()
-		DbTestDataUtils.cleanAndInitDatabaseWithTestData(dataSource)
-		resetMockServersAndAddDefaultData()
-	}
+        assertThrows<NoSuchElementException> { arrangorRepository.getById(dto.id) }
+    }
 
-	/** Venter på partisjonstildeling før testens ti sekunders frist for meldingsbehandling starter. */
-	private fun waitForArrangorConsumer() {
-		val properties = kafkaProperties.consumer()
-		val groupId = requireNotNull(properties.getProperty(ConsumerConfig.GROUP_ID_CONFIG))
+    @Test
+    fun `ingestArrangor - ikke overordnet enhet - kaller ikke arrangorClient og lagrer data`() {
+        val dto = arrangorDto(source = "amt-arrangor")
+            .also { arrangorIngestor.ingestArrangor(JsonUtils.toJson(it)) }
 
-		Admin.create(
-			mapOf(
-				AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to properties.getValue(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG)
-			)
-		).use { admin ->
-			eventually(until = Duration.ofSeconds(30)) {
-				val group = admin.describeConsumerGroups(listOf(groupId))
-					.all()
-					.get(5, TimeUnit.SECONDS)
-					.getValue(groupId)
+        arrangorRepository.getById(dto.id) shouldNotBe null
+        mockArrangorServer.requestCount() shouldBe 0
+    }
 
-				group.groupState() shouldBe GroupState.STABLE
-				group.members()
-					.flatMap { it.assignment().topicPartitions() }
-					.any { it.topic() == kafkaTopicProperties.amtArrangorTopic } shouldBe true
-			}
-		}
-	}
+    @Test
+    fun `ingestArrangor - overordnet arrangor - kaller arrangorClient og lagrer data`() {
+        val dto = arrangorDto(source = "amt-arrangor", overordnetArrangorId = UUID.randomUUID())
 
-	@Test
-	fun `ingestArrangor - source er null - kaster meldingen`() {
-		val dto = arrangorDto()
+        val clientResponse = clientResponse(dto)
+            .also { mockArrangorServer.addArrangorResponse(it) }
 
-		kafkaMessageSender.sendTilAmtArrangorTopic(JsonUtils.toJson(dto))
-		Thread.sleep(2000) //Må vente for å vente på at kafka meldingen blir lest.
+        arrangorIngestor.ingestArrangor(JsonUtils.toJson(dto))
 
-		assertThrows<NoSuchElementException> { arrangorRepository.getById(dto.id) }
-	}
+        arrangorRepository.getById(dto.id) shouldNotBe null
 
-	@Test
-	fun `ingestArrangor - ikke overordnet enhet - kaller ikke arrangorClient og lagrer data`() {
-		val dto = arrangorDto(source = "amt-arrangor")
-			.also { kafkaMessageSender.sendTilAmtArrangorTopic(JsonUtils.toJson(it)) }
+        val arrangor = arrangorRepository.getById(dto.id)
 
-		eventually { arrangorRepository.getById(dto.id) shouldNotBe null }
-		mockArrangorServer.requestCount() shouldBe 0
+        arrangor.id shouldBe dto.id
+        arrangor.overordnetEnhetOrganisasjonsnummer shouldBe clientResponse.overordnetArrangor?.organisasjonsnummer
+        mockArrangorServer.requestCount() shouldBe 1
+    }
 
-	}
+    @Test
+    fun `ingestArrangor - arrangor finnes fra for - oppdaterer arrangordata`() {
+        val id = UUID.randomUUID()
+        val organisasjonsnummer = UUID.randomUUID().toString()
 
-	@Test
-	fun `ingestArrangor - overordnet arrangor - kaller arrangorClient og lagrer data`() {
-		val dto = arrangorDto(source = "amt-arrangor", overordnetArrangorId = UUID.randomUUID())
+        arrangorRepository.upsert(
+            id = id,
+            navn = "ORIGINAL",
+            organisasjonsnummer = organisasjonsnummer,
+            overordnetEnhetNavn = "ORIGINAL",
+            overordnetEnhetOrganisasjonsnummer = UUID.randomUUID().toString(),
+        )
 
-		val clientResponse = clientResponse(dto)
-			.also { mockArrangorServer.addArrangorResponse(it) }
+        val dto = arrangorDto(
+            id = id,
+            source = "amt-arrangor",
+            organisasjonsnummer = organisasjonsnummer,
+        ).also { arrangorIngestor.ingestArrangor(JsonUtils.toJson(it)) }
 
-		kafkaMessageSender.sendTilAmtArrangorTopic(JsonUtils.toJson(dto))
+        arrangorRepository.getById(id).navn shouldBe dto.navn
 
-		eventually { arrangorRepository.getById(dto.id) shouldNotBe null }
+        val arrangor = arrangorRepository.getById(id)
 
-		val arrangor = arrangorRepository.getById(dto.id)
+        arrangor.overordnetEnhetOrganisasjonsnummer shouldBe null
+        arrangor.overordnetEnhetNavn shouldBe null
+    }
 
-		arrangor.id shouldBe dto.id
-		arrangor.overordnetEnhetOrganisasjonsnummer shouldBe clientResponse.overordnetArrangor?.organisasjonsnummer
-		mockArrangorServer.requestCount() shouldBe 1
-	}
+    private fun clientResponse(
+        dto: ArrangorIngestorImpl.ArrangorDto,
+        overordnetArrangorId: UUID = UUID.randomUUID(),
+        overordnetArrangorNavn: String = UUID.randomUUID().toString(),
+        overordnetArrangorOrganisasjonsnummer: String = UUID.randomUUID().toString(),
+    ): AmtArrangorClient.ArrangorMedOverordnetArrangor = AmtArrangorClient.ArrangorMedOverordnetArrangor(
+        id = dto.id,
+        navn = dto.navn,
+        organisasjonsnummer = dto.organisasjonsnummer,
+        overordnetArrangor = AmtArrangorClient.Arrangor(
+            id = overordnetArrangorId,
+            navn = overordnetArrangorNavn,
+            organisasjonsnummer = overordnetArrangorOrganisasjonsnummer,
+        ),
+    )
 
-	@Test
-	fun `ingestArrangor - arrangor finnes fra for - oppdaterer arrangordata`() {
-		val id = UUID.randomUUID()
-		val organisasjonsnummer = UUID.randomUUID().toString()
-
-		arrangorRepository.upsert(
-			id = id,
-			navn = "ORIGINAL",
-			organisasjonsnummer = organisasjonsnummer,
-			overordnetEnhetNavn = "ORIGINAL",
-			overordnetEnhetOrganisasjonsnummer = UUID.randomUUID().toString()
-		)
-
-		val dto = arrangorDto(
-			id = id,
-			source = "amt-arrangor",
-			organisasjonsnummer = organisasjonsnummer
-		)
-			.also { kafkaMessageSender.sendTilAmtArrangorTopic(JsonUtils.toJson(it)) }
-
-		eventually {
-			arrangorRepository.getById(id).navn shouldBe dto.navn
-		}
-
-		val arrangor = arrangorRepository.getById(id)
-
-		arrangor.overordnetEnhetOrganisasjonsnummer shouldBe null
-		arrangor.overordnetEnhetNavn shouldBe null
-	}
-
-	private fun clientResponse(
-		dto: ArrangorIngestorImpl.ArrangorDto,
-		overordnetArrangorId: UUID = UUID.randomUUID(),
-		overordnetArrangorNavn: String = UUID.randomUUID().toString(),
-		overordnetArrangorOrganisasjonsnummer: String = UUID.randomUUID().toString()
-	): AmtArrangorClient.ArrangorMedOverordnetArrangor = AmtArrangorClient.ArrangorMedOverordnetArrangor(
-		id = dto.id,
-		navn = dto.navn,
-		organisasjonsnummer = dto.organisasjonsnummer,
-		overordnetArrangor = AmtArrangorClient.Arrangor(
-			id = overordnetArrangorId,
-			navn = overordnetArrangorNavn,
-			organisasjonsnummer = overordnetArrangorOrganisasjonsnummer
-		)
-	)
-
-	private fun arrangorDto(
-		id: UUID = UUID.randomUUID(),
-		source: String? = null,
-		navn: String = UUID.randomUUID().toString(),
-		organisasjonsnummer: String = UUID.randomUUID().toString(),
-		overordnetArrangorId: UUID? = null
-	) = ArrangorIngestorImpl.ArrangorDto(
-		id = id,
-		source = source,
-		navn = navn,
-		organisasjonsnummer = organisasjonsnummer,
-		overordnetArrangorId = overordnetArrangorId
-	)
+    private fun arrangorDto(
+        id: UUID = UUID.randomUUID(),
+        source: String? = null,
+        navn: String = UUID.randomUUID().toString(),
+        organisasjonsnummer: String = UUID.randomUUID().toString(),
+        overordnetArrangorId: UUID? = null,
+    ) = ArrangorIngestorImpl.ArrangorDto(
+        id = id,
+        source = source,
+        navn = navn,
+        organisasjonsnummer = organisasjonsnummer,
+        overordnetArrangorId = overordnetArrangorId,
+    )
 }

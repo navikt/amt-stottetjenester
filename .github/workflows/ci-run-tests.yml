@@ -54,6 +54,7 @@ jobs:
               - gradlew
               - gradlew.bat
               - settings.gradle.kts
+              - .github/workflows/ci-run-tests.yml
 
       - name: Select applications to test
         id: select
@@ -114,3 +115,15 @@ jobs:
         env:
           TZ: ${{ matrix.module == 'amt-tiltak' && 'Europe/Oslo' || 'UTC' }}
         run: ./gradlew "${{ matrix.task }}" --no-daemon
+
+      - name: Run Kafka smoke tests
+        if: ${{ matrix.module == 'amt-tiltak' && contains(fromJSON(needs.changes.outputs.modules), matrix.module) }}
+        env:
+          TZ: Europe/Oslo
+        run: ./gradlew :amt-tiltak:test-integration:kafkaTest --no-daemon --max-workers=1
+
+      - name: Run Arena Kafka smoke tests
+        if: ${{ matrix.module == 'amt-arena-acl' && contains(fromJSON(needs.changes.outputs.modules), matrix.module) }}
+        env:
+          TZ: UTC
+        run: ./gradlew :amt-arena-acl:kafkaTest --no-daemon --max-workers=1

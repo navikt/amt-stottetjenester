@@ -10,10 +10,6 @@ import okhttp3.mockwebserver.MockResponse
 
 class MockAmtArrangorServer : MockHttpServer("amt-arrangor-server") {
 
-	fun reset() {
-		resetHttpServer()
-	}
-
 	fun addDefaultData() {
 		addAnsattResponse(
 			ansattDto = AmtArrangorClient.AnsattDto(

@@ -14,15 +14,31 @@ Leser data fra Arena og oversetter deltakere og gjennomføringer til AMT-domenet
 
 ## Kom i gang
 
-Du trenger Java 25 og Docker. Start PostgreSQL og Kafka fra roten av `amt-stottetjenester`:
+Du trenger Java 25 og Docker. Kjør de vanlige testene fra roten av `amt-stottetjenester`:
 
 ```bash
-docker compose -f amt-arena-acl/docker-compose.yaml up -d
 ./gradlew :amt-arena-acl:check
 ```
 
-Compose-filen starter de lokale avhengighetene som testene trenger. Repoet har ikke en ferdig dokumentert lokal
-oppstart av hele applikasjonen med alle eksterne tjenester.
+Integrasjonstestene bruker ekte meldingsbehandling og PostgreSQL via Testcontainers, men starter ikke Kafka.
+Kafka-produsenten erstattes med MockK. Testene beholder kontrollene av retry og forsinket behandling.
+
+Kafka-røykprøvene bruker en ekte broker og kjøres separat:
+
+```bash
+./gradlew :amt-arena-acl:kafkaTest --max-workers=1
+```
+
+PR-kontrollen kjører først de vanlige testene og deretter Kafka-røykprøvene i samme jobb.
+Begge kjøringene må lykkes for at jobbens status skal bli grønn.
+
+For lokale PostgreSQL- og Kafka-instanser kan du bruke:
+
+```bash
+docker compose -f amt-arena-acl/docker-compose.yaml up -d
+```
+
+Repoet har ikke en ferdig dokumentert lokal oppstart av hele applikasjonen med alle eksterne tjenester.
 
 ## Dataflyt
 
