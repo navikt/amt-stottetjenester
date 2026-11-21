@@ -7,7 +7,7 @@ import no.nav.amt.tiltak.test.database.SingletonPostgresContainer
 import no.nav.amt.tiltak.test.database.data.TestData
 import no.nav.amt.tiltak.test.database.data.TestDataRepository
 import no.nav.amt.tiltak.test.database.data.inputs.NavAnsattInput
-import org.junit.AfterClass
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -21,7 +21,7 @@ class NavAnsattRepositoryTest {
 		private val repository = NavAnsattRepository(jdbcTemplate)
 
 		@JvmStatic
-		@AfterClass
+		@AfterAll
 		fun tearDown() {
 			DbTestDataUtils.cleanDatabase(dataSource)
 		}

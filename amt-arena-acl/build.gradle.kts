@@ -24,13 +24,11 @@ val navCommonModules =
 
 dependencyManagement {
     dependencies {
-        dependency("com.squareup.okhttp3:okhttp:${libs.versions.okhttp.get()}")
         dependency("com.squareup.okhttp3:mockwebserver:${libs.versions.okhttp.get()}")
     }
 }
 
 dependencies {
-    implementation(libs.nimbus.oauth2.oidc.sdk)
     implementation(libs.shedlock.jdbc.template)
 
     implementation(libs.token.validation.spring)
@@ -47,6 +45,9 @@ dependencies {
 
     implementation(libs.amt.lib.models)
 
+    testImplementation("org.springframework.boot:spring-boot-resttestclient")
+    testImplementation(libs.mockk)
+    testImplementation(libs.springmockk)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.extensions.spring)
     testImplementation(libs.kotest.extensions.testcontainers)

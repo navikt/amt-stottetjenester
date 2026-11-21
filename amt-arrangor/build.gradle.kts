@@ -29,8 +29,11 @@ dependencies {
     implementation(libs.amt.lib.spring.boot)
 
     // Test – Spring Boot testoppsett (JDBC, RestClient, MVC)
+    testImplementation("org.springframework.boot:spring-boot-resttestclient")
     testImplementation("org.springframework.boot:spring-boot-restclient-test")
     testImplementation("org.springframework.boot:spring-boot-webmvc-test")
+    testImplementation(libs.mockk)
+    testImplementation(libs.springmockk)
 
     // Test – autentisering og assertions
     testImplementation(libs.mock.oauth2.server)
