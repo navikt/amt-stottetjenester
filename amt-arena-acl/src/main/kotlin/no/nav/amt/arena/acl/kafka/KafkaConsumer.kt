@@ -7,6 +7,8 @@ import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers.stringDeserializer
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.event.ContextClosedEvent
+import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
@@ -71,10 +73,10 @@ class KafkaConsumer(
                 .build()
     }
 
-    @EventListener
+    @EventListener(ContextRefreshedEvent::class)
     fun onContextRefreshed() = start()
 
-    @EventListener
+    @EventListener(ContextClosedEvent::class)
     fun onContextClosed() = stop()
 
     fun start() {

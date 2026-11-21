@@ -15,6 +15,7 @@ import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.jdbc.core.JdbcTemplate
 import java.util.function.Consumer
@@ -120,7 +121,7 @@ class KafkaConfiguration(
                 .build()
     }
 
-    @EventListener
+    @EventListener(ContextRefreshedEvent::class)
     fun onApplicationEvent() {
         log.info("Starting kafka consumer and stored record processor...")
         client.start()
