@@ -1,5 +1,10 @@
 package no.nav.amt.arena.acl.kafka
 
+import no.nav.amt.arena.acl.services.ArenaConsumerServiceTemp
+import no.nav.amt.arena.acl.services.ArenaMessageConsumerService
+import no.nav.common.kafka.consumer.KafkaConsumerClient
+import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
+import no.nav.common.kafka.consumer.util.deserializer.Deserializers.stringDeserializer
 import no.nav.common.kafka.producer.KafkaProducerClientImpl
 import no.nav.common.kafka.util.KafkaPropertiesBuilder
 import no.nav.common.kafka.util.KafkaPropertiesPreset
@@ -20,6 +25,64 @@ class KafkaConfiguration(
     private val tempConsumerId: String = "amt-arena-acl-temp-consumer-v1",
     @Value($$"${app.env.producerId}") private val producerId: String,
 ) {
+    @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true", matchIfMissing = true)
+    fun arenaKafkaConsumerClient(
+        kafkaTopicProperties: KafkaTopicProperties,
+        kafkaProperties: KafkaProperties,
+        arenaMessageConsumerService: ArenaMessageConsumerService,
+    ): KafkaConsumerClient {
+        val topics = listOf(
+            kafkaTopicProperties.arenaTiltakGjennomforingTopic,
+            kafkaTopicProperties.arenaTiltakDeltakerTopic,
+            kafkaTopicProperties.arenaHistTiltakDeltakerTopic,
+        )
+
+        val topicConfigs = topics.map { topic ->
+            KafkaConsumerClientBuilder
+                .TopicConfig<String, String>()
+                .withLogging()
+                .withConsumerConfig(
+                    topic,
+                    stringDeserializer(),
+                    stringDeserializer(),
+                    arenaMessageConsumerService::handleArenaGoldenGateRecord,
+                )
+        }
+
+        return KafkaConsumerClientBuilder
+            .builder()
+            .withProperties(kafkaProperties.consumer())
+            .withTopicConfigs(topicConfigs)
+            .withShutdownHookEnabled(false)
+            .build()
+    }
+
+    @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true", matchIfMissing = true)
+    fun arenaTempKafkaConsumerClient(
+        kafkaTopicProperties: KafkaTopicProperties,
+        kafkaProperties: KafkaProperties,
+        arenaConsumerServiceTemp: ArenaConsumerServiceTemp,
+    ): KafkaConsumerClient {
+        val topicConfig = KafkaConsumerClientBuilder
+            .TopicConfig<String, String>()
+            .withLogging()
+            .withConsumerConfig(
+                kafkaTopicProperties.arenaTiltakDeltakerTopic,
+                stringDeserializer(),
+                stringDeserializer(),
+                arenaConsumerServiceTemp::handleArenaGoldenGateRecord,
+            )
+
+        return KafkaConsumerClientBuilder
+            .builder()
+            .withProperties(kafkaProperties.tempConsumer())
+            .withTopicConfigs(listOf(topicConfig))
+            .withShutdownHookEnabled(false)
+            .build()
+    }
+
     @Bean
     @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true", matchIfMissing = true)
     fun kafkaProducer(kafkaProperties: KafkaProperties): KafkaProducerClientImpl<String, String> =

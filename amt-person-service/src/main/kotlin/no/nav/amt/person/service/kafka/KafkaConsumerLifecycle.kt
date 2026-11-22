@@ -38,11 +38,29 @@ class KafkaConsumerLifecycle(
         }
 
         log.info("Stopping Kafka consumer and stored record processor...")
-        producerRecordProcessor.close()
-        consumerRecordProcessor.stop()
-        client.stop()
-
-        running = false
+        try {
+            val stopActions = listOf<() -> Unit>(
+                producerRecordProcessor::closeAndAwait,
+                consumerRecordProcessor::stop,
+                client::stop,
+            )
+            var failure: IllegalStateException? = null
+            for (stopAction in stopActions) {
+                try {
+                    stopAction()
+                } catch (e: IllegalStateException) {
+                    val firstFailure = failure
+                    if (firstFailure == null) {
+                        failure = e
+                    } else {
+                        firstFailure.addSuppressed(e)
+                    }
+                }
+            }
+            failure?.let { throw it }
+        } finally {
+            running = false
+        }
     }
 
     override fun isRunning() = running

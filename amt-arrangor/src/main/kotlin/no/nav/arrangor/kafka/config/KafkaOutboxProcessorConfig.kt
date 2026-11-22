@@ -73,7 +73,7 @@ class KafkaOutboxProcessorConfig {
             .build()
     }
 
-    @Bean
+    @Bean(destroyMethod = "closeAndAwait")
     fun kafkaProducerRecordProcessor(
         producerRepository: PostgresJdbcTemplateProducerRepository,
         @Qualifier("kafkaOutboxProducer")

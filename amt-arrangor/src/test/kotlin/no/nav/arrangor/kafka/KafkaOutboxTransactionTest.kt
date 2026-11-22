@@ -200,7 +200,7 @@ class KafkaOutboxTransactionTest(
                     pendingOutboxRecords() shouldBe 0
                 }
             } finally {
-                processor.close()
+                processor.closeAndAwait()
             }
         }
 
@@ -220,7 +220,7 @@ class KafkaOutboxTransactionTest(
                 verify(timeout = 1_000, atLeast = 1) { publisher.publishStoredRecords(any()) }
                 pendingOutboxRecords() shouldBe 1
             } finally {
-                processor.close()
+                processor.closeAndAwait()
             }
         }
     }

@@ -25,7 +25,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty("kafka.enabled", havingValue = "true", matchIfMissing = true)
 class KafkaConfiguration {
-    @Bean
+    @Bean(destroyMethod = "close")
     fun kafkaConsumerClient(
         kafkaProperties: KafkaProperties,
         topicConfigs: List<KafkaConsumerClientBuilder.TopicConfig<*, *>>,
@@ -33,9 +33,10 @@ class KafkaConfiguration {
         .builder()
         .withProperties(kafkaProperties.consumer())
         .withTopicConfigs(topicConfigs)
+        .withShutdownHookEnabled(false)
         .build()
 
-    @Bean
+    @Bean(destroyMethod = "close")
     fun kafkaConsumerRecordProcessor(
         topicConfigs: List<KafkaConsumerClientBuilder.TopicConfig<*, *>>,
         consumerRepository: PostgresJdbcTemplateConsumerRepository,
@@ -47,12 +48,13 @@ class KafkaConfiguration {
         .withKafkaConsumerRepository(consumerRepository)
         .withTopicConfigs(topicConfigs)
         .withMetrics(meterRegistry)
+        .withShutdownHookEnabled(false)
         .build()
 
     @Bean(destroyMethod = "close")
     fun kafkaProducerLeaderElectionClient(lockProvider: LockProvider) = ShedLockLeaderElectionClient(lockProvider)
 
-    @Bean
+    @Bean(destroyMethod = "closeAndAwait")
     fun kafkaProducerRecordProcessor(
         producerRepository: PostgresJdbcTemplateProducerRepository,
         @Qualifier("kafkaOutboxProducer")

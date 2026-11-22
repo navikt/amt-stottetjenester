@@ -1,93 +1,66 @@
 package no.nav.amt.arena.acl.kafka
 
-import no.nav.amt.arena.acl.services.ArenaConsumerServiceTemp
-import no.nav.amt.arena.acl.services.ArenaMessageConsumerService
 import no.nav.common.kafka.consumer.KafkaConsumerClient
-import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
-import no.nav.common.kafka.consumer.util.deserializer.Deserializers.stringDeserializer
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.event.ContextClosedEvent
-import org.springframework.context.event.ContextRefreshedEvent
-import org.springframework.context.event.EventListener
+import org.springframework.context.SmartLifecycle
 import org.springframework.stereotype.Component
 
 @Component
 @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true", matchIfMissing = true)
 class KafkaConsumer(
-    kafkaTopicProperties: KafkaTopicProperties,
-    kafkaProperties: KafkaProperties,
-    private val arenaMessageConsumerService: ArenaMessageConsumerService,
-    private val arenaConsumerServiceTemp: ArenaConsumerServiceTemp,
-) {
-    private val client: KafkaConsumerClient
-
-    private val tempClient: KafkaConsumerClient
-
+    @Qualifier("arenaKafkaConsumerClient")
+    private val client: KafkaConsumerClient,
+    @Qualifier("arenaTempKafkaConsumerClient")
+    private val tempClient: KafkaConsumerClient,
+) : SmartLifecycle {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    init {
-        val topics =
-            listOf(
-                kafkaTopicProperties.arenaTiltakGjennomforingTopic,
-                kafkaTopicProperties.arenaTiltakDeltakerTopic,
-                kafkaTopicProperties.arenaHistTiltakDeltakerTopic,
-            )
+    // Sikrer at isRunning() ser statusendringer fra start()/stop() ved kall fra ulike threads.
+    @Volatile
+    private var running = false
 
-        val topicConfigs =
-            topics.map { topic ->
-                KafkaConsumerClientBuilder
-                    .TopicConfig<String, String>()
-                    .withLogging()
-                    .withConsumerConfig(
-                        topic,
-                        stringDeserializer(),
-                        stringDeserializer(),
-                        arenaMessageConsumerService::handleArenaGoldenGateRecord,
-                    )
-            }
+    override fun start() {
+        if (running) return
 
-        val tempTopicConfig =
-            KafkaConsumerClientBuilder
-                .TopicConfig<String, String>()
-                .withLogging()
-                .withConsumerConfig(
-                    kafkaTopicProperties.arenaTiltakDeltakerTopic,
-                    stringDeserializer(),
-                    stringDeserializer(),
-                    arenaConsumerServiceTemp::handleArenaGoldenGateRecord,
-                )
-
-        client =
-            KafkaConsumerClientBuilder
-                .builder()
-                .withProperties(kafkaProperties.consumer())
-                .withTopicConfigs(topicConfigs)
-                .build()
-
-        tempClient =
-            KafkaConsumerClientBuilder
-                .builder()
-                .withProperties(kafkaProperties.tempConsumer())
-                .withTopicConfigs(listOf(tempTopicConfig))
-                .build()
-    }
-
-    @EventListener(ContextRefreshedEvent::class)
-    fun onContextRefreshed() = start()
-
-    @EventListener(ContextClosedEvent::class)
-    fun onContextClosed() = stop()
-
-    fun start() {
-        log.info("Starting kafka consumer...")
+        log.info("Starting Kafka consumer...")
         client.start()
         tempClient.start()
+        running = true
     }
 
-    fun stop() {
-        log.info("Stopping kafka consumer...")
-        client.stop()
-        tempClient.stop()
+    override fun stop() {
+        if (!running) return
+
+        log.info("Stopping Kafka consumer...")
+        try {
+            var failure: IllegalStateException? = null
+            for (closeAction in listOf<() -> Unit>(client::close, tempClient::close)) {
+                try {
+                    closeAction()
+                } catch (e: IllegalStateException) {
+                    val firstFailure = failure
+                    if (firstFailure == null) {
+                        failure = e
+                    } else {
+                        firstFailure.addSuppressed(e)
+                    }
+                }
+            }
+            failure?.let { throw it }
+        } finally {
+            running = false
+        }
     }
+
+    override fun stop(callback: Runnable) {
+        try {
+            stop()
+        } finally {
+            callback.run()
+        }
+    }
+
+    override fun isRunning() = running
 }
