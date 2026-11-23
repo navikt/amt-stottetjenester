@@ -5,7 +5,7 @@ import no.nav.amt.person.service.data.TestData
 import no.nav.amt.person.service.integration.IntegrationTestBase
 import no.nav.amt.person.service.kafka.config.KafkaTopicProperties
 import no.nav.amt.person.service.kafka.producer.KafkaProducerService
-import no.nav.amt.person.service.kafka.producer.dto.NavEnhetDtoV1
+import no.nav.amt.person.service.navenhet.toDto
 import org.junit.jupiter.api.Test
 import org.springframework.transaction.support.TransactionTemplate
 
@@ -24,7 +24,7 @@ class NavEnhetProducerTest(
 
         // Assert
         val record = outboxRecords().single()
-        val forventetValue = objectMapper.writeValueAsString(NavEnhetDtoV1.fromDbo(navEnhet))
+        val forventetValue = objectMapper.writeValueAsString(navEnhet.toDto())
 
         record.topic shouldBe kafkaTopicProperties.amtNavEnhetTopic
         record.key shouldBe navEnhet.id.toString()

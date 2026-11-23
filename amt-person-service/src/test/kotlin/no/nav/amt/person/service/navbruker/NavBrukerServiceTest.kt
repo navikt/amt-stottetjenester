@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.person.service.clients.krr.Kontaktinformasjon
 import no.nav.amt.person.service.clients.krr.KrrProxyClient
