@@ -3,12 +3,12 @@ package no.nav.amt.person.service.integration.kafka.producer
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
+import no.nav.amt.lib.models.person.dto.NavBrukerDto
 import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.person.service.data.TestData
 import no.nav.amt.person.service.integration.IntegrationTestBase
 import no.nav.amt.person.service.kafka.config.KafkaTopicProperties
 import no.nav.amt.person.service.kafka.producer.KafkaProducerService
-import no.nav.amt.person.service.kafka.producer.dto.NavBrukerDtoV1
 import no.nav.amt.person.service.navbruker.NavBrukerDbo
 import no.nav.amt.person.service.navbruker.NavBrukerService
 import no.nav.amt.person.service.person.PersonService
@@ -92,7 +92,7 @@ class NavBrukerProducerTest(
     }
 
     private fun brukerTilV1Json(navBruker: NavBrukerDbo): String = objectMapper.writeValueAsString(
-        NavBrukerDtoV1(
+        NavBrukerDto(
             personId = navBruker.person.id,
             personident = navBruker.person.personident,
             fornavn = navBruker.person.fornavn,
