@@ -1,8 +1,8 @@
 package no.nav.amt.person.service.kafka
 
+import no.nav.amt.lib.spring.kafka.outbox.KafkaOutboxRuntime
 import no.nav.common.kafka.consumer.KafkaConsumerClient
 import no.nav.common.kafka.consumer.feilhandtering.KafkaConsumerRecordProcessor
-import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordProcessor
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.SmartLifecycle
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 class KafkaConsumerLifecycle(
     private val client: KafkaConsumerClient,
     private val consumerRecordProcessor: KafkaConsumerRecordProcessor,
-    private val producerRecordProcessor: KafkaProducerRecordProcessor,
+    private val outboxRuntime: KafkaOutboxRuntime,
 ) : SmartLifecycle {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -27,7 +27,22 @@ class KafkaConsumerLifecycle(
         log.info("Starting Kafka consumer and stored record processor...")
         client.start()
         consumerRecordProcessor.start()
-        producerRecordProcessor.start()
+        try {
+            outboxRuntime.start()
+        } catch (e: Exception) {
+            try {
+                consumerRecordProcessor.stop()
+            } catch (stopFailure: Exception) {
+                e.addSuppressed(stopFailure)
+            }
+            try {
+                client.stop()
+            } catch (stopFailure: Exception) {
+                e.addSuppressed(stopFailure)
+            }
+            if (e is InterruptedException) Thread.currentThread().interrupt()
+            throw e
+        }
 
         running = true
     }
@@ -38,7 +53,7 @@ class KafkaConsumerLifecycle(
         }
 
         log.info("Stopping Kafka consumer and stored record processor...")
-        producerRecordProcessor.close()
+        outboxRuntime.stop()
         consumerRecordProcessor.stop()
         client.stop()
 

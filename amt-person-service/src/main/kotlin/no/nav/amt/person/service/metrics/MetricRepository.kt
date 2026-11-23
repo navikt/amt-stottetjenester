@@ -1,7 +1,6 @@
 package no.nav.amt.person.service.metrics
 
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
-import org.springframework.jdbc.core.queryForObject
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -30,8 +29,4 @@ class MetricRepository(
                 )
             }.first()
     }
-
-    fun getKafkaOutboxCount(): Int = template.jdbcTemplate
-        .queryForObject<Int>("SELECT count(*) FROM kafka_producer_record")
-        ?: throw IllegalStateException("Klarte ikke å hente antall ventende Kafka-meldinger")
 }

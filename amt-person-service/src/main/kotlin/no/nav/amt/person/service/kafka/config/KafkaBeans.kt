@@ -45,7 +45,7 @@ class KafkaBeans {
             .build()
     }
 
-    @Bean
+    @Bean(destroyMethod = "")
     @ConditionalOnProperty("kafka.enabled", havingValue = "true", matchIfMissing = true)
     fun kafkaOutboxProducer(
         kafkaProperties: KafkaProperties,

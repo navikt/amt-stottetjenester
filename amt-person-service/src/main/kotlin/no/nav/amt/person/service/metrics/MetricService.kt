@@ -1,7 +1,8 @@
 package no.nav.amt.person.service.metrics
 
-import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.amt.lib.spring.kafka.outbox.KafkaOutboxBacklogGauge
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -9,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class MetricService(
     private val repository: MetricRepository,
     private val meterRegistry: MeterRegistry,
+    jdbcTemplate: JdbcTemplate,
 ) {
     private val antallPersoner = gauge("amt_person_antall_personer")
     private val antallNavBruker = gauge("amt_person_antall_nav_brukere")
@@ -17,14 +19,7 @@ class MetricService(
     private val antallArrangorAnsatte = gauge("amt_person_antall_arrangor_ansatte")
 
     init {
-        // Leses ved hver Prometheus-scrape, slik at alle poder rapporterer fersk verdi uten en distribuert scheduler-lås.
-        Gauge
-            .builder(
-                "amt_person_kafka_outbox_ventende",
-                repository,
-            ) {
-                it.getKafkaOutboxCount().toDouble()
-            }.register(meterRegistry)
+        KafkaOutboxBacklogGauge(meterRegistry, jdbcTemplate, "amt_person_kafka_outbox_ventende")
     }
 
     fun oppdaterMetrikker() {

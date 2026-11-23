@@ -1,17 +1,9 @@
 package no.nav.enhetsregister.kafka
 
-import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
-import no.nav.common.kafka.spring.PostgresJdbcTemplateProducerRepository
-import org.springframework.context.annotation.Bean
+import no.nav.amt.lib.spring.kafka.outbox.KafkaOutboxStorageConfiguration
 import org.springframework.context.annotation.Configuration
-import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.context.annotation.Import
 
 @Configuration(proxyBeanMethods = false)
-class KafkaOutboxStorageConfig {
-    @Bean
-    fun kafkaProducerRepository(jdbcTemplate: JdbcTemplate) = PostgresJdbcTemplateProducerRepository(jdbcTemplate)
-
-    @Bean
-    fun kafkaProducerRecordStorage(producerRepository: PostgresJdbcTemplateProducerRepository) =
-        KafkaProducerRecordStorage(producerRepository)
-}
+@Import(KafkaOutboxStorageConfiguration::class)
+class KafkaOutboxStorageConfig

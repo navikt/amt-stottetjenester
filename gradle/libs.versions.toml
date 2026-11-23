@@ -85,6 +85,7 @@ poao-tilgang-client = { module = "no.nav.poao-tilgang:client", version.ref = "po
 # amt-lib (amt-deltakelser)
 amt-lib-models = { module = "no.nav.amt.deltakelser.lib:models", version.ref = "amt-lib" }
 amt-lib-spring-boot = { module = "no.nav.amt.deltakelser.lib:spring-boot", version.ref = "amt-lib" }
+amt-lib-spring-kafka = { module = "no.nav.amt.deltakelser.lib:spring-kafka", version.ref = "amt-lib" }
 amt-lib-testing = { module = "no.nav.amt.deltakelser.lib:testing", version.ref = "amt-lib" }
 amt-lib-utils = { module = "no.nav.amt.deltakelser.lib:utils", version.ref = "amt-lib" }
 

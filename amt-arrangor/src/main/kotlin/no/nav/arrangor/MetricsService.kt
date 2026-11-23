@@ -1,14 +1,14 @@
 package no.nav.arrangor
 
-import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
-import no.nav.arrangor.metrics.KafkaOutboxMetricRepository
+import no.nav.amt.lib.spring.kafka.outbox.KafkaOutboxBacklogGauge
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 
 @Service
 class MetricsService(
     registry: MeterRegistry,
-    kafkaOutboxMetricRepository: KafkaOutboxMetricRepository,
+    jdbcTemplate: JdbcTemplate,
 ) {
     private val publishedArrangor = registry.counter("amt_arrangor_publiserte_arrangorer")
     private val endredeArrangorer = registry.counter("amt_arrangor_endrede_arrangorer")
@@ -25,10 +25,7 @@ class MetricsService(
     private val consumerFailed = registry.counter("amt_arrangor_consume_failed")
 
     init {
-        Gauge
-            .builder("amt_arrangor_kafka_outbox_ventende", kafkaOutboxMetricRepository) {
-                it.getPendingRecordCount().toDouble()
-            }.register(registry)
+        KafkaOutboxBacklogGauge(registry, jdbcTemplate, "amt_arrangor_kafka_outbox_ventende")
     }
 
     fun incEndredeArrangorer(count: Int = 1) = endredeArrangorer.increment(count.toDouble())

@@ -21,6 +21,7 @@ dependencies {
     implementation(libs.amt.lib.models)
     implementation(libs.amt.lib.utils)
     implementation(libs.amt.lib.spring.boot)
+    implementation(libs.amt.lib.spring.kafka)
     implementation(libs.nav.common.kafka)
 
     implementation(libs.kafka.avro.serializer)

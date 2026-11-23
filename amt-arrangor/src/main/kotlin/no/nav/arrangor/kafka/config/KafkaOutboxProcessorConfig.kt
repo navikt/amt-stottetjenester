@@ -3,6 +3,8 @@ package no.nav.arrangor.kafka.config
 import io.micrometer.core.instrument.MeterRegistry
 import net.javacrumbs.shedlock.core.LockProvider
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider
+import no.nav.amt.lib.spring.kafka.outbox.KafkaOutboxLifecycle
+import no.nav.amt.lib.spring.kafka.outbox.KafkaOutboxRuntime
 import no.nav.arrangor.MetricsService
 import no.nav.arrangor.kafka.ANSATT_TOPIC
 import no.nav.arrangor.kafka.ARRANGOR_TOPIC
@@ -10,9 +12,7 @@ import no.nav.arrangor.kafka.MetricsKafkaProducerRecordPublisher
 import no.nav.common.job.leader_election.LeaderElectionClient
 import no.nav.common.job.leader_election.ShedLockLeaderElectionClient
 import no.nav.common.kafka.producer.KafkaProducerClient
-import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordProcessor
 import no.nav.common.kafka.producer.feilhandtering.publisher.BatchedKafkaProducerRecordPublisher
-import no.nav.common.kafka.producer.feilhandtering.util.KafkaProducerRecordProcessorBuilder
 import no.nav.common.kafka.producer.util.KafkaProducerClientBuilder
 import no.nav.common.kafka.spring.PostgresJdbcTemplateProducerRepository
 import no.nav.common.kafka.util.KafkaPropertiesBuilder
@@ -43,7 +43,7 @@ class KafkaOutboxProcessorConfig {
     @Profile("!test")
     fun kafkaProducerLeaderElectionClient(lockProvider: LockProvider) = ShedLockLeaderElectionClient(lockProvider)
 
-    @Bean
+    @Bean(destroyMethod = "")
     @Profile("!test & !local")
     fun kafkaOutboxProducer(meterRegistry: MeterRegistry): KafkaProducerClient<ByteArray, ByteArray> = KafkaProducerClientBuilder
         .builder<ByteArray, ByteArray>()
@@ -51,7 +51,7 @@ class KafkaOutboxProcessorConfig {
         .withMetrics(meterRegistry)
         .build()
 
-    @Bean("kafkaOutboxProducer")
+    @Bean("kafkaOutboxProducer", destroyMethod = "")
     @Profile("local")
     fun localKafkaOutboxProducer(
         @Value($$"${KAFKA_BROKERS}")
@@ -74,28 +74,24 @@ class KafkaOutboxProcessorConfig {
     }
 
     @Bean
-    fun kafkaProducerRecordProcessor(
+    fun kafkaOutboxRuntime(
         producerRepository: PostgresJdbcTemplateProducerRepository,
         @Qualifier("kafkaOutboxProducer")
         kafkaOutboxProducer: KafkaProducerClient<ByteArray, ByteArray>,
         @Qualifier("kafkaProducerLeaderElectionClient")
         kafkaProducerLeaderElectionClient: LeaderElectionClient,
         metricsService: MetricsService,
-    ): KafkaProducerRecordProcessor = KafkaProducerRecordProcessorBuilder
-        .builder()
-        .withProducerRepository(producerRepository)
-        .withRecordPublisher(
-            MetricsKafkaProducerRecordPublisher(
-                delegate = BatchedKafkaProducerRecordPublisher(kafkaOutboxProducer),
-                metricsService = metricsService,
-            ),
-        ).withLeaderElectionClient(kafkaProducerLeaderElectionClient)
-        .withTopicWhitelist(
-            listOf(
-                ANSATT_TOPIC,
-                ARRANGOR_TOPIC,
-            ),
-        ).withRecordsBatchSize(100)
-        .withShutdownHookEnabled(false)
-        .build()
+    ): KafkaOutboxRuntime = KafkaOutboxRuntime.create(
+        producerRepository = producerRepository,
+        publisher = MetricsKafkaProducerRecordPublisher(
+            delegate = BatchedKafkaProducerRecordPublisher(kafkaOutboxProducer),
+            metricsService = metricsService,
+        ),
+        leaderElectionClient = kafkaProducerLeaderElectionClient,
+        topicWhitelist = listOf(ANSATT_TOPIC, ARRANGOR_TOPIC),
+        recordsBatchSize = 100,
+    )
+
+    @Bean
+    fun kafkaOutboxLifecycle(runtime: KafkaOutboxRuntime) = KafkaOutboxLifecycle(runtime)
 }

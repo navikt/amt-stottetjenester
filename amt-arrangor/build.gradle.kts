@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.shedlock.jdbc.template)
     implementation(libs.amt.lib.utils)
     implementation(libs.amt.lib.spring.boot)
+    implementation(libs.amt.lib.spring.kafka)
 
     // Test – Spring Boot testoppsett (JDBC, RestClient, MVC)
     testImplementation("org.springframework.boot:spring-boot-resttestclient")

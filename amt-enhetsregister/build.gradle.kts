@@ -22,6 +22,7 @@ dependencies {
         exclude("io.confluent", "kafka-avro-serializer")
     }
     implementation(libs.amt.lib.spring.boot)
+    implementation(libs.amt.lib.spring.kafka)
 
     implementation(libs.shedlock.jdbc.template)
 

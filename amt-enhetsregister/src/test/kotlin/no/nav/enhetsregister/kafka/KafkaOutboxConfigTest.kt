@@ -1,6 +1,8 @@
 package no.nav.enhetsregister.kafka
 
 import io.mockk.mockk
+import no.nav.amt.lib.spring.kafka.outbox.KafkaOutboxLifecycle
+import no.nav.amt.lib.spring.kafka.outbox.KafkaOutboxRuntime
 import no.nav.common.kafka.producer.KafkaProducerClient
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordProcessor
 import no.nav.common.kafka.producer.feilhandtering.KafkaProducerRecordStorage
@@ -19,7 +21,6 @@ class KafkaOutboxConfigTest {
                 KafkaConfig::class.java,
                 KafkaOutboxStorageConfig::class.java,
                 KafkaOutboxProcessorConfig::class.java,
-                KafkaOutboxLifecycle::class.java,
             )
             .withBean(JdbcTemplate::class.java, Supplier { mockk<JdbcTemplate>(relaxed = true) })
             .withPropertyValues("kafka.enabled=false", "app.env.virksomheterTopic=test-topic")
@@ -29,6 +30,7 @@ class KafkaOutboxConfigTest {
                 assertThat(it).hasSingleBean(PostgresJdbcTemplateProducerRepository::class.java)
                 assertThat(it).doesNotHaveBean(KafkaProducerClient::class.java)
                 assertThat(it).doesNotHaveBean(KafkaProducerRecordProcessor::class.java)
+                assertThat(it).doesNotHaveBean(KafkaOutboxRuntime::class.java)
                 assertThat(it).doesNotHaveBean(KafkaOutboxLifecycle::class.java)
             }
     }
