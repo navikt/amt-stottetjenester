@@ -104,3 +104,90 @@ jobs:
           printf 'amt-lib %s (%s) is available in .copilot-context/amt-deltakelser/amt-lib/models\n' \
             "$AMT_LIB_VERSION" "$actual_revision"
           echo "Setup-verified provenance is available in .copilot-context/amt-lib-provenance.json"
+
+      - name: Read nav-common dependency version
+        id: nav-common
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          import tomllib
+
+          with open("gradle/libs.versions.toml", "rb") as catalog:
+              version = tomllib.load(catalog)["versions"]["nav-common"]
+
+          match = re.fullmatch(
+              r"\d+\.\d{4}\.\d{2}\.\d{2}_\d{2}\.\d{2}-([0-9a-f]{7,40})",
+              version,
+          )
+          if match is None:
+              raise SystemExit("::error::nav-common version must contain its release timestamp and source commit SHA")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"version={version}\nrevision={match.group(1)}\n")
+          PY
+
+      - name: Resolve nav-common source commit
+        id: nav-common-source
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAV_COMMON_REVISION: ${{ steps.nav-common.outputs.revision }}
+        run: |
+          revision=$(gh api "repos/navikt/common-java-modules/commits/$NAV_COMMON_REVISION" --jq '.sha')
+          if [[ ! "$revision" =~ ^[0-9a-f]{40}$ || "$revision" != "$NAV_COMMON_REVISION"* ]]; then
+            echo "::error::Could not resolve the nav-common source commit"
+            exit 1
+          fi
+          printf 'revision=%s\n' "$revision" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout nav-common Kafka and job sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: navikt/common-java-modules
+          ref: ${{ steps.nav-common-source.outputs.revision }}
+          path: .copilot-context/common-java-modules
+          sparse-checkout: |
+            kafka
+            job
+          persist-credentials: false
+
+      - name: Verify nav-common review context
+        shell: bash
+        env:
+          NAV_COMMON_VERSION: ${{ steps.nav-common.outputs.version }}
+          NAV_COMMON_REVISION: ${{ steps.nav-common-source.outputs.revision }}
+        run: |
+          actual_revision=$(git -C .copilot-context/common-java-modules rev-parse HEAD)
+          if [[ "$actual_revision" != "$NAV_COMMON_REVISION" ]]; then
+            echo "::error::nav-common checkout does not match the dependency source commit"
+            exit 1
+          fi
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          source_directories = {
+              module: f".copilot-context/common-java-modules/{module}/src/main/java"
+              for module in ("kafka", "job")
+          }
+          for module, directory in source_directories.items():
+              if not any(Path(directory).rglob("*.java")):
+                  raise SystemExit(f"::error::nav-common {module} sources are missing from the review context")
+
+          provenance = {
+              "repository": "navikt/common-java-modules",
+              "dependency_version": os.environ["NAV_COMMON_VERSION"],
+              "source_commit": os.environ["NAV_COMMON_REVISION"],
+              "source_directories": source_directories,
+          }
+          Path(".copilot-context/nav-common-provenance.json").write_text(
+              json.dumps(provenance, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+          printf 'nav-common %s (%s) is available in .copilot-context/common-java-modules/{kafka,job}/src/main/java\n' \
+            "$NAV_COMMON_VERSION" "$actual_revision"
+          echo "Setup-verified provenance is available in .copilot-context/nav-common-provenance.json"
