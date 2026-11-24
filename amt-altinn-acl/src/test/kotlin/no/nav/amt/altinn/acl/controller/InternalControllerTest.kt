@@ -71,8 +71,7 @@ class InternalControllerTest(
                     {
                       "title": "Internal Server Error",
                       "status": 500,
-                      "detail": "En uventet feil oppstod",
-                      "instance": "$PATH"
+                      "detail": "En uventet feil oppstod"
                     }
                     """.trimIndent(),
                     JsonCompareMode.LENIENT,

@@ -7,12 +7,6 @@ repositories {
     maven("https://packages.confluent.io/maven/")
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("com.fasterxml.jackson:jackson-bom:${libs.versions.jackson2.bom.get()}")
-    }
-}
-
 dependencies {
     implementation("org.springframework.boot:spring-boot-restclient")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
@@ -22,6 +16,9 @@ dependencies {
     implementation(libs.amt.lib.utils)
     implementation(libs.amt.lib.spring.boot)
     implementation(libs.nav.common.kafka)
+    implementation(libs.nav.common.job)
+    implementation(libs.nav.common.log)
+    implementation(libs.nav.common.rest)
 
     implementation(libs.kafka.avro.serializer)
 

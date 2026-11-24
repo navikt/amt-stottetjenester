@@ -8,7 +8,7 @@ dependencies {
     api(libs.nav.common.job) {
         exclude(group = "com.squareup.okhttp3", module = "okhttp")
     }
-    api("org.springframework.boot:spring-boot-starter-web") {
+    api("org.springframework.boot:spring-boot-starter-webmvc") {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
     }
     api("org.springframework.boot:spring-boot-starter-jetty")

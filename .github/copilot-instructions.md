@@ -15,3 +15,15 @@ The context checkout and provenance file are reference material, not application
 Report missing sources, missing or mismatched provenance, and unavailable remote verification as separate limitations. If provenance is missing or does not match, do not claim to have verified the pinned revision. Readable sources may still support field-level observations, with that revision limitation stated.
 
 If provenance matches and the sources are readable, do not report the checkout as unavailable because Git commands, remote APIs or setup logs are inaccessible. Source inspection is not execution of serialization tests; report unexecuted tests separately. Do not infer that a type is missing from amt-lib because its source is outside this repository.
+
+# Reviewing nav-common dependencies
+
+Before reviewing changes that use `no.nav.common.kafka` or `no.nav.common.job`:
+
+1. Read the `nav-common` version in `gradle/libs.versions.toml`.
+2. Read `.copilot-context/nav-common-provenance.json`. Confirm that `repository` is `navikt/common-java-modules`, `dependency_version` matches the catalog and `source_commit` is a full commit SHA starting with the version's SHA suffix. The setup writes this file only after verifying the checkout's HEAD and both source directories.
+3. Inspect the paths in `source_directories`: `kafka` points to `.copilot-context/common-java-modules/kafka/src/main/java` and `job` to `.copilot-context/common-java-modules/job/src/main/java`. Inspect the called implementations, including outbox persistence, transaction participation, delivery guarantees, leader election and processor startup/shutdown where relevant. Do not substitute `main` for the pinned commit.
+
+The checkout and provenance are reference material. Do not edit or commit them, or add them as Gradle project dependencies. Matching provenance and readable sources are sufficient for local source inspection; unavailable Git commands, remote APIs or setup logs do not make those sources unavailable. Report missing sources, mismatched provenance and unavailable remote verification separately. A failed checkout or a previous review limitation does not establish that sources are unpublished; an exact-version sources JAR is another source of evidence.
+
+Source inspection does not execute PostgreSQL/Kafka integration tests. Report test execution separately, and do not describe a `FROM-CACHE` test task as fresh execution. If fresh execution is needed, rerun the relevant test task with `--no-build-cache --rerun-tasks`.

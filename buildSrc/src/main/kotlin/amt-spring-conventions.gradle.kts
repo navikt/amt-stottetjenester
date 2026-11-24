@@ -19,7 +19,7 @@ repositories {
 
 dependencies {
     // HTTP-server med Jetty i stedet for Tomcat.
-    implementation("org.springframework.boot:spring-boot-starter-web") {
+    implementation("org.springframework.boot:spring-boot-starter-webmvc") {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
     }
     runtimeOnly("org.springframework.boot:spring-boot-starter-jetty")

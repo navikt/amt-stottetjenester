@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    api(libs.tools.jackson.module.kotlin)
+    api(libs.jackson.annotations)
 }

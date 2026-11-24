@@ -1,5 +1,6 @@
 package no.nav.amt.arena.acl.consumer
 
+import no.nav.amt.arena.acl.clients.mulighetsrommet.Gjennomforing
 import no.nav.amt.arena.acl.domain.db.toUpsertInputWithStatusHandled
 import no.nav.amt.arena.acl.domain.kafka.amt.AmtDeltaker
 import no.nav.amt.arena.acl.domain.kafka.amt.AmtKafkaMessageDto
@@ -47,6 +48,7 @@ class HistDeltakerConsumer(
 		val gjennomforing = arenaDeltakerConsumer.getGjennomforing(arenaGjennomforingId)
 
 		externalDeltakerGuard(arenaDeltakerRaw)
+        enkeltplassGuard(arenaDeltakerRaw, gjennomforing)
 
 		if (message.operationType != AmtOperation.CREATED) {
 			log.info("Mottatt melding for hist-deltaker arenaHistId=$arenaHistDeltakerId op=${message.operationType}, blir ikke behandlet")
@@ -92,6 +94,17 @@ class HistDeltakerConsumer(
 			)
 		}
 	}
+
+    private fun enkeltplassGuard(arenaDeltakerRaw: ArenaHistDeltaker, gjennomforing: Gjennomforing) {
+        if(gjennomforing.erEnkelplass()) {
+            /*
+                Det skal bare være en deltakelse per gjennomføring på enkeltplasser selv om
+                en deltaker i teorien kan bli historisert i arena
+             */
+            throw IgnoredException("Arena hist-deltaker med id ${arenaDeltakerRaw.HIST_TILTAKDELTAKER_ID} ignoreres fordi det er en enkeltplass")
+        }
+
+    }
 
 	private fun externalDeltakerGuard(arenaDeltakerRaw: ArenaHistDeltaker) {
 		val deltakerHistId = arenaDeltakerRaw.HIST_TILTAKDELTAKER_ID.toString()

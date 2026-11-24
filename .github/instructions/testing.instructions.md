@@ -1,12 +1,12 @@
 ---
 name: Testing Standards
-description: "Felles testprinsipper for Nav. Språkspesifikke eksempler finnes i egne instruksjoner for Kotlin og TypeScript."
+description: "Felles testprinsipper for Nav. Kotlin-spesifikke eksempler finnes i testing-kotlin.instructions.md."
 applyTo: "**/*.test.{ts,tsx,kt,kts}"
 ---
 
 # Testing Standards
 
-Common testing principles for Nav. Language-specific examples can be found in separate instructions for [Kotlin](testing-kotlin.instructions.md) and [TypeScript](testing-typescript.instructions.md).
+Common testing principles for Nav. Kotlin-specific examples are in [testing-kotlin.instructions.md](testing-kotlin.instructions.md).
 
 ## Test Coverage
 

@@ -17,9 +17,7 @@ dependencies {
     implementation(libs.nav.common.job)
     implementation(libs.nav.common.rest)
     implementation(libs.nav.common.kafka) {
-        exclude("org.apache.avro", "avro")
         exclude("org.xerial.snappy", "snappy-java")
-        exclude("io.confluent", "kafka-avro-serializer")
     }
     implementation(libs.amt.lib.spring.boot)
 

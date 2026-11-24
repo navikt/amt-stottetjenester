@@ -39,8 +39,6 @@ dependencies {
 
     implementation(libs.nav.common.kafka) {
         exclude(group = "org.xerial.snappy", module = "snappy-java")
-        exclude(group = "org.apache.avro", module = "avro")
-        exclude(group = "io.confluent", module = "kafka-avro-serializer")
     }
 
     implementation(libs.amt.lib.models)
