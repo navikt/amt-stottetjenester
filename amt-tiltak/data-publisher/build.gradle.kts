@@ -5,7 +5,7 @@ plugins {
 dependencies {
     api(project(":amt-tiltak:core"))
     api("org.springframework.boot:spring-boot-starter-jdbc")
-    api("org.springframework.boot:spring-boot-starter-web") {
+    api("org.springframework.boot:spring-boot-starter-webmvc") {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
     }
     api("org.springframework.boot:spring-boot-starter-jetty")
@@ -15,8 +15,6 @@ dependencies {
     api(libs.amt.lib.models)
     api(libs.nav.common.kafka) {
         exclude(group = "org.xerial.snappy", module = "snappy-java")
-        exclude(group = "org.apache.avro", module = "avro")
-        exclude(group = "io.confluent", module = "kafka-avro-serializer")
     }
     api(project(":amt-tiltak:kafka:kafka-config"))
     api(project(":amt-tiltak:common:json"))
@@ -26,8 +24,6 @@ dependencies {
     testImplementation(libs.postgresql)
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation(project(":amt-tiltak:db-migrations"))
-    testImplementation("org.mockito:mockito-core")
-    testImplementation(libs.mockito.kotlin)
     testImplementation(project(":amt-tiltak:test:database"))
     testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation("org.junit.jupiter:junit-jupiter-api")

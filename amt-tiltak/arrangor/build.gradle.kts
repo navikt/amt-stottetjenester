@@ -12,12 +12,11 @@ dependencies {
     api(project(":amt-tiltak:common:auth"))
     api(project(":amt-tiltak:data-publisher"))
     api(libs.token.validation.spring)
-    api("org.springframework.boot:spring-boot-starter-web") {
+    api("org.springframework.boot:spring-boot-starter-webmvc") {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
     }
     api("org.springframework.boot:spring-boot-starter-jetty")
     api("org.springframework.boot:spring-boot-starter-jdbc")
-    api(libs.postgresql)
     api(project(":amt-tiltak:common:db_utils"))
     api("io.micrometer:micrometer-core")
     testImplementation(project(":amt-tiltak:test:database"))

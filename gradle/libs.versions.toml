@@ -9,15 +9,15 @@ ktlint-plugin = "14.2.0"
 ktlint-cli-version = "1.8.0"
 
 # Jackson 3 (tools.jackson) og Jackson 2 (com.fasterxml.jackson) holdes adskilt
-jackson2-bom = "2.22.4"
+jackson2-bom = "2.23.0"
+jackson3-bom = "3.3.0"
 
 # Avro og Kafka
 apache-avro = "1.12.2"
 confluent = "8.1.1"
-kafka-clients = "4.4.0"
 
 # Logging
-logback = "1.6.6"
+logback = "1.6.8"
 logstash-encoder = "9.0"
 
 # CVE-fixes
@@ -37,13 +37,11 @@ okhttp = "5.5.1"
 snappy-java = "1.1.10.12"
 shedlock = "7.11.0"
 unleash = "12.3.2"
-postgresql = "42.7.14"
 
 # Testing
 kotest = "6.2.7"
 mockk = "1.14.12"
 springmockk = "5.0.1"
-mockito-kotlin = "6.4.0"
 
 [libraries]
 # Build-logikk (buildSrc)
@@ -58,10 +56,12 @@ avro-tools = { module = "org.apache.avro:avro-tools", version.ref = "apache-avro
 tools-jackson-databind = { module = "tools.jackson.core:jackson-databind" }
 tools-jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 
-# Jackson 2
+# Jackson-annotasjoner (brukes av Jackson 2 og 3)
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations" }
+
 # Avro og Kafka
 kafka-avro-serializer = { module = "io.confluent:kafka-avro-serializer", version.ref = "confluent" }
-kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka-clients" }
+kafka-clients = { module = "org.apache.kafka:kafka-clients" }
 
 # Logging
 logstash-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-encoder" }
@@ -92,7 +92,7 @@ amt-lib-utils = { module = "no.nav.amt.deltakelser.lib:utils", version.ref = "am
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine" }
 okhttp-jvm = { module = "com.squareup.okhttp3:okhttp-jvm", version.ref = "okhttp" }
 mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp" }
-postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+postgresql = { module = "org.postgresql:postgresql" }
 shedlock-jdbc-template = { module = "net.javacrumbs.shedlock:shedlock-provider-jdbc-template", version.ref = "shedlock" }
 shedlock-spring = { module = "net.javacrumbs.shedlock:shedlock-spring", version.ref = "shedlock" }
 unleash = { module = "io.getunleash:unleash-client-java", version.ref = "unleash" }
@@ -105,7 +105,6 @@ kotest-extensions-testcontainers = { module = "io.kotest:kotest-extensions-testc
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
 mockk = { module = "io.mockk:mockk-jvm", version.ref = "mockk" }
 springmockk = { module = "com.ninja-squad:springmockk", version.ref = "springmockk" }
-mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
 testcontainers-core = { module = "org.testcontainers:testcontainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
 testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }

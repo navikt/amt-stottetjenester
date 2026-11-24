@@ -82,8 +82,7 @@ class RolleControllerTest(
                         {
                           "title": "Bad Request",
                           "status": 400,
-                          "detail": "Forespørselen inneholder ugyldige data",
-                          "instance": "$PATH"
+                          "detail": "Forespørselen inneholder ugyldige data"
                         }
                         """.trimIndent(),
                         JsonCompareMode.STRICT,
@@ -106,8 +105,7 @@ class RolleControllerTest(
                         {
                           "title": "Method Not Allowed",
                           "status": 405,
-                          "detail": "Forespørselen kunne ikke behandles",
-                          "instance": "$PATH"
+                          "detail": "Forespørselen kunne ikke behandles"
                         }
                         """.trimIndent(),
                         JsonCompareMode.STRICT,
@@ -133,8 +131,7 @@ class RolleControllerTest(
                         {
                           "title": "Bad Request",
                           "status": 400,
-                          "detail": "Forespørselen inneholder ugyldige data",
-                          "instance": "$PATH"
+                          "detail": "Forespørselen inneholder ugyldige data"
                         }
                         """.trimIndent(),
                         JsonCompareMode.STRICT,
