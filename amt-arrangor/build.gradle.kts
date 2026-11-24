@@ -6,9 +6,7 @@ plugins {
 dependencies {
     // Kafka
     implementation("org.springframework.boot:spring-boot-kafka")
-    implementation(libs.kafka.clients) {
-        exclude("org.xerial.snappy", "snappy-java")
-    }
+    implementation(libs.kafka.clients)
 
     // Utgående HTTP-kall og OAuth2 (TokenX/Azure AD client credentials)
     implementation("org.springframework.boot:spring-boot-restclient")

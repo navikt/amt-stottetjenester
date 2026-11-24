@@ -5,7 +5,7 @@ plugins {
 dependencies {
     api(libs.token.validation.spring)
     api(libs.nav.common.audit.log)
-    api("org.springframework.boot:spring-boot-starter-web") {
+    api("org.springframework.boot:spring-boot-starter-webmvc") {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
     }
     api("org.springframework.boot:spring-boot-starter-jetty")

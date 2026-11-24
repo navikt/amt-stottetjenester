@@ -9,23 +9,21 @@ dependencies {
     api(project(":amt-tiltak:navansatt"))
     api(project(":amt-tiltak:common:auth"))
     api(project(":amt-tiltak:common:db_utils"))
-    api("org.springframework.boot:spring-boot-starter-web") {
+    api("org.springframework.boot:spring-boot-starter-webmvc") {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
     }
     api("org.springframework.boot:spring-boot-starter-jetty")
     api("org.springframework.boot:spring-boot-starter-jdbc")
-    api(libs.postgresql)
+    implementation(libs.postgresql)
     api(libs.caffeine)
     api(libs.shedlock.spring)
-    api("io.micrometer:micrometer-registry-prometheus")
+    implementation("io.micrometer:micrometer-core")
     api(libs.unleash)
     api(libs.nav.common.job) {
         exclude(group = "com.squareup.okhttp3", module = "okhttp")
     }
     api(libs.nav.common.kafka) {
         exclude(group = "org.xerial.snappy", module = "snappy-java")
-        exclude(group = "org.apache.avro", module = "avro")
-        exclude(group = "io.confluent", module = "kafka-avro-serializer")
     }
     api(project(":amt-tiltak:common:utils"))
     api(libs.poao.tilgang.client) {
@@ -36,8 +34,6 @@ dependencies {
     testImplementation(libs.mock.oauth2.server)
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation(project(":amt-tiltak:db-migrations"))
-    testImplementation("org.mockito:mockito-core")
-    testImplementation(libs.mockito.kotlin)
     testImplementation(project(":amt-tiltak:test:database"))
     testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation("org.junit.jupiter:junit-jupiter-api")

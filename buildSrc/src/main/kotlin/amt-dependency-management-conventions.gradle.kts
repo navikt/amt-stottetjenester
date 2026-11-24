@@ -7,11 +7,11 @@ plugins {
 
 val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
+extra["jackson-2-bom.version"] = versionCatalog.findVersion("jackson2-bom").get().requiredVersion
+extra["jackson-bom.version"] = versionCatalog.findVersion("jackson3-bom").get().requiredVersion
+
 dependencyManagement {
     dependencies {
-        // Kafka-klient.
-        dependency("org.apache.kafka:kafka-clients:${versionCatalog.findVersion("kafka-clients").get().requiredVersion}")
-
         // Guava og komprimeringsbiblioteker.
         dependency("com.google.guava:guava:${versionCatalog.findVersion("guava").get().requiredVersion}")
         dependency("at.yawk.lz4:lz4-java:${versionCatalog.findVersion("lz4-java").get().requiredVersion}")
