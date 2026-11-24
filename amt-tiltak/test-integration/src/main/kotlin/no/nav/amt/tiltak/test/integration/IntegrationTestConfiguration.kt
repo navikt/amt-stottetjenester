@@ -31,11 +31,11 @@ class IntegrationTestConfiguration {
     @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true")
     fun kafkaProperties(): KafkaProperties = SingletonKafkaProvider.getKafkaProperties(ByteArraySerializer(), ByteArraySerializer())
 
-    @Bean(name = ["stringKafkaProducer"])
+    @Bean(name = ["stringKafkaProducer"], destroyMethod = "close")
     @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true")
     fun stringKafkaProducer(): KafkaProducerClient<String, String> {
         val properties = SingletonKafkaProvider.getKafkaProperties(StringSerializer(), StringSerializer()).producer()
-        return KafkaProducerClientImpl(properties)
+        return KafkaProducerClientImpl(properties, false)
     }
 
     @Bean

@@ -43,15 +43,16 @@ class KafkaOutboxProcessorConfig {
     @Profile("!test")
     fun kafkaProducerLeaderElectionClient(lockProvider: LockProvider) = ShedLockLeaderElectionClient(lockProvider)
 
-    @Bean
+    @Bean(destroyMethod = "close")
     @Profile("!test & !local")
     fun kafkaOutboxProducer(meterRegistry: MeterRegistry): KafkaProducerClient<ByteArray, ByteArray> = KafkaProducerClientBuilder
         .builder<ByteArray, ByteArray>()
         .withProperties(KafkaPropertiesPreset.aivenByteProducerProperties("amt-arrangor-ansatt-outbox"))
         .withMetrics(meterRegistry)
+        .withShutdownHookEnabled(false)
         .build()
 
-    @Bean("kafkaOutboxProducer")
+    @Bean(name = ["kafkaOutboxProducer"], destroyMethod = "close")
     @Profile("local")
     fun localKafkaOutboxProducer(
         @Value($$"${KAFKA_BROKERS}")
@@ -70,6 +71,7 @@ class KafkaOutboxProcessorConfig {
             .builder<ByteArray, ByteArray>()
             .withProperties(properties)
             .withMetrics(meterRegistry)
+            .withShutdownHookEnabled(false)
             .build()
     }
 

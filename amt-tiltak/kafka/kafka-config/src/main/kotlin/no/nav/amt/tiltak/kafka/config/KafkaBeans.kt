@@ -44,16 +44,16 @@ class KafkaBeans {
             .build()
     }
 
-    @Bean
+    @Bean(destroyMethod = "close")
     @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true", matchIfMissing = true)
     fun kafkaProducer(kafkaProperties: KafkaProperties): KafkaProducerClient<ByteArray, ByteArray> =
-        KafkaProducerClientImpl(kafkaProperties.producer())
+        KafkaProducerClientImpl(kafkaProperties.producer(), false)
 
-    @Bean(name = ["stringKafkaProducer"])
+    @Bean(name = ["stringKafkaProducer"], destroyMethod = "close")
     @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true", matchIfMissing = true)
     @Profile("default")
     fun stringKafkaProducer(): KafkaProducerClient<String, String> {
         val properties = KafkaPropertiesPreset.aivenDefaultProducerProperties("amt-tiltak-producer-2")
-        return KafkaProducerClientImpl(properties)
+        return KafkaProducerClientImpl(properties, false)
     }
 }

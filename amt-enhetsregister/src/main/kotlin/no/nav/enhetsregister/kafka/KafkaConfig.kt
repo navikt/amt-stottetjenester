@@ -31,7 +31,7 @@ class KafkaConfig {
             .build()
     }
 
-    @Bean
+    @Bean(destroyMethod = "close")
     fun kafkaProducer(kafkaProducerProperties: KafkaProducerProperties) =
-        KafkaProducerClientImpl<ByteArray, ByteArray>(kafkaProducerProperties.producer())
+        KafkaProducerClientImpl<ByteArray, ByteArray>(kafkaProducerProperties.producer(), false)
 }

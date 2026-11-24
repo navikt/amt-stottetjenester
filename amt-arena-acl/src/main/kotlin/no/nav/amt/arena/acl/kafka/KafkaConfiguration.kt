@@ -83,10 +83,10 @@ class KafkaConfiguration(
             .build()
     }
 
-    @Bean
+    @Bean(destroyMethod = "close")
     @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true", matchIfMissing = true)
     fun kafkaProducer(kafkaProperties: KafkaProperties): KafkaProducerClientImpl<String, String> =
-        KafkaProducerClientImpl(kafkaProperties.producer())
+        KafkaProducerClientImpl(kafkaProperties.producer(), false)
 
     @Bean
     @Profile("default")
