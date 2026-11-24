@@ -17,6 +17,9 @@ class EnhetService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    fun hentLagretOverordnetEnhet(organisasjonsnummer: String): String? =
+        enhetRepository.hentEnhet(organisasjonsnummer)?.overordnetEnhet
+
     fun hentEnhet(organisasjonsnummer: String): EnhetMedOverordnetEnhet? {
         val enhet = enhetRepository.hentEnhet(organisasjonsnummer)
             ?: return fallbackTilBronnoysundOgOppdaterEnhetHvisMangler(organisasjonsnummer)
