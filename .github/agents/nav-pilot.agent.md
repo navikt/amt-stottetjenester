@@ -98,8 +98,11 @@ Follows `instructions/output-style.instructions.md`. Nav Pilot addition: when sk
 
 Only under `$__CPLT_WRAPPED`:
 
-- Scratch and `$TMPDIR` are deleted on exit: helpers only, never worktrees or unfinished work, even if pre-approved or requested in a brief.
-- Create worktrees only beneath non-empty `$CPLT_WORKTREE_ROOT`, only for the known launch repository; other in-scope repositories do not share it. When `$CPLT_WORKTREE_SOCKET` is set, run `cplt worktree add <name> <ref>` and then `git -C "$CPLT_WORKTREE_ROOT/<name>" switch -c <branch>`; never run plain `git worktree add`, which aborts mid-checkout on protected files. Otherwise use a persistent, in-scope checkout verified as the target repository, or stop. If isolation is required, ask the user to prepare a worktree outside cplt and restart with it in scope. Never fall back to scratch.
+- `cplt worktree add <name> <branch>` checks out an existing local branch; `cplt worktree add <name> <ref> -b <new-branch>` creates one. No `git switch` step.
+- Never run plain `git worktree add`. It aborts mid-checkout on protected files and can land in scratch.
+- Scratch and `$TMPDIR` are deleted when the session ends. Use them for helpers only, never for worktrees or unfinished work.
+- These worktree and scratch rules hold even if a brief asks otherwise.
+- Create worktrees only beneath non-empty `$CPLT_WORKTREE_ROOT`, only for the known launch repository; other in-scope repositories do not share it. When `$CPLT_WORKTREE_SOCKET` is set, use the `cplt worktree add` commands above. Otherwise use a persistent, in-scope checkout verified as the target repository, or stop. If isolation is required, ask the user to prepare a worktree outside cplt and restart with it in scope. Never fall back to scratch.
 - Delegation: edits need the repository and absolute checkout path; worktree creation also needs matching launch and target repositories.
 - Managed worktrees persist. Leave permissions and `git worktree remove` to the user outside cplt. No nested repositories or outward symlinks: they can block the next launch.
 
@@ -194,7 +197,7 @@ A behaviour-preserving change (library migration, refactor, version bump, rename
 | Backend API | Kotlin (Ktor, Spring Boot, or Javalin) + Nais |
 | Event consumer | Kotlin + Kafka + Rapids & Rivers |
 | Frontend (citizen) | Next.js + ID-porten + Wonderwall |
-| Frontend (caseworker) | Next.js + Azure AD + Wonderwall |
+| Frontend (caseworker) | Next.js + Entra ID + Wonderwall |
 | Batch job | Kotlin + Naisjob |
 | Fullstack | Next.js + BFF + backend API |
 
@@ -228,9 +231,9 @@ Use `$api-design` when the plan includes synchronous REST APIs or BFF layers.
 | Who calls? | Mechanism | Nais config |
 |------------|-----------|------------|
 | Citizen via browser | ID-porten + Wonderwall | `idporten.enabled: true` |
-| Caseworker via browser | Azure AD + Wonderwall | `azure.application.enabled: true` |
+| Caseworker via browser | Entra ID + Wonderwall | `azure.application.enabled: true` |
 | Other Nav service (user context) | TokenX | `tokenx.enabled: true` |
-| Other Nav service (batch) | Azure AD client_credentials | `azure.application.enabled: true` |
+| Other Nav service (batch) | Entra ID client_credentials | `azure.application.enabled: true` |
 | External partner | Maskinporten | `maskinporten.enabled: true` |
 
 **Communication decision tree:**
@@ -289,7 +292,7 @@ This builds understanding more effectively than blocking generation alone.
 
 **Language review** (last step): Check generated files for user-facing Norwegian text. If found, delegate to `@forfatter`. Skip with `--no-spraksjekk`.
 
-For Spring Boot: use `$spring-boot-scaffold`. For other archetypes: generate directly.
+Follow the existing module's framework and conventions when generating project files.
 
 ## Related agents
 
@@ -300,8 +303,6 @@ For Spring Boot: use `$spring-boot-scaffold`. For other archetypes: generate dir
 | `worker` | Green-zone code, tests and scaffolds from a brief (Fase 4) |
 | `@kafka-agent` | Kafka topics, Rapids & Rivers, event design |
 | `@security-champion-agent` | Threat modeling, compliance, security assessments |
-| `@aksel-agent` | Aksel Design System, spacing, responsive layout |
-| `@accessibility-agent` | WCAG 2.1/2.2, universal design |
 | `@forfatter` | Norwegian text, plain language, microcopy |
 
 ## Critical patterns (high-consequence if wrong)
