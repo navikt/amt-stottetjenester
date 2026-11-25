@@ -17,6 +17,7 @@ class KafkaConsumerLifecycle(
 ) : SmartLifecycle {
     private val log = LoggerFactory.getLogger(javaClass)
 
+    @Volatile
     private var running = false
 
     override fun start() {
@@ -38,11 +39,37 @@ class KafkaConsumerLifecycle(
         }
 
         log.info("Stopping Kafka consumer and stored record processor...")
-        producerRecordProcessor.close()
-        consumerRecordProcessor.stop()
-        client.stop()
+        try {
+            val stopActions = listOf<() -> Unit>(
+                client::close,
+                consumerRecordProcessor::close,
+                producerRecordProcessor::closeAndAwait,
+            )
+            var failure: IllegalStateException? = null
+            for (stopAction in stopActions) {
+                try {
+                    stopAction()
+                } catch (e: IllegalStateException) {
+                    val firstFailure = failure
+                    if (firstFailure == null) {
+                        failure = e
+                    } else {
+                        firstFailure.addSuppressed(e)
+                    }
+                }
+            }
+            failure?.let { throw it }
+        } finally {
+            running = false
+        }
+    }
 
-        running = false
+    override fun stop(callback: Runnable) {
+        try {
+            stop()
+        } finally {
+            callback.run()
+        }
     }
 
     override fun isRunning() = running

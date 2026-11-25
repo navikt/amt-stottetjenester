@@ -37,7 +37,7 @@ class KafkaProducerRecordProcessorTest(
                 // Assert
                 awaitOutboxCount(0) shouldBe true
             } finally {
-                processor.close()
+                processor.closeAndAwait()
                 verify(timeout = 1_000) { publisher.close() }
             }
         }
@@ -57,7 +57,7 @@ class KafkaProducerRecordProcessorTest(
                 // Assert
                 verify(timeout = 1_000, atLeast = 1) { publisher.publishStoredRecords(any()) }
             } finally {
-                processor.close()
+                processor.closeAndAwait()
                 verify(timeout = 1_000) { publisher.close() }
             }
 

@@ -12,119 +12,94 @@ import no.nav.common.kafka.consumer.feilhandtering.util.KafkaConsumerRecordProce
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers.stringDeserializer
 import no.nav.common.kafka.spring.PostgresJdbcTemplateConsumerRepository
-import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.event.ContextRefreshedEvent
-import org.springframework.context.event.EventListener
 import org.springframework.jdbc.core.JdbcTemplate
 import java.util.function.Consumer
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true", matchIfMissing = true)
 class KafkaConfiguration(
     kafkaTopicProperties: KafkaTopicProperties,
-    kafkaProperties: KafkaProperties,
-    jdbcTemplate: JdbcTemplate,
+    private val kafkaProperties: KafkaProperties,
+    private val jdbcTemplate: JdbcTemplate,
     arenaAclIngestor: ArenaAclIngestor,
     gjennomforingIngestor: GjennomforingIngestor,
     arrangorIngestor: AmtArrangorIngestor,
     ansattIngestor: AnsattIngestor,
     navAnsattIngestor: NavAnsattIngestor,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
-    private var client: KafkaConsumerClient
-    private var consumerRepository = PostgresJdbcTemplateConsumerRepository(jdbcTemplate)
-    private var consumerRecordProcessor: KafkaConsumerRecordProcessor
+    private val consumerRepository = PostgresJdbcTemplateConsumerRepository(jdbcTemplate)
 
-    init {
-        val topicConfigs = mutableListOf<KafkaConsumerClientBuilder.TopicConfig<String, out Any>>()
+    private val topicConfigs = listOf<KafkaConsumerClientBuilder.TopicConfig<String, out Any>>(
+        KafkaConsumerClientBuilder
+            .TopicConfig<String, String>()
+            .withLogging()
+            .withStoreOnFailure(consumerRepository)
+            .withConsumerConfig(
+                kafkaTopicProperties.amtTiltakTopic,
+                stringDeserializer(),
+                stringDeserializer(),
+                Consumer { arenaAclIngestor.ingestKafkaRecord(it.value()) },
+            ),
+        KafkaConsumerClientBuilder
+            .TopicConfig<String, String>()
+            .withLogging()
+            .withStoreOnFailure(consumerRepository)
+            .withConsumerConfig(
+                kafkaTopicProperties.sisteTiltaksgjennomforingerTopic,
+                stringDeserializer(),
+                stringDeserializer(),
+                Consumer { gjennomforingIngestor.ingestKafkaRecord(it.key(), it.value()) },
+            ),
+        KafkaConsumerClientBuilder
+            .TopicConfig<String, String>()
+            .withLogging()
+            .withStoreOnFailure(consumerRepository)
+            .withConsumerConfig(
+                kafkaTopicProperties.amtArrangorTopic,
+                stringDeserializer(),
+                stringDeserializer(),
+                Consumer { arrangorIngestor.ingestArrangor(it.value()) },
+            ),
+        KafkaConsumerClientBuilder
+            .TopicConfig<String, String>()
+            .withLogging()
+            .withStoreOnFailure(consumerRepository)
+            .withConsumerConfig(
+                kafkaTopicProperties.amtArrangorAnsattTopic,
+                stringDeserializer(),
+                stringDeserializer(),
+                Consumer { ansattIngestor.ingestAnsatt(it.value()) },
+            ),
+        KafkaConsumerClientBuilder
+            .TopicConfig<String, String>()
+            .withLogging()
+            .withStoreOnFailure(consumerRepository)
+            .withConsumerConfig(
+                kafkaTopicProperties.amtNavAnsattPersonaliaTopic,
+                stringDeserializer(),
+                stringDeserializer(),
+                Consumer { navAnsattIngestor.ingest(it.value()) },
+            ),
+    )
 
-        topicConfigs.add(
-            KafkaConsumerClientBuilder
-                .TopicConfig<String, String>()
-                .withLogging()
-                .withStoreOnFailure(consumerRepository)
-                .withConsumerConfig(
-                    kafkaTopicProperties.amtTiltakTopic,
-                    stringDeserializer(),
-                    stringDeserializer(),
-                    Consumer { arenaAclIngestor.ingestKafkaRecord(it.value()) },
-                ),
-        )
+    @Bean(destroyMethod = "close")
+    fun kafkaConsumerRecordProcessor(): KafkaConsumerRecordProcessor = KafkaConsumerRecordProcessorBuilder
+        .builder()
+        .withRecordBatchSize(2000)
+        .withLockProvider(JdbcTemplateLockProvider(jdbcTemplate))
+        .withKafkaConsumerRepository(consumerRepository)
+        .withConsumerConfigs(topicConfigs.map { it.consumerConfig })
+        .withShutdownHookEnabled(false)
+        .build()
 
-        topicConfigs.add(
-            KafkaConsumerClientBuilder
-                .TopicConfig<String, String>()
-                .withLogging()
-                .withStoreOnFailure(consumerRepository)
-                .withConsumerConfig(
-                    kafkaTopicProperties.sisteTiltaksgjennomforingerTopic,
-                    stringDeserializer(),
-                    stringDeserializer(),
-                    Consumer { gjennomforingIngestor.ingestKafkaRecord(it.key(), it.value()) },
-                ),
-        )
-
-        topicConfigs.add(
-            KafkaConsumerClientBuilder
-                .TopicConfig<String, String>()
-                .withLogging()
-                .withStoreOnFailure(consumerRepository)
-                .withConsumerConfig(
-                    kafkaTopicProperties.amtArrangorTopic,
-                    stringDeserializer(),
-                    stringDeserializer(),
-                    Consumer { arrangorIngestor.ingestArrangor(it.value()) },
-                ),
-        )
-
-        topicConfigs.add(
-            KafkaConsumerClientBuilder
-                .TopicConfig<String, String>()
-                .withLogging()
-                .withStoreOnFailure(consumerRepository)
-                .withConsumerConfig(
-                    kafkaTopicProperties.amtArrangorAnsattTopic,
-                    stringDeserializer(),
-                    stringDeserializer(),
-                    Consumer { ansattIngestor.ingestAnsatt(it.value()) },
-                ),
-        )
-        topicConfigs.add(
-            KafkaConsumerClientBuilder
-                .TopicConfig<String, String>()
-                .withLogging()
-                .withStoreOnFailure(consumerRepository)
-                .withConsumerConfig(
-                    kafkaTopicProperties.amtNavAnsattPersonaliaTopic,
-                    stringDeserializer(),
-                    stringDeserializer(),
-                    Consumer { navAnsattIngestor.ingest(it.value()) },
-                ),
-        )
-
-        consumerRecordProcessor =
-            KafkaConsumerRecordProcessorBuilder
-                .builder()
-                .withRecordBatchSize(2000)
-                .withLockProvider(JdbcTemplateLockProvider(jdbcTemplate))
-                .withKafkaConsumerRepository(consumerRepository)
-                .withConsumerConfigs(topicConfigs.map { it.consumerConfig })
-                .build()
-
-        client =
-            KafkaConsumerClientBuilder
-                .builder()
-                .withProperties(kafkaProperties.consumer())
-                .withTopicConfigs(topicConfigs.toList())
-                .build()
-    }
-
-    @EventListener(ContextRefreshedEvent::class)
-    fun onApplicationEvent() {
-        log.info("Starting kafka consumer and stored record processor...")
-        client.start()
-        consumerRecordProcessor.start()
-    }
+    @Bean(destroyMethod = "close")
+    fun kafkaConsumerClient(): KafkaConsumerClient = KafkaConsumerClientBuilder
+        .builder()
+        .withProperties(kafkaProperties.consumer())
+        .withTopicConfigs(topicConfigs)
+        .withShutdownHookEnabled(false)
+        .build()
 }
