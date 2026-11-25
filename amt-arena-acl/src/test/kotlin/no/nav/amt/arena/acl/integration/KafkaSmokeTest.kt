@@ -21,6 +21,7 @@ import no.nav.amt.arena.acl.utils.ARENA_DELTAKER_TABLE_NAME
 import no.nav.amt.arena.acl.utils.ARENA_GJENNOMFORING_TABLE_NAME
 import no.nav.amt.arena.acl.utils.JsonUtils.objectMapper
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.common.kafka.producer.KafkaProducerClient
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -41,7 +42,7 @@ import kotlin.random.Random
 @TestPropertySource(properties = ["kafka.enabled=true"])
 @MockkSpyBean(types = [ArenaConsumerServiceTemp::class, ArenaMessageConsumerService::class])
 class KafkaSmokeTest(
-    private val messageSender: KafkaMessageSender,
+    kafkaProducer: KafkaProducerClient<String, String>,
     private val gjennomforingService: GjennomforingService,
     private val arenaDataRepository: ArenaDataRepository,
     private val producerService: KafkaProducerService,
@@ -52,6 +53,8 @@ class KafkaSmokeTest(
     @Value($$"${app.env.amtEnkeltplassDeltakerTopic}")
     private val outputTopic: String,
 ) : IntegrationTestBase() {
+    private val messageSender = KafkaMessageSender(kafkaTopicProperties, kafkaProducer)
+
     @Test
     fun `Kafka-melding blir behandlet av applikasjonen og lagret i PostgreSQL`() {
         val arenaId = Random.nextLong(1, Long.MAX_VALUE)

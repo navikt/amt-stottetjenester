@@ -1,16 +1,12 @@
 package no.nav.amt.arena.acl.integration.kafka
 
 import no.nav.amt.arena.acl.kafka.KafkaTopicProperties
-import no.nav.common.kafka.producer.KafkaProducerClientImpl
+import no.nav.common.kafka.producer.KafkaProducerClient
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.stereotype.Service
 
-@Service
-@ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true")
 class KafkaMessageSender(
     private val kafkaTopicProperties: KafkaTopicProperties,
-    private val kafkaProducer: KafkaProducerClientImpl<String, String>,
+    private val kafkaProducer: KafkaProducerClient<String, String>,
 ) {
     fun publiserArenaGjennomforing(
         arenaGjennomforingId: Long,
