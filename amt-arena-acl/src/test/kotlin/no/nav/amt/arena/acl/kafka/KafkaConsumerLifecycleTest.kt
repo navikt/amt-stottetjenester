@@ -23,11 +23,17 @@ class KafkaConsumerLifecycleTest {
 
     @Test
     fun `starter en gang og bekrefter lukking av begge klientene`() {
+        // Arrange
+        val runningBeforeStart = lifecycle.isRunning
+
+        // Act
         lifecycle.start()
         lifecycle.start()
         lifecycle.stop()
         lifecycle.stop()
 
+        // Assert
+        runningBeforeStart shouldBe false
         lifecycle.isRunning shouldBe false
         verifyOrder {
             client.start()
@@ -42,6 +48,7 @@ class KafkaConsumerLifecycleTest {
     @ParameterizedTest
     @ValueSource(booleans = [false, true])
     fun `lukker begge klientene og varsler Spring selv om lukking feiler`(sammeException: Boolean) {
+        // Arrange
         val failure = IllegalStateException("Simulert lukkefeil")
         val tempFailure = if (sammeException) failure else IllegalStateException("Simulert temp-lukkefeil")
         val callback = mockk<Runnable>(relaxUnitFun = true)
@@ -49,8 +56,11 @@ class KafkaConsumerLifecycleTest {
         every { tempClient.close() } throws tempFailure
         lifecycle.start()
 
-        shouldThrow<IllegalStateException> { lifecycle.stop(callback) } shouldBe failure
+        // Act
+        val thrown = shouldThrow<IllegalStateException> { lifecycle.stop(callback) }
 
+        // Assert
+        thrown shouldBe failure
         lifecycle.isRunning shouldBe false
         failure.suppressed.toList() shouldBe if (sammeException) emptyList() else listOf(tempFailure)
         verifyOrder {
@@ -62,10 +72,14 @@ class KafkaConsumerLifecycleTest {
 
     @Test
     fun `Spring lukker klienter som aldri ble startet`() {
-        context(autoStartup = false).use {
-            lifecycle.isRunning shouldBe false
-        }
+        // Arrange
+        val context = context(autoStartup = false)
 
+        // Act
+        val runningBeforeClose = context.use { lifecycle.isRunning }
+
+        // Assert
+        runningBeforeClose shouldBe false
         verify(exactly = 0) { client.start() }
         verify(exactly = 0) { tempClient.start() }
         verify(exactly = 1) { client.close() }
@@ -74,10 +88,14 @@ class KafkaConsumerLifecycleTest {
 
     @Test
     fun `Spring lukker Kafka i stoppfasen mens databasen er tilgjengelig`() {
-        context(autoStartup = true).use {
-            lifecycle.isRunning shouldBe true
-        }
+        // Arrange
+        val context = context(autoStartup = true)
 
+        // Act
+        val runningBeforeClose = context.use { lifecycle.isRunning }
+
+        // Assert
+        runningBeforeClose shouldBe true
         verifyOrder {
             client.start()
             tempClient.start()

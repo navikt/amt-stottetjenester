@@ -10,7 +10,7 @@ import no.nav.amt.tiltak.kafka.config.KafkaProperties
 import no.nav.amt.tiltak.test.database.data.TestDataRepository
 import no.nav.amt.tiltak.test.integration.utils.SingletonKafkaProvider
 import no.nav.common.kafka.producer.KafkaProducerClient
-import no.nav.common.kafka.producer.KafkaProducerClientImpl
+import no.nav.common.kafka.producer.util.KafkaProducerClientBuilder
 import org.apache.kafka.clients.producer.Callback
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
@@ -35,7 +35,11 @@ class IntegrationTestConfiguration {
     @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true")
     fun stringKafkaProducer(): KafkaProducerClient<String, String> {
         val properties = SingletonKafkaProvider.getKafkaProperties(StringSerializer(), StringSerializer()).producer()
-        return KafkaProducerClientImpl(properties, false)
+        return KafkaProducerClientBuilder
+            .builder<String, String>()
+            .withProperties(properties)
+            .withShutdownHookEnabled(false)
+            .build()
     }
 
     @Bean

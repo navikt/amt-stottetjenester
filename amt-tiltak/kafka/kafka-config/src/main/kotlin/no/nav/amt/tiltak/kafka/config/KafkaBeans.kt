@@ -1,7 +1,7 @@
 package no.nav.amt.tiltak.kafka.config
 
 import no.nav.common.kafka.producer.KafkaProducerClient
-import no.nav.common.kafka.producer.KafkaProducerClientImpl
+import no.nav.common.kafka.producer.util.KafkaProducerClientBuilder
 import no.nav.common.kafka.util.KafkaPropertiesBuilder
 import no.nav.common.kafka.util.KafkaPropertiesPreset
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import java.util.Properties
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(KafkaTopicProperties::class)
 class KafkaBeans {
     @Bean
@@ -46,14 +46,21 @@ class KafkaBeans {
 
     @Bean(destroyMethod = "close")
     @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true", matchIfMissing = true)
-    fun kafkaProducer(kafkaProperties: KafkaProperties): KafkaProducerClient<ByteArray, ByteArray> =
-        KafkaProducerClientImpl(kafkaProperties.producer(), false)
+    fun kafkaProducer(kafkaProperties: KafkaProperties): KafkaProducerClient<ByteArray, ByteArray> = KafkaProducerClientBuilder
+        .builder<ByteArray, ByteArray>()
+        .withProperties(kafkaProperties.producer())
+        .withShutdownHookEnabled(false)
+        .build()
 
     @Bean(name = ["stringKafkaProducer"], destroyMethod = "close")
     @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true", matchIfMissing = true)
     @Profile("default")
     fun stringKafkaProducer(): KafkaProducerClient<String, String> {
         val properties = KafkaPropertiesPreset.aivenDefaultProducerProperties("amt-tiltak-producer-2")
-        return KafkaProducerClientImpl(properties, false)
+        return KafkaProducerClientBuilder
+            .builder<String, String>()
+            .withProperties(properties)
+            .withShutdownHookEnabled(false)
+            .build()
     }
 }

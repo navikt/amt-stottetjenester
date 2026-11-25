@@ -14,9 +14,15 @@ class KafkaOutboxLifecycleTest {
 
     @Test
     fun `bruker bekreftet lukking ved stopp`() {
+        // Arrange
+        val runningBeforeStart = lifecycle.isRunning
+
+        // Act
         lifecycle.start()
         lifecycle.stop()
 
+        // Assert
+        runningBeforeStart shouldBe false
         lifecycle.isRunning shouldBe false
         verifyOrder {
             processor.start()
@@ -26,12 +32,16 @@ class KafkaOutboxLifecycleTest {
 
     @Test
     fun `setter status til stoppet selv om lukking feiler`() {
+        // Arrange
         val failure = IllegalStateException("Simulert lukkefeil")
         every { processor.closeAndAwait() } throws failure
         lifecycle.start()
 
-        shouldThrow<IllegalStateException> { lifecycle.stop() } shouldBe failure
+        // Act
+        val thrown = shouldThrow<IllegalStateException> { lifecycle.stop() }
 
+        // Assert
+        thrown shouldBe failure
         lifecycle.isRunning shouldBe false
     }
 }

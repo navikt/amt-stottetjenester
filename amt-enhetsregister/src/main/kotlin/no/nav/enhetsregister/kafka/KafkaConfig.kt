@@ -1,6 +1,7 @@
 package no.nav.enhetsregister.kafka
 
-import no.nav.common.kafka.producer.KafkaProducerClientImpl
+import no.nav.common.kafka.producer.KafkaProducerClient
+import no.nav.common.kafka.producer.util.KafkaProducerClientBuilder
 import no.nav.common.kafka.util.KafkaPropertiesBuilder
 import no.nav.common.kafka.util.KafkaPropertiesPreset
 import org.apache.kafka.common.serialization.ByteArraySerializer
@@ -32,6 +33,10 @@ class KafkaConfig {
     }
 
     @Bean(destroyMethod = "close")
-    fun kafkaProducer(kafkaProducerProperties: KafkaProducerProperties) =
-        KafkaProducerClientImpl<ByteArray, ByteArray>(kafkaProducerProperties.producer(), false)
+    fun kafkaProducer(kafkaProducerProperties: KafkaProducerProperties): KafkaProducerClient<ByteArray, ByteArray> =
+        KafkaProducerClientBuilder
+            .builder<ByteArray, ByteArray>()
+            .withProperties(kafkaProducerProperties.producer())
+            .withShutdownHookEnabled(false)
+            .build()
 }

@@ -5,7 +5,8 @@ import no.nav.amt.arena.acl.services.ArenaMessageConsumerService
 import no.nav.common.kafka.consumer.KafkaConsumerClient
 import no.nav.common.kafka.consumer.util.KafkaConsumerClientBuilder
 import no.nav.common.kafka.consumer.util.deserializer.Deserializers.stringDeserializer
-import no.nav.common.kafka.producer.KafkaProducerClientImpl
+import no.nav.common.kafka.producer.KafkaProducerClient
+import no.nav.common.kafka.producer.util.KafkaProducerClientBuilder
 import no.nav.common.kafka.util.KafkaPropertiesBuilder
 import no.nav.common.kafka.util.KafkaPropertiesPreset
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
@@ -85,8 +86,11 @@ class KafkaConfiguration(
 
     @Bean(destroyMethod = "close")
     @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true", matchIfMissing = true)
-    fun kafkaProducer(kafkaProperties: KafkaProperties): KafkaProducerClientImpl<String, String> =
-        KafkaProducerClientImpl(kafkaProperties.producer(), false)
+    fun kafkaProducer(kafkaProperties: KafkaProperties): KafkaProducerClient<String, String> = KafkaProducerClientBuilder
+        .builder<String, String>()
+        .withProperties(kafkaProperties.producer())
+        .withShutdownHookEnabled(false)
+        .build()
 
     @Bean
     @Profile("default")

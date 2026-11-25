@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.jdbc.core.JdbcTemplate
 import java.util.function.Consumer
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = ["kafka.enabled"], havingValue = "true", matchIfMissing = true)
 class KafkaConfiguration(
     kafkaTopicProperties: KafkaTopicProperties,
