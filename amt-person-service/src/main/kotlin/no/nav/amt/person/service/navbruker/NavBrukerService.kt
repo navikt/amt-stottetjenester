@@ -27,6 +27,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.collections.plus
+import kotlin.collections.toSet
 
 @Service
 class NavBrukerService(
@@ -135,19 +137,18 @@ class NavBrukerService(
     }
 
     fun oppdaterOppfolgingsperiodeOgInnsatsgruppe(
-        navBrukerId: UUID,
+        navBruker: NavBrukerDbo,
         oppfolgingsperiode: Oppfolgingsperiode,
     ) {
-        val bruker = navBrukerRepository.get(navBrukerId)
-        val oppfolgingsperioder = bruker.oppfolgingsperioder
+        val oppfolgingsperioder = navBruker.oppfolgingsperioder
             .filterNot { it.id == oppfolgingsperiode.id }
             .plus(oppfolgingsperiode)
 
-        if (oppfolgingsperioder.toSet() != bruker.oppfolgingsperioder.toSet()) {
-            val oppdatertInnsatsgruppe = veilarbvedtaksstotteClient.hentInnsatsgruppe(bruker.person.personident)
+        if (oppfolgingsperioder.toSet() != navBruker.oppfolgingsperioder.toSet()) {
+            val oppdatertInnsatsgruppe = veilarbvedtaksstotteClient.hentInnsatsgruppe(navBruker.person.personident)
 
             upsert(
-                bruker.copy(
+                navBruker.copy(
                     oppfolgingsperioder = oppfolgingsperioder,
                     innsatsgruppe = oppdatertInnsatsgruppe,
                 ),

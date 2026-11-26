@@ -462,7 +462,7 @@ class NavBrukerServiceTest {
 
             every { navBrukerRepository.get(bruker.id) } returns bruker
 
-            sut.oppdaterOppfolgingsperiodeOgInnsatsgruppe(bruker.id, oppfolgingsperiode)
+            sut.oppdaterOppfolgingsperiodeOgInnsatsgruppe(bruker, oppfolgingsperiode)
 
             verify(exactly = 1) {
                 navBrukerRepository.upsert(
@@ -478,7 +478,7 @@ class NavBrukerServiceTest {
         fun `har eldre oppfolgingsperiode - lagrer`() {
             val oppfolgingsperiode = TestData.lagOppfolgingsperiode()
 
-            sut.oppdaterOppfolgingsperiodeOgInnsatsgruppe(brukerInTest.id, oppfolgingsperiode)
+            sut.oppdaterOppfolgingsperiodeOgInnsatsgruppe(brukerInTest, oppfolgingsperiode)
 
             verify(exactly = 1) {
                 navBrukerRepository.upsert(
@@ -501,7 +501,7 @@ class NavBrukerServiceTest {
         fun `har samme oppfolgingsperiode, annen sluttdato - oppdaterer`() {
             val oppfolgingsperiode = brukerInTest.oppfolgingsperioder.first().copy(sluttdato = null)
 
-            sut.oppdaterOppfolgingsperiodeOgInnsatsgruppe(brukerInTest.id, oppfolgingsperiode)
+            sut.oppdaterOppfolgingsperiodeOgInnsatsgruppe(brukerInTest, oppfolgingsperiode)
 
             verify(exactly = 1) {
                 navBrukerRepository.upsert(
@@ -522,7 +522,7 @@ class NavBrukerServiceTest {
         fun `har samme oppfolgingsperiode, ingen endring - oppdaterer ikke`() {
             val oppfolgingsperiode = brukerInTest.oppfolgingsperioder.first()
 
-            sut.oppdaterOppfolgingsperiodeOgInnsatsgruppe(brukerInTest.id, oppfolgingsperiode)
+            sut.oppdaterOppfolgingsperiodeOgInnsatsgruppe(brukerInTest, oppfolgingsperiode)
 
             verify(exactly = 0) {
                 navBrukerRepository.upsert(any())
