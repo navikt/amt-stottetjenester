@@ -1,5 +1,6 @@
 plugins {
     id("amt-spring-database-conventions")
+    id("amt-spring-test-conventions")
     id("org.jlleitschuh.gradle.ktlint")
 }
 
@@ -9,8 +10,8 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-restclient")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springframework.boot:spring-boot-starter-security-oauth2-client")
+    implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
 
     implementation(libs.amt.lib.models)
     implementation(libs.amt.lib.utils)
@@ -26,12 +27,6 @@ dependencies {
 
     implementation(libs.shedlock.spring)
     implementation(libs.shedlock.jdbc.template)
-
-    testImplementation("org.springframework.boot:spring-boot-resttestclient")
-    testImplementation("org.springframework.boot:spring-boot-restclient-test")
-    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
-    testImplementation(libs.mockk)
-    testImplementation(libs.springmockk)
 
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.amt.lib.testing)

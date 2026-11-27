@@ -1,5 +1,6 @@
 plugins {
     id("amt-kotlin-library-conventions")
+    id("amt-tiltak-test-conventions")
 }
 
 dependencies {
@@ -22,13 +23,10 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-validation")
     testImplementation(libs.mock.oauth2.server)
     testImplementation(libs.postgresql)
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation(project(":amt-tiltak:db-migrations"))
     testImplementation(project(":amt-tiltak:test:database"))
     testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation(libs.kotest.runner.junit5)
-    testImplementation(libs.kotest.assertions.core)
     testImplementation(project(":amt-tiltak:test:test-utils"))
-    testImplementation(libs.mockk)
 }
