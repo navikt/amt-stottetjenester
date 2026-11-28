@@ -1,37 +1,36 @@
 package no.nav.amt.altinn.acl
 
-import io.kotest.assertions.assertSoftly
-import io.kotest.matchers.shouldBe
 import no.nav.amt.altinn.acl.testutil.IntegrationTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.springframework.boot.resttestclient.TestRestTemplate
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate
-import org.springframework.boot.resttestclient.getForEntity
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.web.server.LocalManagementPort
-import org.springframework.http.HttpStatus
+import org.springframework.test.web.servlet.client.RestTestClient
 import org.springframework.web.util.UriComponentsBuilder
 
-@AutoConfigureTestRestTemplate
+@AutoConfigureRestTestClient
 class ActuatorTest(
     @LocalManagementPort private val managementPort: Int,
-    private val restTemplate: TestRestTemplate,
+    private val restTestClient: RestTestClient,
 ) : IntegrationTest() {
     @ParameterizedTest(name = "{0} probe skal returnere OK og status = UP")
     @ValueSource(strings = ["liveness", "readiness"])
-    fun `probe skal returnere OK og status UP`(probeName: String) {
+    fun probe_skal_returnere_OK_og_status_UP(probeName: String) {
         val uri = UriComponentsBuilder
             .fromUriString("http://localhost:{port}/actuator/health/{probeName}")
             .buildAndExpand(managementPort, probeName)
             .toUri()
 
-        val response = restTemplate.getForEntity<String>(uri)
+        val result = restTestClient
+            .get()
+            .uri(uri)
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody()
 
-        assertSoftly(response) {
-            statusCode shouldBe HttpStatus.OK
-            body shouldBe "{\"status\":\"UP\"}"
-        }
+        result.jsonPath("$.status").isEqualTo("UP")
     }
 
     @Test
@@ -41,8 +40,11 @@ class ActuatorTest(
             .buildAndExpand(managementPort)
             .toUri()
 
-        val response = restTemplate.getForEntity<String>(uri)
-
-        response.statusCode shouldBe HttpStatus.OK
+        restTestClient
+            .get()
+            .uri(uri)
+            .exchange()
+            .expectStatus()
+            .isOk
     }
 }

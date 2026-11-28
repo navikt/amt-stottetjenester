@@ -1,5 +1,6 @@
 plugins {
     id("amt-kotlin-library-conventions")
+    id("amt-tiltak-test-conventions")
 }
 
 dependencies {
@@ -14,7 +15,4 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter-jetty")
     api(libs.token.validation.spring)
     api(project(":amt-tiltak:data-publisher"))
-    testImplementation(libs.kotest.assertions.core)
-    testImplementation(libs.mockk)
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

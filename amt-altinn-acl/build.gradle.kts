@@ -1,5 +1,6 @@
 plugins {
     id("amt-spring-database-conventions")
+    id("amt-spring-test-conventions")
     id("org.jlleitschuh.gradle.ktlint")
 }
 
@@ -9,7 +10,7 @@ version = "0.0.1-SNAPSHOT"
 dependencies {
     // Spring Boot, HTTP-klient og sikkerhet
     implementation("org.springframework.boot:spring-boot-restclient")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
 
     // Applikasjonsfunksjoner og serialisering
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
@@ -19,13 +20,6 @@ dependencies {
     implementation(libs.amt.lib.spring.boot)
     implementation(libs.nav.common.rest)
     implementation(libs.nav.common.job)
-
-    // Spring Boot-teststøtte
-    testImplementation("org.springframework.boot:spring-boot-resttestclient")
-    testImplementation("org.springframework.boot:spring-boot-restclient-test")
-    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
-    testImplementation(libs.mockk)
-    testImplementation(libs.springmockk)
 
     // Assertions og coroutines i tester
     testImplementation(libs.kotest.assertions.core)

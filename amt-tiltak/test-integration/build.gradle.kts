@@ -1,5 +1,6 @@
 plugins {
     id("amt-kotlin-library-conventions")
+    id("amt-kafka-test-conventions")
 }
 
 dependencies {
@@ -35,22 +36,6 @@ dependencies {
     api(libs.mock.oauth2.server)
 }
 
-tasks.named<Test>("test") {
-    useJUnitPlatform {
-        excludeTags("kafka-smoke")
-    }
-}
-
-tasks.register<Test>("kafkaTest") {
-    group = "verification"
+tasks.named<Test>("kafkaTest") {
     description = "Runs amt-tiltak smoke tests against a real Kafka broker."
-    testClassesDirs = sourceSets["test"].output.classesDirs
-    classpath = sourceSets["test"].runtimeClasspath
-    dependsOn(tasks.named("testClasses"))
-    mustRunAfter(tasks.named("test"))
-    maxParallelForks = 1
-    jvmArgs("-Xshare:off", "-XX:+EnableDynamicAgentLoading")
-    useJUnitPlatform {
-        includeTags("kafka-smoke")
-    }
 }

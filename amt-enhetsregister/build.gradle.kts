@@ -1,5 +1,6 @@
 plugins {
     id("amt-spring-database-conventions")
+    id("amt-spring-test-conventions")
 }
 
 group = "no.nav.amt_enhetsregister"
@@ -12,7 +13,7 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-restclient")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
 
     implementation(libs.nav.common.job)
     implementation(libs.nav.common.rest)
@@ -23,12 +24,6 @@ dependencies {
 
     implementation(libs.shedlock.jdbc.template)
 
-    testImplementation("org.springframework.boot:spring-boot-resttestclient")
-    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
-    testImplementation(libs.mockk)
-    testImplementation(libs.springmockk)
-
-    testImplementation("org.springframework.boot:spring-boot-restclient-test")
     testImplementation("org.testcontainers:testcontainers-kafka")
 
     testImplementation(libs.mock.oauth2.server)

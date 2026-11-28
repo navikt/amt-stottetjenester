@@ -1,5 +1,6 @@
 plugins {
     id("amt-spring-database-conventions")
+    id("amt-kafka-test-conventions")
 }
 
 group = "no.nav.amt.arena-acl"
@@ -54,23 +55,9 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-kafka")
 }
 
-tasks.named<Test>("test") {
-    useJUnitPlatform {
-        excludeTags("kafka-smoke")
-    }
-}
-
-tasks.register<Test>("kafkaTest") {
-    group = "verification"
+tasks.named<Test>("kafkaTest") {
     description = "Runs amt-arena-acl smoke tests against a real Kafka broker."
-    testClassesDirs = sourceSets["test"].output.classesDirs
-    classpath = sourceSets["test"].runtimeClasspath
-    dependsOn(tasks.named("testClasses"))
-    mustRunAfter(tasks.named("test"))
-    maxParallelForks = 1
-    jvmArgs("-Xshare:off", "-XX:+EnableDynamicAgentLoading")
     useJUnitPlatform {
         includeEngines("junit-jupiter")
-        includeTags("kafka-smoke")
     }
 }

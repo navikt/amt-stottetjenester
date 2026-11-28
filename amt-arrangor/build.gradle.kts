@@ -1,5 +1,6 @@
 plugins {
     id("amt-spring-database-conventions")
+    id("amt-spring-test-conventions")
     id("org.jlleitschuh.gradle.ktlint")
 }
 
@@ -10,8 +11,8 @@ dependencies {
 
     // Utgående HTTP-kall og OAuth2 (TokenX/Azure AD client credentials)
     implementation("org.springframework.boot:spring-boot-restclient")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springframework.boot:spring-boot-starter-security-oauth2-client")
+    implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
 
     // Serialisering og Kotlin-coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
@@ -25,13 +26,6 @@ dependencies {
     implementation(libs.shedlock.jdbc.template)
     implementation(libs.amt.lib.utils)
     implementation(libs.amt.lib.spring.boot)
-
-    // Test – Spring Boot testoppsett (JDBC, RestClient, MVC)
-    testImplementation("org.springframework.boot:spring-boot-resttestclient")
-    testImplementation("org.springframework.boot:spring-boot-restclient-test")
-    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
-    testImplementation(libs.mockk)
-    testImplementation(libs.springmockk)
 
     // Test – autentisering og assertions
     testImplementation(libs.mock.oauth2.server)
